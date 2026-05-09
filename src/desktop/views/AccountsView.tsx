@@ -1,6 +1,6 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
-import { Download, CreditCard, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Download, CreditCard, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Card, Badge } from '../components/ui';
 import { usePortalLogic } from '../../hooks/usePortalLogic';
 import { FEES_LIST, TRANSACTIONS_DATA } from '../../data';
@@ -21,7 +21,15 @@ export function AccountsView({ portal }: { portal: ReturnType<typeof usePortalLo
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="p-5 flex flex-col justify-center">
             <p className="text-sm text-stone-500 font-medium mb-1">Current Balance</p>
-            <p className="text-3xl font-bold text-stone-900 dark:text-white">৳{TRANSACTIONS_DATA[0].balance.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-stone-900 dark:text-white">
+              {TRANSACTIONS_DATA[0].balance < 0 ? '-' : ''}৳{Math.abs(TRANSACTIONS_DATA[0].balance).toLocaleString()}
+            </p>
+            {TRANSACTIONS_DATA[0].balance > 0 && (
+              <p className="text-xs font-bold text-red-500 mt-2 flex items-start gap-1">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> 
+                <span>Overpaid - Can be refunded</span>
+              </p>
+            )}
           </Card>
           <Card className="p-5 flex flex-col justify-center">
             <p className="text-sm text-stone-500 font-medium mb-1">Total Billed</p>
@@ -32,7 +40,7 @@ export function AccountsView({ portal }: { portal: ReturnType<typeof usePortalLo
             <p className="text-xl font-bold text-emerald-600">৳{totalCredit.toLocaleString()}</p>
           </Card>
           <Card className="p-5 flex flex-col justify-center gap-3">
-             <button className="flex items-center justify-center gap-2 w-full py-2 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 rounded-lg text-sm transition-colors">
+             <button onClick={() => window.print()} className="flex items-center justify-center gap-2 w-full py-2 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 rounded-lg text-sm transition-colors">
                <Download className="w-4 h-4" /> Download PDF
              </button>
           </Card>

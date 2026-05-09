@@ -4,7 +4,7 @@ import { Badge } from '../components/ui/Badge';
 import { useAppStore } from '../store';
 import { STUDENT_DATA, TRANSACTIONS_DATA } from '../data';
 import { AreaChart, Area, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
-import { TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { TrendingDown, TrendingUp, Wallet, AlertCircle } from 'lucide-react';
 
 export const StatementView: React.FC = () => {
   const { isDarkMode } = useAppStore();
@@ -51,7 +51,14 @@ export const StatementView: React.FC = () => {
          <div className="rounded-2xl p-5 shadow-lg border border-[#6b0f0f] dark:border-stone-700 bg-[#8c1515] dark:bg-stone-800 flex items-center justify-between text-white">
             <div>
                <p className="text-[11px] font-bold uppercase tracking-widest text-[#ffcfcf] dark:text-stone-400 mb-1">Current Dues</p>
-               <div className="text-2xl font-black">{Math.abs(student.accountBalance).toLocaleString()} <span className="text-sm font-bold opacity-80">Tk</span></div>
+               <div className="text-2xl font-black">
+                  {student.accountBalance > 0 ? `-${student.accountBalance.toLocaleString()}` : Math.abs(student.accountBalance).toLocaleString()} <span className="text-sm font-bold opacity-80">Tk</span>
+               </div>
+               {student.accountBalance > 0 && (
+                  <p className="text-xs font-bold text-red-300 mt-1 flex items-center gap-1">
+                     <AlertCircle className="w-3.5 h-3.5 shrink-0" /> Overpaid - Can be refunded
+                  </p>
+               )}
             </div>
             <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
                <Wallet className="w-5 h-5 text-white" />

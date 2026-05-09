@@ -12,6 +12,16 @@ import {
   SCHEDULE_DATA, TRANSACTIONS_DATA, TEACHERS_DATA, FEES_LIST,
   Course
 } from './data';
+import { ScheduleWeeklyView } from './desktop/views/ScheduleWeeklyView';
+import { DegreeAuditView } from './desktop/views/DegreeAuditView';
+import { GradesView } from './desktop/views/GradesView';
+import { ExamsView } from './desktop/views/ExamsView';
+import { AttendanceView } from './desktop/views/AttendanceView';
+import { FacultyEvalView } from './desktop/views/FacultyEvalView';
+import { LibraryView } from './desktop/views/LibraryView';
+import { ClubsView } from './desktop/views/ClubsView';
+import { AdvisingView } from './desktop/views/AdvisingView';
+import { FinancialAidView } from './desktop/views/FinancialAidView';
 
 type NavItem = {
   id: string;
@@ -25,7 +35,8 @@ const navItems: NavItem[] = [
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'accounts', label: 'Accounts', icon: Wallet, subItems: [
     { id: 'bank-slips', label: 'Bank Slips' },
-    { id: 'statement', label: 'Statement of Account' }
+    { id: 'statement', label: 'Statement of Account' },
+    { id: 'financial-aid', label: 'Financial Aid' }
   ]},
   { id: 'courses', label: 'Courses', icon: BookOpen, subItems: [
     { id: 'registered-courses', label: 'Registered Courses' },
@@ -34,6 +45,18 @@ const navItems: NavItem[] = [
   ]},
   { id: 'schedule', label: 'Schedule', icon: Calendar, subItems: [
     { id: 'class-schedule', label: 'Class Schedule' }
+  ]},
+  { id: 'academics', label: 'Academics', icon: GraduationCap, subItems: [
+    { id: 'degree-audit', label: 'Degree Audit' },
+    { id: 'transcript', label: 'Grades & Transcript' },
+    { id: 'exam-routine', label: 'Exam Routine' },
+    { id: 'attendance', label: 'Attendance' },
+    { id: 'faculty-evaluation', label: 'Faculty Evaluation' },
+  ]},
+  { id: 'campus-life', label: 'Campus Life', icon: MapPin, subItems: [
+    { id: 'library', label: 'Library' },
+    { id: 'clubs', label: 'Clubs & Events' },
+    { id: 'advising', label: 'Advising' },
   ]},
   { id: 'teachers', label: 'Related Teachers', icon: Users },
 ];
@@ -127,13 +150,9 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
           {!isSidebarCollapsed ? (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-3">
               <img src="https://wsrv.nl/?url=http://www.sims.pu.edu.bd/img/layout/header_logo.png&output=webp" alt="PU" className="h-10 w-auto object-contain shrink-0 dark:brightness-200 dark:grayscale" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-              <div className="min-w-0">
-                <h1 className="font-bold text-stone-900 dark:text-white leading-none text-lg">Presidency</h1>
-                <p className="text-[10px] uppercase tracking-widest text-[#8c1515] dark:text-[#ef4444] font-bold mt-0.5">University</p>
-              </div>
             </motion.div>
           ) : (
-            <img src="https://wsrv.nl/?url=http://www.sims.pu.edu.bd/img/layout/header_logo.png&output=webp" alt="PU" className="h-8 w-auto object-contain shrink-0 dark:brightness-200 dark:grayscale" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+            <img src="https://wsrv.nl/?url=http://www.sims.pu.edu.bd/img/layout/header_logo.png&output=webp" alt="PU" className="h-10 w-auto object-contain shrink-0 dark:brightness-200 dark:grayscale" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
           )}
           
           <button 
@@ -323,8 +342,14 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                       </div>
                       <div className="text-stone-500 dark:text-stone-400 text-xs font-bold uppercase tracking-wider mb-1">Balance</div>
                       <div className={`text-2xl md:text-3xl font-extrabold tracking-tight ${student.accountBalance < 0 ? 'text-[#8c1515] dark:text-[#ef4444]' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                        {Math.abs(student.accountBalance).toLocaleString()} <span className="text-base font-semibold opacity-50 tracking-normal">Tk</span>
+                        {student.accountBalance > 0 ? '-' : ''}{Math.abs(student.accountBalance).toLocaleString()} <span className="text-base font-semibold opacity-50 tracking-normal">Tk</span>
                       </div>
+                      {student.accountBalance > 0 && (
+                        <p className="text-xs font-bold text-red-500 mt-2 flex items-start gap-1">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> 
+                          <span>Overpaid - Can be refunded</span>
+                        </p>
+                      )}
                     </Card>
                   </div>
 
@@ -647,6 +672,13 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                                     <div className="text-[10px] bg-stone-100 dark:bg-stone-800 px-2 py-1 rounded font-bold whitespace-nowrap">
                                        ({c.credits.toFixed(2)} x {bundle.labs.map((l: any) => l.credits.toFixed(2)).join(' x ')}) Cr
                                     </div>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); setSelectedSyllabusCourse(c); }}
+                                      className="p-1.5 text-stone-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800"
+                                      title="View Syllabus"
+                                    >
+                                      <FileText className="w-4 h-4" />
+                                    </button>
                                     <button 
                                       onClick={() => handleDropCourse(c.code)} 
                                       disabled={isSelectionLocked} 
@@ -674,13 +706,22 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                                      <span>Sec: <span className="font-bold text-stone-700 dark:text-stone-300">{c.section}</span></span>
                                      <span className="truncate max-w-[120px]" title={c.faculty}>Prof: <span className="font-bold text-stone-700 dark:text-stone-300">{c.faculty}</span></span>
                                   </div>
-                                  <button 
-                                    onClick={() => handleDropCourse(c.code)} 
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); setSelectedSyllabusCourse(c); }}
+                                      className="p-1.5 text-stone-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800"
+                                      title="View Syllabus"
+                                    >
+                                      <FileText className="w-4 h-4" />
+                                    </button>
+                                    <button 
+                                      onClick={() => handleDropCourse(c.code)} 
                                     disabled={isSelectionLocked} 
                                     className={`px-4 py-1.5 text-xs font-bold rounded-lg border transition-colors shrink-0 ${isSelectionLocked ? 'bg-stone-50 dark:bg-stone-900 text-stone-400 border-stone-200 dark:border-stone-800 cursor-not-allowed' : 'bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50 hover:bg-red-100 dark:hover:bg-red-900/50'}`}
                                   >
                                     Drop
                                   </button>
+                                  </div>
                                </div>
                             </Card>
                           );
@@ -1270,7 +1311,14 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                       <div className="rounded-xl p-5 shadow-lg border border-[#6b0f0f] dark:border-stone-700 bg-[#8c1515] dark:bg-stone-800 flex items-center justify-between text-white">
                          <div>
                             <p className="text-[11px] font-bold uppercase tracking-widest text-[#ffcfcf] dark:text-stone-400 mb-1">Current Dues</p>
-                            <div className="text-2xl font-black">{Math.abs(student.accountBalance).toLocaleString()} <span className="text-sm font-bold opacity-80">Tk</span></div>
+                            <div className="text-2xl font-black">
+                               {student.accountBalance > 0 ? `-${student.accountBalance.toLocaleString()}` : Math.abs(student.accountBalance).toLocaleString()} <span className="text-sm font-bold opacity-80">Tk</span>
+                            </div>
+                            {student.accountBalance > 0 && (
+                               <p className="text-xs font-bold text-red-300 mt-1 flex items-center gap-1">
+                                  <AlertCircle className="w-3.5 h-3.5" /> Overpaid - Can be refunded
+                               </p>
+                            )}
                          </div>
                          <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
                             <Wallet className="w-5 h-5 text-white" />
@@ -1613,6 +1661,21 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                   </Card>
                 </div>
               )}
+
+              {/* === ACADEMICS TAB === */}
+              {activeTab === 'degree-audit' && <DegreeAuditView />}
+              {activeTab === 'transcript' && <GradesView />}
+              {activeTab === 'exam-routine' && <ExamsView />}
+              {activeTab === 'attendance' && <AttendanceView />}
+              {activeTab === 'faculty-evaluation' && <FacultyEvalView />}
+
+              {/* === CAMPUS LIFE TAB === */}
+              {activeTab === 'library' && <LibraryView />}
+              {activeTab === 'clubs' && <ClubsView />}
+              {activeTab === 'advising' && <AdvisingView />}
+
+              {/* === FINANCIAL AID === */}
+              {activeTab === 'financial-aid' && <FinancialAidView />}
 
             </motion.div>
           </AnimatePresence>

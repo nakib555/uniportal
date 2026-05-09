@@ -41,9 +41,9 @@ export const useAppStore = create<AppState>((set) => ({
   activeTab: "home",
   setActiveTab: (tab) => set({ activeTab: tab }),
   
-  expandedMenus: { courses: true, accounts: false, schedule: false },
+  expandedMenus: { courses: true },
   toggleMenu: (id) => set((state) => ({ 
-    expandedMenus: { ...state.expandedMenus, [id]: !state.expandedMenus[id] } 
+    expandedMenus: { [id]: !state.expandedMenus[id] } 
   })),
   
   isSidebarCollapsed: false,
@@ -55,7 +55,7 @@ export const useAppStore = create<AppState>((set) => ({
   is24HourFormat: false,
   setIs24HourFormat: (v) => set({ is24HourFormat: v }),
 
-  isDarkMode: false,
+  isDarkMode: localStorage.getItem('pu-theme') === 'dark' || (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && !localStorage.getItem('pu-theme')),
   setIsDarkMode: (v) => {
     set({ isDarkMode: v });
     if (v) document.documentElement.classList.add('dark');

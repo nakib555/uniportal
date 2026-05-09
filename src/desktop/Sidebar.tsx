@@ -29,14 +29,8 @@ export function Sidebar({ portal }: SidebarProps) {
         <img 
           src="https://wsrv.nl/?url=http://www.sims.pu.edu.bd/img/layout/header_logo.png&output=webp" 
           alt="PU" 
-          className="h-9 w-auto object-contain shrink-0 dark:brightness-200 dark:grayscale" 
+          className="h-10 w-auto object-contain shrink-0 dark:brightness-200 dark:grayscale" 
         />
-        {!isSidebarCollapsed && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-w-0">
-            <h1 className="font-bold text-stone-900 dark:text-white leading-none text-lg">Presidency</h1>
-            <p className="text-[10px] uppercase tracking-widest text-[#8c1515] dark:text-[#ef4444] font-bold mt-0.5">University</p>
-          </motion.div>
-        )}
       </div>
 
       <div className="flex-1 overflow-y-auto w-full py-4 px-3 flex flex-col gap-1 hide-scrollbar" data-lenis-prevent>

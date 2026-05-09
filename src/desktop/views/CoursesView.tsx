@@ -144,11 +144,17 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
                         <Badge variant="success">Confirmed</Badge>
                       </div>
                     </div>
-                    <div className="border-t border-stone-100 dark:border-stone-800 p-4 bg-stone-50 dark:bg-stone-800/30">
+                    <div className="border-t border-stone-100 dark:border-stone-800 p-4 bg-stone-50 dark:bg-stone-800/30 flex gap-2">
+			<button 
+			onClick={() => setSelectedSyllabusCourse(course)}
+			className="px-4 py-2 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 rounded-lg text-sm font-medium hover:bg-stone-50 transition-colors"
+			>
+			<Info className="w-4 h-4" />
+			</button>
                       <button 
                         onClick={() => handleDropCourse(course.code)}
                         disabled={isSelectionLocked}
-                        className="w-full py-2 flex items-center justify-center gap-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 py-2 flex items-center justify-center gap-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <AlertCircle className="w-4 h-4" /> Drop {bundle.totalCredits.toFixed(2)} Cr Bundle
                       </button>
@@ -171,11 +177,17 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
                       <Badge variant="success">Confirmed</Badge>
                     </div>
                   </div>
-                  <div className="border-t border-stone-100 dark:border-stone-800 p-4 bg-stone-50 dark:bg-stone-800/30">
+                  <div className="border-t border-stone-100 dark:border-stone-800 p-4 bg-stone-50 dark:bg-stone-800/30 flex gap-2">
+		    <button 
+			onClick={() => setSelectedSyllabusCourse(course)}
+			className="px-4 py-2 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 rounded-lg text-sm font-medium hover:bg-stone-50 transition-colors"
+			>
+			<Info className="w-4 h-4" />
+		    </button>
                     <button 
                       onClick={() => handleDropCourse(course.code)}
                       disabled={isSelectionLocked}
-                      className="w-full py-2 flex items-center justify-center gap-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 py-2 flex items-center justify-center gap-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <AlertCircle className="w-4 h-4" /> Drop Course
                     </button>

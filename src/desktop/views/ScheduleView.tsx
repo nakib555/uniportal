@@ -58,6 +58,10 @@ export function ScheduleView({ portal }: { portal: ReturnType<typeof usePortalLo
 
         <div className="flex-1" />
         
+        <button onClick={() => window.print()} className="flex items-center justify-center gap-2 px-4 py-2 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 rounded-xl text-sm font-medium transition-colors">
+          <Calendar className="w-4 h-4" /> Print PDF
+        </button>
+        
         <label className="flex items-center gap-3 cursor-pointer select-none bg-stone-50 dark:bg-stone-800/50 px-4 py-2 rounded-xl border border-stone-100 dark:border-stone-800">
            <span className="text-sm font-medium text-stone-600 dark:text-stone-300">24h format</span>
            <div className="relative">
