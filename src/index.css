@@ -142,4 +142,14 @@
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-stone-400;
   }
+
+  .scrollbar-hide::-webkit-scrollbar,
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide,
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }

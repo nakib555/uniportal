@@ -78,8 +78,6 @@ const Badge: React.FC<{ children: React.ReactNode, variant?: "default" | "succes
   );
 };
 
-import { ReactLenis } from 'lenis/react';
-
 import { useAppStore } from './store';
 
 import { usePortalLogic } from './hooks/usePortalLogic';
@@ -106,8 +104,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                     navItems.flatMap(n => n.subItems || []).find(s => s.id === activeTab)?.label;
 
   return (
-    <ReactLenis root>
-      <div className="min-h-screen bg-[#f9fafb] dark:bg-stone-950 font-sans selection:bg-[#8c1515]/20 text-stone-900 dark:text-stone-100 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-[#f9fafb] dark:bg-stone-950 font-sans selection:bg-[#8c1515]/20 text-stone-900 dark:text-stone-100 flex flex-col md:flex-row">
       
       {/* Overlay for mobile */}
       <AnimatePresence>
@@ -1802,6 +1799,5 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
       </AnimatePresence>
 
     </div>
-    </ReactLenis>
   );
 }

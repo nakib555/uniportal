@@ -39,7 +39,7 @@ export function Sidebar({ portal }: SidebarProps) {
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto w-full py-4 px-3 flex flex-col gap-1 hide-scrollbar">
+      <div className="flex-1 overflow-y-auto w-full py-4 px-3 flex flex-col gap-1 hide-scrollbar" data-lenis-prevent>
         {navItems.map((item) => {
           const isActive = activeTab === item.id || (item.subItems && item.subItems.some(s => s.id === activeTab));
           const isExpanded = expandedMenus[item.id];

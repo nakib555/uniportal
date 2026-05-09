@@ -34,7 +34,7 @@ export function DesktopLayout(portal: ReturnType<typeof usePortalLogic>) {
       <Sidebar portal={portal} />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <TopNav portal={portal} />
-        <main className="flex-1 overflow-y-auto p-8 hide-scrollbar">
+        <main className="flex-1 overflow-y-auto p-8 hide-scrollbar" data-lenis-prevent>
           <div className="max-w-[1400px] mx-auto">
             {renderContent()}
           </div>
