@@ -28,22 +28,41 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
           <div className="flex items-center gap-4">
             <div className="px-4 py-2 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl shadow-sm flex items-center gap-3">
               <span className="text-sm text-stone-500">Total Credits:</span>
-              <span className={`font-bold text-lg ${totalCredits > 18 ? 'text-amber-600' : 'text-emerald-600'}`}>
-                {totalCredits} <span className="text-sm font-normal text-stone-500">/ 21</span>
+              <span className={`font-bold text-lg ${totalCredits < 9 ? 'text-red-600 dark:text-red-400' : totalCredits > 18 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                {totalCredits.toFixed(2)} <span className="text-sm font-normal text-stone-500">/ 21</span>
               </span>
             </div>
+            {totalCredits < 9 && (
+              <span className="text-sm font-bold text-red-600 dark:text-red-400 flex items-center">
+                <AlertCircle className="w-4 h-4 mr-1.5" /> Minimum 9 credits required.
+              </span>
+            )}
           </div>
           <button 
-            onClick={() => setIsSelectionLocked(!isSelectionLocked)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-              isSelectionLocked 
-                ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' 
-                : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+            onClick={() => {
+              if (!isSelectionLocked) {
+                portal.setIsConfirmRegistrationOpen(true);
+              }
+            }} 
+            disabled={isSelectionLocked || totalCredits < 9}
+            className={`px-8 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center gap-2 ${
+              isSelectionLocked || totalCredits < 9 
+                ? 'bg-stone-300 dark:bg-stone-700 text-white cursor-not-allowed' 
+                : 'bg-[#1f874c] text-white hover:bg-[#166639]'
             }`}
           >
-            {isSelectionLocked ? <><Lock className="w-4 h-4" /> Editing Locked</> : <><LockOpen className="w-4 h-4" /> Editing Allowed</>}
+            {isSelectionLocked ? <><Lock className="w-4 h-4" /> Registration Confirmed</> : 'Confirm Registration'}
           </button>
         </div>
+
+        {isSelectionLocked && (
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 flex gap-3 text-amber-800 dark:text-amber-400 mt-4">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <strong>Your subject selection for this semester is locked.</strong> You can no longer add or drop courses. If you need to make changes, please contact the registrar's office.
+            </div>
+          </div>
+        )}
 
         <AnimatePresence>
           {registerError && (
