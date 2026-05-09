@@ -1,0 +1,6 @@
+{
+  "name": "UniPortal",
+  "description": "University student portal with automated course enrollment and payment handling.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

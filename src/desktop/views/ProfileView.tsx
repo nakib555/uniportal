@@ -1,0 +1,90 @@
+import React from 'react';
+import { Camera, Mail, Phone, MapPin, KeyRound, Edit3 } from 'lucide-react';
+import { Card, Badge } from '../components/ui';
+import { usePortalLogic } from '../../hooks/usePortalLogic';
+
+export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLogic> }) {
+  const { student, profilePic, handleProfilePicUpload, fileInputRef } = portal;
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      <Card className="overflow-hidden">
+        <div className="h-32 bg-gradient-to-r from-[#8c1515] to-[#b31b1b] relative">
+          <div className="absolute -bottom-16 left-8 flex items-end gap-6">
+            <div className="relative group">
+              <img 
+                src={profilePic} 
+                alt={student.name}
+                className="w-32 h-32 rounded-2xl border-4 border-white dark:border-stone-900 object-cover bg-stone-100 shadow-md"
+              />
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center text-white"
+              >
+                <Camera className="w-8 h-8" />
+              </button>
+              <input type="file" ref={fileInputRef} onChange={handleProfilePicUpload} accept="image/*" className="hidden" />
+            </div>
+            <div className="mb-4 text-white drop-shadow-md">
+              <h1 className="text-3xl font-bold">{student.name}</h1>
+              <p className="opacity-90">{student.id}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="pt-24 pb-8 px-8 flex justify-between items-start">
+          <div className="flex gap-4">
+            <Badge variant="brand">{student.program}</Badge>
+            <Badge variant="outline">Batch {student.admissionSemester}</Badge>
+            <Badge variant="success">{student.status}</Badge>
+          </div>
+          <button className="flex items-center gap-2 text-sm font-medium text-stone-600 dark:text-stone-300 hover:text-stone-900 bg-stone-100 dark:bg-stone-800 px-4 py-2 rounded-lg transition-colors">
+            <Edit3 className="w-4 h-4" /> Edit Profile
+          </button>
+        </div>
+      </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="p-6">
+          <h3 className="font-semibold text-lg mb-6 border-b border-stone-100 dark:border-stone-800 pb-4">Contact Information</h3>
+          <div className="space-y-4">
+            <div className="flex items-start gap-4">
+              <div className="p-2.5 bg-sky-50 dark:bg-sky-900/30 text-sky-600 rounded-lg shrink-0">
+                <Mail className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-stone-900 dark:text-stone-100">{student.email}</p>
+                <p className="text-xs text-stone-500">University Email</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="p-2.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 rounded-lg shrink-0">
+                <Phone className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-stone-900 dark:text-stone-100">+880 17XXXXXXXX</p>
+                <p className="text-xs text-stone-500">Mobile Number</p>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="font-semibold text-lg mb-6 border-b border-stone-100 dark:border-stone-800 pb-4">Security</h3>
+          <div className="space-y-4">
+            <div className="flex items-start gap-4">
+              <div className="p-2.5 bg-amber-50 dark:bg-amber-900/30 text-amber-600 rounded-lg shrink-0">
+                <KeyRound className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-stone-900 dark:text-stone-100">Password</p>
+                <p className="text-xs text-stone-500 mb-2">Last changed 3 months ago</p>
+                <button className="text-xs font-semibold text-[#8c1515] hover:underline">Change Password</button>
+              </div>
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
