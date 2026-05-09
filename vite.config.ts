@@ -9,26 +9,10 @@ export default defineConfig(({mode}) => {
     build: {
       target: 'esnext',
       minify: 'esbuild',
-      cssMinify: true,
-      rollupOptions: {
-        output: {
-          manualChunks(id) {
-            if (id.includes('node_modules')) {
-              if (id.includes('react')) return 'vendor-react';
-              if (id.includes('recharts') || id.includes('d3')) return 'vendor-charts';
-              if (id.includes('motion')) return 'vendor-motion';
-              return 'vendor';
-            }
-          }
-        }
-      }
+      cssMinify: true
     },
     plugins: [
-      react({
-        babel: {
-          plugins: [['babel-plugin-react-compiler']],
-        },
-      }),
+      react(),
       tailwindcss()
     ],
     define: {

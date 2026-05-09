@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Course } from './data';
+import { Course, REGISTERED_COURSES, COMPLETED_COURSES } from './data';
 
 interface AppState {
   // Navigation
@@ -17,6 +17,14 @@ interface AppState {
   setIs24HourFormat: (v: boolean) => void;
   isDarkMode: boolean;
   setIsDarkMode: (v: boolean) => void;
+  
+  // Profile
+  profilePic: string;
+  setProfilePic: (v: string) => void;
+
+  // Enrollment
+  isSelectionLocked: boolean;
+  setIsSelectionLocked: (v: boolean) => void;
   
   // Courses Data
   registeredCourses: Course[];
@@ -55,10 +63,16 @@ export const useAppStore = create<AppState>((set) => ({
     localStorage.setItem('pu-theme', v ? 'dark' : 'light');
   },
 
-  registeredCourses: [],
+  profilePic: `https://wsrv.nl/?url=http://www.sims.pu.edu.bd/students/studentPhoto&output=webp`,
+  setProfilePic: (v) => set({ profilePic: v }),
+
+  isSelectionLocked: false,
+  setIsSelectionLocked: (v) => set({ isSelectionLocked: v }),
+
+  registeredCourses: REGISTERED_COURSES,
   setRegisteredCourses: (courses) => set({ registeredCourses: courses }),
 
-  completedCourses: [],
+  completedCourses: COMPLETED_COURSES,
   setCompletedCourses: (courses) => set({ completedCourses: courses }),
 
   selectedSyllabusCourse: null,

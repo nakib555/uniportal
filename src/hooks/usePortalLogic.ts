@@ -15,8 +15,14 @@ export type NavItem = {
 export const usePortalLogic = () => {
   const store = useAppStore();
   
-  const [is24HourFormat, setIs24HourFormat] = useState(false);
-  const [profilePic, setProfilePic] = useState(`https://wsrv.nl/?url=http://www.sims.pu.edu.bd/students/studentPhoto&output=webp`);
+  const { 
+    is24HourFormat, setIs24HourFormat, 
+    profilePic, setProfilePic, 
+    isSelectionLocked, setIsSelectionLocked,
+    registeredCourses, setRegisteredCourses,
+    completedCourses, setCompletedCourses
+  } = store;
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   useEffect(() => {
@@ -45,10 +51,7 @@ export const usePortalLogic = () => {
     }
   };
   
-  const [registeredCourses, setRegisteredCourses] = useState<Course[]>(REGISTERED_COURSES);
-  const [completedCourses] = useState<Course[]>(COMPLETED_COURSES);
   const [registerError, setRegisterError] = useState<string | null>(null);
-  const [isSelectionLocked, setIsSelectionLocked] = useState(false);
   const [isConfirmRegistrationOpen, setIsConfirmRegistrationOpen] = useState(false);
   const [pendingCoreqCourse, setPendingCoreqCourse] = useState<{main: Course, coreqs: Course[]} | null>(null);
   const [isCoreqModalOpen, setIsCoreqModalOpen] = useState(false);
