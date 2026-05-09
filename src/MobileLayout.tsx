@@ -4,7 +4,7 @@ import {
   Home, User, BookOpen, Calendar, Wallet, Users, Bell, 
   ChevronRight, ChevronLeft, ChevronDown, CheckCircle2,
   GraduationCap, Clock, MapPin, Menu, AlertCircle, BookMarked, Search, Moon, Sun, Camera,
-  TrendingDown, TrendingUp, FileText, X
+  TrendingDown, TrendingUp, FileText, X, Mail, Phone, KeyRound, Edit3
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { 
@@ -454,9 +454,14 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                {/* === PROFILE TAB === */}
               {activeTab === 'profile' && (
                 <div className="space-y-6 max-w-4xl">
-                  <header className="mb-6">
-                    <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">{pageTitle}</h2>
-                    <p className="text-stone-500 dark:text-stone-400 mt-1">Your academic and personal records.</p>
+                  <header className="mb-6 flex justify-between items-start">
+                    <div>
+                      <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">{pageTitle}</h2>
+                      <p className="text-stone-500 dark:text-stone-400 mt-1">Your academic and personal records.</p>
+                    </div>
+                    <button className="flex items-center gap-2 text-sm font-medium text-stone-600 dark:text-stone-300 hover:text-stone-900 bg-stone-100 dark:bg-stone-800 px-4 py-2 rounded-lg transition-colors">
+                      <Edit3 className="w-4 h-4" /> <span className="hidden sm:inline">Edit Profile</span>
+                    </button>
                   </header>
                   
                   <Card className="overflow-hidden">
@@ -480,8 +485,8 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                        <div>
                          <h3 className="text-2xl font-extrabold text-stone-900 dark:text-white tracking-tight">{student.name}</h3>
                          <div className="flex gap-2 items-center mt-2">
-                           <Badge variant="outline" className="font-mono bg-stone-50/50 dark:bg-stone-800/50">ID: {student.id}</Badge>
-                           <Badge variant="success" className="capitalize">{student.status}</Badge>
+                           <Badge variant="outline" className="font-mono bg-stone-50/50 dark:bg-stone-800/50 text-[11px] px-2">ID: {student.id}</Badge>
+                           <Badge variant="success" className="capitalize text-[11px] px-2">{student.status}</Badge>
                          </div>
                          
                          <div className="mt-8 space-y-4">
@@ -516,6 +521,48 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                        </div>
                     </div>
                   </Card>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card className="p-6">
+                      <h3 className="font-semibold text-lg mb-6 border-b border-stone-100 dark:border-stone-800 pb-4">Contact Information</h3>
+                      <div className="space-y-4">
+                        <div className="flex items-start gap-4">
+                          <div className="p-2.5 bg-sky-50 dark:bg-sky-900/30 text-sky-600 rounded-lg shrink-0">
+                            <Mail className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-stone-900 dark:text-stone-100">{student.email}</p>
+                            <p className="text-xs text-stone-500">University Email</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-4">
+                          <div className="p-2.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 rounded-lg shrink-0">
+                            <Phone className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-stone-900 dark:text-stone-100">+880 17XXXXXXXX</p>
+                            <p className="text-xs text-stone-500">Mobile Number</p>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+
+                    <Card className="p-6">
+                      <h3 className="font-semibold text-lg mb-6 border-b border-stone-100 dark:border-stone-800 pb-4">Security</h3>
+                      <div className="space-y-4">
+                        <div className="flex items-start gap-4">
+                          <div className="p-2.5 bg-amber-50 dark:bg-amber-900/30 text-amber-600 rounded-lg shrink-0">
+                            <KeyRound className="w-5 h-5" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-stone-900 dark:text-stone-100">Password</p>
+                            <p className="text-xs text-stone-500 mb-2">Last changed 3 months ago</p>
+                            <button className="text-xs font-semibold text-[#8c1515] hover:underline">Change Password</button>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
                 </div>
               )}
 

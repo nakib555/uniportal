@@ -45,6 +45,26 @@ export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLog
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="p-6 md:col-span-2 lg:col-span-1">
+          <h3 className="font-semibold text-lg mb-6 border-b border-stone-100 dark:border-stone-800 pb-4">Academic Progress</h3>
+          <div className="bg-stone-50 dark:bg-stone-900/50 p-5 rounded-2xl border border-stone-100 dark:border-stone-800 space-y-4">
+            <div>
+              <div className="flex justify-between items-end mb-1">
+                <span className="text-sm font-semibold text-stone-600 dark:text-stone-400">Credits Completed</span>
+                <span className="font-bold text-stone-900 dark:text-stone-100">{student.creditsCompleted} <span className="text-xs font-medium text-stone-400 dark:text-stone-500">/ 140</span></span>
+              </div>
+              <div className="w-full h-2 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
+                <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(student.creditsCompleted/140)*100}%`}}></div>
+              </div>
+            </div>
+            
+            <div className="pt-4 border-t border-stone-200 dark:border-stone-700 flex justify-between items-center">
+              <span className="text-sm font-semibold text-stone-600 dark:text-stone-400">Current CGPA</span>
+              <span className="text-2xl font-black text-stone-900 dark:text-white">{student.cgpa.toFixed(2)}</span>
+            </div>
+          </div>
+        </Card>
+
         <Card className="p-6">
           <h3 className="font-semibold text-lg mb-6 border-b border-stone-100 dark:border-stone-800 pb-4">Contact Information</h3>
           <div className="space-y-4">
