@@ -13,6 +13,7 @@ import {
   Course
 } from './data';
 import { ScheduleWeeklyView } from './desktop/views/ScheduleWeeklyView';
+import { ScheduleTable } from './components/ScheduleTable';
 import { DegreeAuditView } from './desktop/views/DegreeAuditView';
 import { GradesView } from './desktop/views/GradesView';
 import { ExamsView } from './desktop/views/ExamsView';
@@ -1496,10 +1497,6 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
               {activeTab === 'class-schedule' && (
                 <div className="space-y-6">
                   <div className="flex flex-col md:flex-row justify-between md:items-end gap-4">
-                     <header>
-                       <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">{pageTitle}</h2>
-                       <p className="text-stone-500 dark:text-stone-400 mt-1">View your class schedule for the running semester.</p>
-                     </header>
                      <div className="flex items-center gap-3">
                        <button 
                           onClick={() => setIs24HourFormat(!is24HourFormat)}
@@ -1574,35 +1571,43 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                                {classes.map((s, i) => (
                                   <div key={i} className="relative pl-8 group">
                                      {/* Timeline dot */}
-                                     <div className="absolute left-[11px] top-6 w-[10px] h-[10px] rounded-full bg-stone-300 dark:bg-stone-600 ring-4 ring-[#f9fafb] dark:ring-stone-950 group-hover:bg-[#8c1515] dark:group-hover:bg-[#ef4444] transition-colors" />
+                                     {s.courseCode !== '-' && (
+                                       <div className="absolute left-[11px] top-6 w-[10px] h-[10px] rounded-full bg-stone-300 dark:bg-stone-600 ring-4 ring-[#f9fafb] dark:ring-stone-950 group-hover:bg-[#8c1515] dark:group-hover:bg-[#ef4444] transition-colors z-10" />
+                                     )}
                                      
-                                     <Card className="p-4 sm:p-5 border-transparent group-hover:border-[#8c1515]/30 dark:group-hover:border-[#ef4444]/30 hover:shadow-lg hover:shadow-[#8c1515]/5 transition-all overflow-hidden relative border border-stone-200/50 dark:border-stone-800/80">
+                                     <Card className={`p-4 sm:p-5 border-transparent ${s.courseCode !== '-' ? 'group-hover:border-[#8c1515]/30 dark:group-hover:border-[#ef4444]/30 hover:shadow-lg hover:shadow-[#8c1515]/5' : 'opacity-70'} transition-all overflow-hidden relative border border-stone-200/50 dark:border-stone-800/80`}>
                                         {/* Accent line on the left of the card */}
-                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#8c1515] dark:bg-[#ef4444] opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        {s.courseCode !== '-' && (
+                                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#8c1515] dark:bg-[#ef4444] opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        )}
                                         
                                         <div className="flex items-center justify-between text-sm mb-3">
                                            <div className="font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5 text-xs sm:text-sm">
                                               <Clock className="w-3.5 h-3.5 text-stone-400" />
-                                              {formatTime(s.start, is24HourFormat)} <span className="text-stone-400 font-medium px-0.5">-</span> <span className="text-stone-500 font-medium">{formatTime(s.end, is24HourFormat)}</span>
+                                              {s.start !== '-' ? formatTime(s.start, is24HourFormat) : '-'} <span className="text-stone-400 font-medium px-0.5">-</span> <span className="text-stone-500 font-medium">{s.end !== '-' ? formatTime(s.end, is24HourFormat) : '-'}</span>
                                            </div>
                                         </div>
                                         
-                                        <h4 className="font-bold text-base sm:text-lg text-[#8c1515] dark:text-[#ef4444] mb-1 leading-tight">{s.courseCode}</h4>
+                                        <h4 className={`font-bold text-base sm:text-lg ${s.courseCode !== '-' ? 'text-[#8c1515] dark:text-[#ef4444]' : 'text-stone-500'} mb-1 leading-tight`}>{s.courseCode}</h4>
                                         <p className="text-xs sm:text-sm font-medium text-stone-700 dark:text-stone-300 mb-4 line-clamp-2">{s.title}</p>
                                         
-                                        <div className="flex flex-col gap-2 pt-3 border-t border-stone-100 dark:border-stone-800/80">
-                                           <div className="flex items-center gap-3">
-                                              <span className="flex items-center gap-1.5 text-xs font-medium text-stone-600 dark:text-stone-400">
-                                                 <MapPin className="w-3.5 h-3.5 text-stone-400" /> Room {s.room}
-                                              </span>
-                                              <span className="flex items-center gap-1.5 text-xs font-medium text-stone-600 dark:text-stone-400">
-                                                 <Users className="w-3.5 h-3.5 text-stone-400" /> {s.faculty || "TBA"}
-                                              </span>
-                                           </div>
-                                           <div className="flex items-center gap-1.5 text-xs font-medium text-stone-500 dark:text-stone-500">
-                                              Campus {s.campus}
-                                           </div>
-                                        </div>
+                                        {s.courseCode !== '-' && (
+                                          <div className="flex flex-col gap-2 pt-3 border-t border-stone-100 dark:border-stone-800/80">
+                                             <div className="flex items-center gap-3">
+                                                <span className="flex items-center gap-1.5 text-xs font-medium text-stone-600 dark:text-stone-400">
+                                                   <MapPin className="w-3.5 h-3.5 text-stone-400" /> Room {s.room || '-'}
+                                                </span>
+                                                <span className="flex items-center gap-1.5 text-xs font-medium text-stone-600 dark:text-stone-400">
+                                                   <Users className="w-3.5 h-3.5 text-stone-400" /> {s.faculty || "TBA"}
+                                                </span>
+                                             </div>
+                                             {s.campus && (
+                                               <div className="flex items-center gap-1.5 text-xs font-medium text-stone-500 dark:text-stone-500">
+                                                  Campus {s.campus}
+                                               </div>
+                                             )}
+                                          </div>
+                                        )}
                                      </Card>
                                   </div>
                                ))}

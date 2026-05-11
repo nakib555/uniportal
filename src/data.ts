@@ -22,6 +22,8 @@ export interface ClassSchedule {
   room: string;
   campus: string;
   faculty: string;
+  section?: string;
+  semester?: string;
 }
 
 export interface Transaction {
@@ -94,14 +96,14 @@ export const AVAILABLE_COURSES: Course[] = eeeCourses.map((c, i) => ({
 }));
 
 export const SCHEDULE_DATA: ClassSchedule[] = [
-  { courseCode: "EEE203", day: "Monday", start: "11:20:00", end: "12:30:00", room: "513", campus: "Gulshan", faculty: "shadab" },
-  { courseCode: "EEE203", day: "Wednesday", start: "11:20:00", end: "12:30:00", room: "513", campus: "Gulshan", faculty: "shadab" },
-  { courseCode: "ENG101", day: "Monday", start: "13:50:00", end: "15:00:00", room: "613", campus: "Gulshan", faculty: "Harisun" },
-  { courseCode: "ENG101", day: "Wednesday", start: "13:50:00", end: "15:00:00", room: "613", campus: "Gulshan", faculty: "Harisun" },
-  { courseCode: "MAT123", day: "Monday", start: "12:35:00", end: "13:45:00", room: "613", campus: "Gulshan", faculty: "Ibrahim" },
-  { courseCode: "MAT123", day: "Wednesday", start: "12:35:00", end: "13:45:00", room: "613", campus: "Gulshan", faculty: "Ibrahim" },
-  { courseCode: "PHY107", day: "Tuesday", start: "15:05:00", end: "17:35:00", room: "401", campus: "Gulshan", faculty: "Alif" },
-  { courseCode: "PHY108", day: "Tuesday", start: "13:50:00", end: "15:00:00", room: "402", campus: "Gulshan", faculty: "Alif" }
+  { courseCode: "EEE203", section: "5", day: "Monday", start: "11:20:00", end: "12:30:00", room: "513", campus: "Gulshan", faculty: "shadab", semester: "Summer-26" },
+  { courseCode: "EEE203", section: "-", day: "Wednesday", start: "11:20:00", end: "12:30:00", room: "513", campus: "Gulshan", faculty: "-", semester: "" },
+  { courseCode: "ENG101", section: "21", day: "Monday", start: "13:50:00", end: "15:00:00", room: "613", campus: "Gulshan", faculty: "Harisun", semester: "Summer-26" },
+  { courseCode: "ENG101", section: "-", day: "Wednesday", start: "13:50:00", end: "15:00:00", room: "613", campus: "Gulshan", faculty: "-", semester: "" },
+  { courseCode: "MAT123", section: "6", day: "Monday", start: "12:35:00", end: "13:45:00", room: "613", campus: "Gulshan", faculty: "ibrahim", semester: "Summer-26" },
+  { courseCode: "MAT123", section: "-", day: "Wednesday", start: "12:35:00", end: "13:45:00", room: "613", campus: "Gulshan", faculty: "-", semester: "" },
+  { courseCode: "PHY107", section: "6", day: "Tuesday", start: "15:05:00", end: "17:30:00", room: "", campus: "", faculty: "Alif", semester: "Summer-26" },
+  { courseCode: "PHY108", section: "6", day: "Tuesday", start: "12:35:00", end: "15:00:00", room: "", campus: "", faculty: "Alif", semester: "Summer-26" }
 ];
 
 export const TRANSACTIONS_DATA: Transaction[] = [
