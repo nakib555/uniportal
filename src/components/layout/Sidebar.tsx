@@ -15,8 +15,7 @@ export const NAVIGATION_ITEMS = [
     { id: 'available-courses', label: 'Enrollment', icon: BookMarked }
   ]},
   { id: 'accounts', label: 'Accounts', icon: Calculator, subItems: [
-    { id: 'statement', label: 'Statement', icon: Receipt },
-    { id: 'bank-slips', label: 'Bank Slips', icon: FileText }
+    { id: 'statement', label: 'Statement', icon: Receipt }
   ]},
   { id: 'schedule', label: 'Schedule', icon: CalendarIcon, subItems: [
     { id: 'class-schedule', label: 'Class Schedule', icon: CalendarIcon }

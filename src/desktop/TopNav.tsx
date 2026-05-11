@@ -14,7 +14,7 @@ export function TopNav({ portal }: TopNavProps) {
                     navItems.flatMap(n => n.subItems || []).find(s => s.id === store.activeTab)?.label;
 
   return (
-    <header className="h-20 flex-shrink-0 flex items-center justify-between px-8 bg-white/50 dark:bg-stone-900/50 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 z-10 sticky top-0">
+    <header className="h-20 flex-shrink-0 flex items-center justify-between px-8 bg-white/50 dark:bg-stone-900/50 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 z-10 sticky top-0 print:hidden">
       <div>
         <h2 className="text-xl font-semibold text-stone-800 dark:text-stone-100">{pageTitle}</h2>
       </div>

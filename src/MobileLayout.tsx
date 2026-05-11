@@ -34,7 +34,6 @@ const navItems: NavItem[] = [
   { id: 'home', label: 'Home', icon: Home },
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'accounts', label: 'Accounts', icon: Wallet, subItems: [
-    { id: 'bank-slips', label: 'Bank Slips' },
     { id: 'statement', label: 'Statement of Account' },
     { id: 'financial-aid', label: 'Financial Aid' }
   ]},
@@ -250,7 +249,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
         
         {/* Top Header */}
         <header 
-          className="h-16 border-b border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex items-center justify-between px-4 md:px-8 shrink-0 z-10 sticky top-0"
+          className="h-16 border-b border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex items-center justify-between px-4 md:px-8 shrink-0 z-10 sticky top-0 print:hidden"
         >
            <div className="flex items-center gap-3">
              <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden p-2 -ml-2 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg">
@@ -416,11 +415,6 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                           <BookOpen className="w-6 h-6 text-indigo-500 mb-3" />
                           <h4 className="font-bold text-sm text-stone-900 dark:text-white mb-1">My Courses</h4>
                           <p className="text-xs text-stone-500 dark:text-stone-400">View enrolled classes</p>
-                        </button>
-                        <button onClick={() => setActiveTab('bank-slips')} className="text-left p-4 rounded-xl border border-stone-200 dark:border-stone-800 hover:border-[#8c1515]/30 dark:hover:border-[#ef4444]/30 hover:bg-[#8c1515]/5 dark:hover:bg-[#ef4444]/5 transition-all group">
-                          <FileText className="w-6 h-6 text-emerald-500 mb-3" />
-                          <h4 className="font-bold text-sm text-stone-900 dark:text-white mb-1">Bank Slips</h4>
-                          <p className="text-xs text-stone-500 dark:text-stone-400">Download for payment</p>
                         </button>
                         <button onClick={() => setActiveTab('class-schedule')} className="text-left p-4 rounded-xl border border-stone-200 dark:border-stone-800 hover:border-[#8c1515]/30 dark:hover:border-[#ef4444]/30 hover:bg-[#8c1515]/5 dark:hover:bg-[#ef4444]/5 transition-all group">
                           <Calendar className="w-6 h-6 text-amber-500 mb-3" />

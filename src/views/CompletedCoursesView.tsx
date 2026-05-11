@@ -3,6 +3,7 @@ import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { useAppStore } from '../store';
 import { Course } from '../data';
+import { Download } from 'lucide-react';
 
 export const CompletedCoursesView: React.FC = () => {
   const { completedCourses } = useAppStore();
@@ -18,9 +19,14 @@ export const CompletedCoursesView: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">Completed Courses</h2>
-        <p className="text-stone-500 dark:text-stone-400 mt-1">List of all courses you have completed so far.</p>
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">Completed Courses</h2>
+          <p className="text-stone-500 dark:text-stone-400 mt-1">List of all courses you have completed so far.</p>
+        </div>
+        <button onClick={() => window.print()} className="flex w-fit items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold transition-colors">
+           <Download className="w-4 h-4" /> Download PDF
+        </button>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

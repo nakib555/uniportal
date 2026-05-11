@@ -6,7 +6,6 @@ import { Sidebar } from './Sidebar';
 import { TopNav } from './TopNav';
 import { HomeView } from './views/HomeView';
 import { ProfileView } from './views/ProfileView';
-import { AccountsView } from './views/AccountsView';
 import { CoursesView } from './views/CoursesView';
 import { ScheduleWeeklyView } from './views/ScheduleWeeklyView';
 import { DegreeAuditView } from './views/DegreeAuditView';
@@ -32,7 +31,6 @@ export function DesktopLayout(portal: ReturnType<typeof usePortalLogic>) {
       case 'home': return <HomeView portal={portal} />;
       case 'profile': return <ProfileView portal={portal} />;
       case 'statement': return <StatementView />;
-      case 'bank-slips': return <AccountsView portal={portal} />;
       case 'financial-aid': return <FinancialAidView />;
       case 'registered-courses':
       case 'completed-courses':

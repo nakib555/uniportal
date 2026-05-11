@@ -152,3 +152,36 @@
     scrollbar-width: none;
   }
 }
+
+@media print {
+  @page {
+    margin: 1cm;
+    size: A4 portrait;
+  }
+  
+  /* Hide purely interactive elements from print */
+  button, nav, aside, .desktop-sidebar, .mobile-bottom-nav, .print-hide {
+    display: none !important;
+  }
+
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+
+  .dark {
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+  }
+
+  * {
+    box-shadow: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}

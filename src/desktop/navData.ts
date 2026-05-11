@@ -5,7 +5,6 @@ export const navItems: NavItem[] = [
   { id: 'home', label: 'Home', icon: Home },
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'accounts', label: 'Accounts', icon: Wallet, subItems: [
-    { id: 'bank-slips', label: 'Bank Slips' },
     { id: 'statement', label: 'Statement of Account' },
     { id: 'financial-aid', label: 'Financial Aid' }
   ]},
