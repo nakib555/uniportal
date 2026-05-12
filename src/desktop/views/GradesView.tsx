@@ -2,8 +2,63 @@ import React from 'react';
 import { Card, Badge } from '../components/ui';
 import { COMPLETED_COURSES } from '../../data';
 import { Download, FileText } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export function GradesView() {
+  const handleDownloadTranscriptPDF = () => {
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.text("University Portal", 105, 20, { align: "center" });
+    
+    doc.setFontSize(14);
+    doc.text("Academic Transcript", 105, 30, { align: "center" });
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 38, { align: "center" });
+
+    doc.setLineWidth(0.5);
+    doc.line(14, 42, 196, 42); // Horizontal line
+
+    // Summary Info
+    doc.setFont("helvetica", "bold");
+    doc.text(`Cumulative GPA: 3.85`, 14, 52);
+    doc.text(`Semester GPA (Fall 2025): 3.92`, 14, 58);
+
+    // Table
+    autoTable(doc, {
+      startY: 70,
+      head: [['Course Code', 'Course Title', 'Credits', 'Grade']],
+      body: COMPLETED_COURSES.map(c => [
+        c.code,
+        c.title,
+        c.credits.toString(),
+        c.grade
+      ]),
+      styles: { fontSize: 9, cellPadding: 4 },
+      headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [248, 248, 248] },
+    });
+
+    // Footer
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(`Page ${i} of ${pageCount}`, 105, doc.internal.pageSize.getHeight() - 10, { align: "center" });
+    }
+
+    // Open in native PDF Viewer
+    const pdfBlob = doc.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    window.open(pdfUrl, '_blank');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center bg-stone-50 dark:bg-stone-900 p-6 rounded-xl border border-stone-200 dark:border-stone-800">
@@ -11,7 +66,7 @@ export function GradesView() {
            <h2 className="text-2xl font-bold text-stone-900 dark:text-white">Academic Transcript</h2>
            <p className="text-stone-500 dark:text-stone-400">Cumulative GPA: <span className="font-bold text-stone-900 dark:text-stone-100">3.85</span></p>
         </div>
-        <button onClick={() => window.print()} className="flex items-center gap-2 bg-[#8c1515] hover:bg-[#731010] dark:bg-[#ef4444] dark:hover:bg-[#dc2626] text-white px-4 py-2 rounded-xl font-bold transition-colors">
+        <button onClick={handleDownloadTranscriptPDF} className="flex items-center gap-2 bg-[#8c1515] hover:bg-[#731010] dark:bg-[#ef4444] dark:hover:bg-[#dc2626] text-white px-4 py-2 rounded-xl font-bold transition-colors">
            <Download className="w-4 h-4" /> Download PDF
         </button>
       </div>

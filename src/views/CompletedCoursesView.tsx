@@ -4,6 +4,8 @@ import { Badge } from '../components/ui/Badge';
 import { useAppStore } from '../store';
 import { Course } from '../data';
 import { Download } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export const CompletedCoursesView: React.FC = () => {
   const { completedCourses } = useAppStore();
@@ -17,6 +19,65 @@ export const CompletedCoursesView: React.FC = () => {
     return Object.entries(groups).sort((a,b) => b[0].localeCompare(a[0]));
   }, [completedCourses]);
 
+  const handleDownloadCompletedPDF = () => {
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.text("University Portal", 105, 20, { align: "center" });
+    
+    doc.setFontSize(14);
+    doc.text("Completed Courses", 105, 30, { align: "center" });
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 38, { align: "center" });
+
+    doc.setLineWidth(0.5);
+    doc.line(14, 42, 196, 42); // Horizontal line
+
+    let startYOffset = 50;
+
+    groupedCompletedCourses.forEach(([semester, courses]) => {
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(140, 21, 21); // Dark red
+      doc.text(semester, 14, startYOffset);
+      
+      autoTable(doc, {
+        startY: startYOffset + 4,
+        head: [['Course Code', 'Course Title', 'Credits', 'Grade']],
+        body: courses.map(c => [
+          c.code,
+          c.title,
+          c.credits.toString(),
+          c.grade || '-'
+        ]),
+        styles: { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [248, 248, 248] },
+        margin: { bottom: 20 }
+      });
+
+      startYOffset = (doc as any).lastAutoTable.finalY + 15;
+    });
+
+    // Footer
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(`Page ${i} of ${pageCount}`, 105, doc.internal.pageSize.getHeight() - 10, { align: "center" });
+    }
+
+    // Open in native PDF Viewer
+    const pdfBlob = doc.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    window.open(pdfUrl, '_blank');
+  };
+
   return (
     <div className="space-y-6">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -24,7 +85,7 @@ export const CompletedCoursesView: React.FC = () => {
           <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">Completed Courses</h2>
           <p className="text-stone-500 dark:text-stone-400 mt-1">List of all courses you have completed so far.</p>
         </div>
-        <button onClick={() => window.print()} className="flex w-fit items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold transition-colors">
+        <button onClick={handleDownloadCompletedPDF} className="flex w-fit items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold transition-colors">
            <Download className="w-4 h-4" /> Download PDF
         </button>
       </header>

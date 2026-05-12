@@ -1,8 +1,9 @@
 import React from 'react';
 import { Card, Badge } from '../components/ui';
 import { COMPLETED_COURSES } from '../../data';
-import { ChevronRight, GraduationCap, ArrowRight, CheckCircle2, Lock } from 'lucide-react';
-import { PrintableDegreeAudit } from '../../components/PrintableDegreeAudit';
+import { ChevronRight, GraduationCap, ArrowRight, CheckCircle2, Lock, Download } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export function DegreeAuditView() {
   const totalRequired = 130;
@@ -40,10 +41,98 @@ export function DegreeAuditView() {
     ]}
   ];
 
+  const handleDownloadAuditPDF = () => {
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.text("University Portal", 105, 20, { align: "center" });
+    
+    doc.setFontSize(14);
+    doc.text("Official Degree Audit Report", 105, 30, { align: "center" });
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 38, { align: "center" });
+
+    doc.setLineWidth(0.5);
+    doc.line(14, 42, 196, 42); // Horizontal line
+
+    // Student Info
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Student Name: `, 14, 52);
+    doc.text(`Student ID: `, 14, 58);
+    doc.text(`Program: `, 14, 64);
+
+    doc.setFont("helvetica", "normal");
+    doc.text(studentInfo.name, 45, 52);
+    doc.text(studentInfo.id, 45, 58);
+    doc.text(studentInfo.program, 45, 64);
+
+    // Summary Info
+    doc.setFont("helvetica", "bold");
+    doc.text(`CGPA: `, 120, 52);
+    doc.text(`Credits Completed: `, 120, 58);
+    doc.text(`Academic Status: `, 120, 64);
+
+    doc.setFont("helvetica", "normal");
+    doc.text(studentInfo.cgpa.toFixed(2), 160, 52);
+    doc.text(`${studentInfo.creditsComp} / ${studentInfo.creditsReq}`, 160, 58);
+    doc.text(studentInfo.cgpa >= 2.0 ? 'Good Standing' : 'Academic Probation', 160, 64);
+
+    // Table
+    autoTable(doc, {
+      startY: 75,
+      head: [['Requirement Area', 'Required (Cr)', 'Completed', 'Remaining', 'Status']],
+      body: reqs.map(r => {
+        const remaining = Math.max(0, r.req - r.comp);
+        return [
+          r.area,
+          r.req.toString(),
+          r.comp.toString(),
+          remaining.toString(),
+          remaining === 0 ? 'Met' : 'Pending'
+        ]
+      }),
+      styles: { fontSize: 10, cellPadding: 4 },
+      headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [248, 248, 248] },
+    });
+
+    autoTable(doc, {
+        startY: (doc as any).lastAutoTable.finalY + 15,
+        head: [['Course Code', 'Course Title', 'Credits', 'Grade']],
+        body: COMPLETED_COURSES.map(c => [
+            c.code,
+            c.title,
+            c.credits.toString(),
+            c.grade
+        ]),
+        styles: { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [248, 248, 248] },
+    });
+
+    // Footer
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(`Page ${i} of ${pageCount}`, 105, doc.internal.pageSize.getHeight() - 10, { align: "center" });
+    }
+
+    // Open in native PDF Viewer
+    const pdfBlob = doc.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    window.open(pdfUrl, '_blank');
+  };
+
   return (
     <>
-      <PrintableDegreeAudit student={studentInfo} requirements={reqs} />
-      <div className="space-y-6 print:hidden">
+      <div className="space-y-6">
         <Card className="p-6 bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-transparent">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-3">
@@ -62,7 +151,9 @@ export function DegreeAuditView() {
       
       <div className="flex justify-between items-end mt-8 mb-4">
          <h3 className="font-bold text-lg text-stone-900 dark:text-white">Degree Requirement Areas</h3>
-         <button onClick={() => window.print()} className="text-sm font-bold text-[#8c1515] dark:text-[#ef4444] hover:underline">View Full Audit Report</button>
+         <button onClick={handleDownloadAuditPDF} className="flex items-center gap-2 text-sm font-bold bg-[#8c1515] hover:bg-[#b31b1b] text-white px-4 py-2 rounded-lg transition-colors shadow-sm">
+            <Download className="w-4 h-4" /> View Full Audit Report
+         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
