@@ -180,7 +180,7 @@ export const LoginView: React.FC = () => {
 
          <div className="w-full max-w-md">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6 text-center lg:text-left">
-               <h2 className="text-3xl sm:text-4xl font-black text-stone-900 dark:text-white tracking-tight mb-3">Welcome back</h2>
+               <h2 className="text-3xl sm:text-4xl font-black text-stone-900 dark:text-white tracking-tight mb-3">Sign in</h2>
                <p className="text-stone-500 dark:text-stone-400 font-medium">Please enter your credentials to access your dashboard.</p>
             </motion.div>
 
