@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, Search, Sun, Moon } from 'lucide-react';
+import { Bell, Search, Sun, Moon, LogOut } from 'lucide-react';
 import { usePortalLogic } from '../hooks/usePortalLogic';
 import { navItems } from './navData';
 
@@ -30,24 +30,29 @@ export function TopNav({ portal }: TopNavProps) {
         </div>
 
         <div className="flex items-center gap-3">
-          <button onClick={toggleDarkMode} className="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 transition-colors">
+          <button onClick={toggleDarkMode} className="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 transition-colors" title="Toggle Dark Mode">
             {store.isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
           
-          <button className="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 transition-colors relative">
+          <button className="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 transition-colors relative" title="Notifications">
             <Bell className="w-5 h-5" />
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#8c1515] dark:bg-[#ef4444] rounded-full ring-2 ring-white dark:ring-stone-900"></span>
           </button>
           
           <div className="h-8 w-px bg-stone-200 dark:bg-stone-700 mx-2" />
           
-          <button className="flex items-center gap-3 hover:opacity-80 transition-opacity rounded-full p-1 border border-transparent hover:border-stone-200 dark:hover:border-stone-700">
-            <img src={profilePic} alt="Profile" className="w-9 h-9 rounded-full object-cover shadow-sm bg-stone-100" />
-            <div className="hidden sm:block text-left mr-2">
-              <p className="text-sm font-medium text-stone-700 dark:text-stone-200 leading-tight">Ibrahim</p>
-              <p className="text-xs text-stone-500">Student</p>
-            </div>
-          </button>
+          <div className="flex items-center gap-3">
+             <div className="flex items-center gap-3 rounded-full hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors pr-2 cursor-pointer">
+               <img src={profilePic} alt="Profile" className="w-9 h-9 rounded-full object-cover shadow-sm bg-stone-100" />
+               <div className="hidden sm:block text-left mr-2">
+                 <p className="text-sm font-medium text-stone-700 dark:text-stone-200 leading-tight">Ibrahim</p>
+                 <p className="text-xs text-stone-500">Student</p>
+               </div>
+             </div>
+             <button onClick={() => store.setIsLoggedIn(false)} className="p-2 rounded-full hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400 text-stone-400 transition-colors" title="Sign Out">
+                <LogOut className="w-5 h-5" />
+             </button>
+          </div>
         </div>
       </div>
     </header>

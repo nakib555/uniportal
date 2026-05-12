@@ -3,9 +3,20 @@ import { usePortalLogic } from './hooks/usePortalLogic';
 import { MobileLayout } from './MobileLayout';
 import { DesktopLayout } from './desktop/DesktopLayout';
 import { ReactLenis } from 'lenis/react';
+import { useAppStore } from './store';
+import { LoginView } from './views/LoginView';
 
 export default function App() {
   const portalLogic = usePortalLogic();
+  const { isLoggedIn } = useAppStore();
+
+  if (!isLoggedIn) {
+    return (
+       <ReactLenis root>
+          <LoginView />
+       </ReactLenis>
+    );
+  }
 
   return (
     <ReactLenis root>

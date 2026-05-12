@@ -35,9 +35,15 @@ interface AppState {
   // UI States
   selectedSyllabusCourse: Course | null;
   setSelectedSyllabusCourse: (c: Course | null) => void;
+  // Auth
+  isLoggedIn: boolean;
+  setIsLoggedIn: (v: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
+  isLoggedIn: false,
+  setIsLoggedIn: (v) => set({ isLoggedIn: v }),
+
   activeTab: "home",
   setActiveTab: (tab) => set({ activeTab: tab }),
   

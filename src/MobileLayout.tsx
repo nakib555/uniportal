@@ -4,7 +4,7 @@ import {
   Home, User, BookOpen, Calendar, Wallet, Users, Bell, 
   ChevronRight, ChevronLeft, ChevronDown, CheckCircle2,
   GraduationCap, Clock, MapPin, Menu, AlertCircle, BookMarked, Search, Moon, Sun, Camera,
-  TrendingDown, TrendingUp, FileText, X, Mail, Phone, KeyRound, Edit3
+  TrendingDown, TrendingUp, FileText, X, Mail, Phone, KeyRound, Edit3, LogOut
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { 
@@ -240,8 +240,11 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
             )}
           </div>
           {!isSidebarCollapsed && (
-            <button className="w-full text-[11px] font-bold uppercase tracking-wider py-2 rounded-lg border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 bg-white dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors">
-              Sign Out
+            <button
+               onClick={() => store.setIsLoggedIn(false)}
+               className="w-full flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-wider py-2 mt-2 rounded-lg border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 bg-white dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+            >
+              Sign Out <LogOut className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
