@@ -194,12 +194,26 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                 </button>
                 
                 {/* Sub Menu */}
-                <AnimatePresence>
+                <AnimatePresence initial={false}>
                   {!isSidebarCollapsed && item.subItems && isExpanded && (
                     <motion.div 
                       initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
+                      animate={{ 
+                        height: 'auto', 
+                        opacity: 1,
+                        transition: { 
+                          height: { duration: 0.3, ease: [0.04, 0.62, 0.23, 0.98] },
+                          opacity: { duration: 0.25, delay: 0.05 }
+                        }
+                      }}
+                      exit={{ 
+                        height: 0, 
+                        opacity: 0,
+                        transition: { 
+                          height: { duration: 0.3, ease: [0.04, 0.62, 0.23, 0.98] },
+                          opacity: { duration: 0.2 }
+                        }
+                      }}
                       className="overflow-hidden"
                     >
                       <div className="pl-11 pr-3 py-1 space-y-0.5 mt-1 relative before:content-[''] before:absolute before:left-6 before:top-2 before:bottom-2 before:w-px before:bg-stone-200 dark:before:bg-stone-700">
@@ -314,34 +328,34 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                 <div className="space-y-6 md:space-y-8">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                     <div>
-                      <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-stone-900">Welcome back, {student.name.split(' ')[0]}</h2>
+                      <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-stone-900 dark:text-white">Welcome back, {student.name.split(' ')[0]}</h2>
                       <p className="text-stone-500 dark:text-stone-400 mt-1">Here is what's happening with your academics today.</p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                    <Card className="p-5 md:p-6 bg-white relative group border-stone-200">
+                    <Card className="p-5 md:p-6 bg-white dark:bg-stone-900 relative group border-stone-200 dark:border-stone-800">
                       <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 flex items-center justify-center mb-4 text-indigo-600 dark:text-indigo-400">
                         <GraduationCap className="w-5 h-5" />
                       </div>
                       <div className="text-stone-500 dark:text-stone-400 text-xs font-bold uppercase tracking-wider mb-1">Current CGPA</div>
                       <div className="text-2xl md:text-3xl font-extrabold text-stone-900 dark:text-white tracking-tight">{student.cgpa.toFixed(2)}</div>
                     </Card>
-                    <Card className="p-5 md:p-6 bg-white relative group border-stone-200">
+                    <Card className="p-5 md:p-6 bg-white dark:bg-stone-900 relative group border-stone-200 dark:border-stone-800">
                       <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center mb-4 text-emerald-600 dark:text-emerald-400">
                         <CheckCircle2 className="w-5 h-5" />
                       </div>
                       <div className="text-stone-500 dark:text-stone-400 text-xs font-bold uppercase tracking-wider mb-1">Credits Earned</div>
                       <div className="text-2xl md:text-3xl font-extrabold text-stone-900 dark:text-white tracking-tight">{student.creditsCompleted} <span className="text-base font-semibold text-stone-400 dark:text-stone-600">/ 140</span></div>
                     </Card>
-                    <Card className="p-5 md:p-6 bg-white relative group border-stone-200">
+                    <Card className="p-5 md:p-6 bg-white dark:bg-stone-900 relative group border-stone-200 dark:border-stone-800">
                       <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 border border-amber-100 dark:border-amber-800 flex items-center justify-center mb-4 text-amber-600 dark:text-amber-400">
                         <BookMarked className="w-5 h-5" />
                       </div>
                       <div className="text-stone-500 dark:text-stone-400 text-xs font-bold uppercase tracking-wider mb-1">Enrolled Courses</div>
                       <div className="text-2xl md:text-3xl font-extrabold text-stone-900 dark:text-white tracking-tight">{registeredCourses.length}</div>
                     </Card>
-                    <Card className="p-5 md:p-6 bg-white relative group border-stone-200">
+                    <Card className="p-5 md:p-6 bg-white dark:bg-stone-900 relative group border-stone-200 dark:border-stone-800">
                       <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800 flex items-center justify-center mb-4 text-[#8c1515] dark:text-[#ef4444]">
                         <Wallet className="w-5 h-5" />
                       </div>

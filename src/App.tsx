@@ -8,7 +8,12 @@ import { LoginView } from './views/LoginView';
 
 export default function App() {
   const portalLogic = usePortalLogic();
-  const { isLoggedIn } = useAppStore();
+  const { isLoggedIn, isDarkMode } = useAppStore();
+
+  React.useEffect(() => {
+    if (isDarkMode) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+  }, [isDarkMode]);
 
   if (!isLoggedIn) {
     return (

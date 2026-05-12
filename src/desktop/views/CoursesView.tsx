@@ -492,12 +492,12 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
                       disabled={allRegistered || isSelectionLocked}
                       className={`flex-1 py-2 flex items-center justify-center gap-2 text-sm font-bold rounded-lg transition-colors ${
                         allRegistered 
-                          ? 'bg-emerald-50 text-emerald-600 border border-emerald-200 cursor-not-allowed'
+                          ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 cursor-not-allowed'
                           : !prereqMet
-                            ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
+                            ? 'bg-stone-100 dark:bg-stone-800 text-stone-400 dark:text-stone-500 cursor-not-allowed'
                             : isSelectionLocked
-                              ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
-                              : 'bg-[#8c1515] hover:bg-[#7a1212] text-white shadow-sm'
+                              ? 'bg-stone-100 dark:bg-stone-800 text-stone-400 dark:text-stone-500 cursor-not-allowed'
+                              : 'bg-[#8c1515] dark:bg-[#ef4444] hover:bg-[#731010] dark:hover:bg-[#dc2626] text-white shadow-sm'
                       }`}
                     >
                       {allRegistered ? 'Enrolled' : someRegistered ? 'Enroll Missing' : <><Plus className="w-4 h-4" /> Enroll {bundle.totalCredits.toFixed(2)} Cr</>}
@@ -544,12 +544,12 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
                     disabled={isRegistered || isSelectionLocked}
                     className={`flex-1 py-2 flex items-center justify-center gap-2 text-sm font-medium rounded-lg transition-colors ${
                       isRegistered 
-                        ? 'bg-emerald-50 text-emerald-600 border border-emerald-200 cursor-not-allowed'
+                        ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 cursor-not-allowed'
                         : !prereqMet
-                          ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
+                          ? 'bg-stone-100 dark:bg-stone-800 text-stone-400 dark:text-stone-500 cursor-not-allowed'
                           : isSelectionLocked
-                            ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
-                            : 'bg-[#8c1515] hover:bg-[#7a1212] text-white shadow-sm'
+                            ? 'bg-stone-100 dark:bg-stone-800 text-stone-400 dark:text-stone-500 cursor-not-allowed'
+                            : 'bg-[#8c1515] dark:bg-[#ef4444] hover:bg-[#731010] dark:hover:bg-[#dc2626] text-white shadow-sm'
                     }`}
                   >
                     {isRegistered ? 'Enrolled' : <><Plus className="w-4 h-4" /> Enroll Course</>}
@@ -586,7 +586,7 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
                 <p className="text-sm font-medium mb-6">Do you want to add both courses to your registry?</p>
                 
                 <div className="flex gap-3">
-                  <button onClick={() => setIsCoreqModalOpen(false)} className="flex-1 py-2.5 rounded-xl border border-stone-200 font-medium hover:bg-stone-50 transition-colors">Cancel</button>
+                  <button onClick={() => setIsCoreqModalOpen(false)} className="flex-1 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 font-medium text-stone-900 dark:text-white hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">Cancel</button>
                   <button onClick={confirmCoreqsRegistration} className="flex-1 py-2.5 rounded-xl bg-[#8c1515] hover:bg-[#7a1212] text-white font-medium transition-colors">Add Both Courses</button>
                 </div>
               </div>

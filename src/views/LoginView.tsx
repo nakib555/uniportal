@@ -14,7 +14,7 @@ export const LoginView: React.FC = () => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentId || !password) {
-      setError('Please enter both Student ID and Password.');
+      setError('Please enter your credentials.');
       return;
     }
 
@@ -24,13 +24,12 @@ export const LoginView: React.FC = () => {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      // Accept any input for demo purposes
       setIsLoggedIn(true);
     }, 1500);
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-stone-50 dark:bg-stone-950">
+    <div className="min-h-screen w-full flex bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-100">
       {/* Left side: branding & image (hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 bg-[#8c1515] text-white overflow-hidden">
         <div className="absolute inset-0 z-0 opacity-20 dark:opacity-40 select-none pointer-events-none">
@@ -40,18 +39,16 @@ export const LoginView: React.FC = () => {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAzNHYtbDItMi0ydjJIMzZ6IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz48L2c+PC9zdmc+')] z-0"></div>
 
         <div className="relative z-10 flex items-center gap-3">
-          <div className="w-12 h-12 bg-white rounded-xl shadow-lg flex items-center justify-center">
-            <GraduationCap className="w-7 h-7 text-[#8c1515]" />
-          </div>
+          <img src="https://wsrv.nl/?url=http://www.sims.pu.edu.bd/img/layout/header_logo.png&output=webp" alt="PU" className="h-10 w-auto object-contain brightness-0 invert" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
           <div>
-            <h1 className="text-2xl font-black tracking-tight leading-none">University Portal</h1>
+            <h1 className="text-2xl font-black tracking-tight leading-none text-white">University Portal</h1>
             <p className="text-white/80 font-medium text-sm mt-0.5">Student Information System</p>
           </div>
         </div>
 
         <div className="relative z-10 max-w-md">
            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-              <h2 className="text-5xl font-bold tracking-tight mb-6 leading-[1.1]">Your academic journey, <br/><span className="text-[#ffcfcf]">simplified.</span></h2>
+              <h2 className="text-5xl font-bold tracking-tight mb-6 leading-[1.1] text-white">Your academic journey, <br/><span className="text-[#ffcfcf]">simplified.</span></h2>
               <p className="text-white/90 text-lg font-medium leading-relaxed mb-8">Access your courses, grades, statements, and campus resources all in one secure place.</p>
            </motion.div>
            
@@ -78,9 +75,7 @@ export const LoginView: React.FC = () => {
       {/* Right side: Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative">
          <div className="absolute top-6 right-6 lg:hidden flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#8c1515] rounded-lg flex items-center justify-center">
-               <GraduationCap className="w-5 h-5 text-white" />
-            </div>
+            <img src="https://wsrv.nl/?url=http://www.sims.pu.edu.bd/img/layout/header_logo.png&output=webp" alt="PU" className="h-8 w-auto object-contain dark:brightness-0 dark:invert" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
             <span className="font-bold text-stone-900 dark:text-white tracking-tight">Portal</span>
          </div>
 
@@ -90,7 +85,7 @@ export const LoginView: React.FC = () => {
                <p className="text-stone-500 dark:text-stone-400 font-medium">Please enter your Student ID and password to access your dashboard.</p>
             </motion.div>
 
-            <Card className="p-6 sm:p-8 bg-white dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 shadow-xl shadow-stone-200/20 dark:shadow-black/40 backdrop-blur-sm rounded-2xl lg:rounded-3xl relative overflow-hidden">
+            <Card className="p-6 sm:p-8 bg-white dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 shadow-xl shadow-stone-200/20 dark:shadow-black/40 backdrop-blur-sm rounded-2xl lg:rounded-3xl relative overflow-hidden text-stone-900 dark:text-white">
                {/* Decorative elements */}
                <div className="absolute top-0 right-0 w-32 h-32 bg-stone-100 dark:bg-stone-800 rounded-bl-full -mr-16 -mt-16 opacity-50 pointer-events-none" />
                <div className="absolute bottom-0 left-0 w-24 h-24 bg-stone-100 dark:bg-stone-800 rounded-tr-full -ml-12 -mb-12 opacity-50 pointer-events-none" />

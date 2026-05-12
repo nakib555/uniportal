@@ -15,7 +15,7 @@ export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLog
               <img 
                 src={profilePic} 
                 alt={student.name}
-                className="w-32 h-32 rounded-2xl border-4 border-white dark:border-stone-900 object-cover bg-stone-100 shadow-md"
+                className="w-32 h-32 rounded-2xl border-4 border-white dark:border-stone-900 object-cover bg-stone-100 dark:bg-stone-800 shadow-md"
               />
               <button 
                 onClick={() => fileInputRef.current?.click()}
