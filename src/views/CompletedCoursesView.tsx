@@ -72,10 +72,8 @@ export const CompletedCoursesView: React.FC = () => {
         doc.text(`Page ${i} of ${pageCount}`, 105, doc.internal.pageSize.getHeight() - 10, { align: "center" });
     }
 
-    // Open in native PDF Viewer
-    const pdfBlob = doc.output('blob');
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    window.open(pdfUrl, '_blank');
+    // Download the PDF
+    doc.save('Completed_Courses.pdf');
   };
 
   return (

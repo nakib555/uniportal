@@ -119,10 +119,8 @@ export const StatementView: React.FC = () => {
         doc.text(`Page ${i} of ${pageCount}`, 105, doc.internal.pageSize.getHeight() - 10, { align: "center" });
     }
 
-    // Open in native PDF Viewer (blob URL)
-    const pdfBlob = doc.output('blob');
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    window.open(pdfUrl, '_blank');
+    // Download the PDF
+    doc.save('Statement_of_Account.pdf');
   };
 
   return (
