@@ -45,12 +45,12 @@ export const LoginView: React.FC = () => {
       
       // Basic validation
       if (isUserAdmin && (studentId !== 'admin' || password !== 'admin')) {
-        setError('Invalid admin credentials. (Use ID: admin, Password: admin)');
+        setError('Invalid credentials. Use "admin" for both Admin ID and Password. (Use "class" for Student login)');
         return;
       }
       
       if (!isUserAdmin && (studentId !== 'class' || password !== 'class')) {
-        setError('Invalid student credentials. (Use ID: class, Password: class)');
+        setError('Invalid credentials. Use "class" for both Student ID and Password. (Use "admin" for Admin login)');
         return;
       }
 
