@@ -160,11 +160,12 @@
   }
   
   /* Hide purely interactive elements from print */
-  button, nav, aside, .desktop-sidebar, .mobile-bottom-nav, .print-hide {
+  button, nav, aside, header, .desktop-sidebar, .mobile-bottom-nav, .print-hide {
     display: none !important;
   }
 
-  body {
+  html, body {
+    height: auto !important;
     background-color: white !important;
     color: black !important;
   }
@@ -180,8 +181,10 @@
     box-shadow: none !important;
   }
 
-  main {
+  main, .overflow-y-auto, .overflow-hidden {
+    overflow: visible !important;
     padding: 0 !important;
     margin: 0 !important;
+    height: auto !important;
   }
 }

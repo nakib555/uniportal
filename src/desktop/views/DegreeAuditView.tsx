@@ -2,11 +2,28 @@ import React from 'react';
 import { Card, Badge } from '../components/ui';
 import { COMPLETED_COURSES } from '../../data';
 import { ChevronRight, GraduationCap, ArrowRight, CheckCircle2, Lock } from 'lucide-react';
+import { PrintableDegreeAudit } from '../../components/PrintableDegreeAudit';
 
 export function DegreeAuditView() {
   const totalRequired = 130;
   const totalCompleted = COMPLETED_COURSES.reduce((sum, c) => sum + c.credits, 0);
   const totalProgress = (totalCompleted / totalRequired) * 100;
+
+  const studentInfo = {
+    name: "Al Ibrahim",
+    id: "21104104",
+    program: "BSc in Computer Science & Engineering",
+    cgpa: 3.82,
+    creditsReq: totalRequired,
+    creditsComp: totalCompleted
+  };
+
+  const reqs = [
+    { area: 'Core Requirements', req: 60, comp: 45 },
+    { area: 'Electives', req: 30, comp: 12 },
+    { area: 'Free Electives', req: 34, comp: 20 },
+    { area: 'Capstone Project', req: 6, comp: 0 },
+  ];
 
   const pathways = [
     { id: 'math', title: 'Mathematics', courses: [
@@ -24,8 +41,10 @@ export function DegreeAuditView() {
   ];
 
   return (
-    <div className="space-y-6">
-      <Card className="p-6 bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-transparent">
+    <>
+      <PrintableDegreeAudit student={studentInfo} requirements={reqs} />
+      <div className="space-y-6 print:hidden">
+        <Card className="p-6 bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-transparent">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-3">
              <GraduationCap className="w-8 h-8" />
@@ -130,5 +149,6 @@ export function DegreeAuditView() {
          </Card>
       </div>
     </div>
+    </>
   );
 }
