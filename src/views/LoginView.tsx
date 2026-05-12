@@ -27,6 +27,9 @@ export const LoginView: React.FC = () => {
   const [isForgotOpen, setIsForgotOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
+  
+  // IT Support state
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,6 +132,23 @@ export const LoginView: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+      
+      <Dialog open={isSupportOpen} onOpenChange={setIsSupportOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>IT Support</DialogTitle>
+            <DialogDescription>
+              For technical assistance, please contact or visit Room 501 (Computer Lab).
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose render={<Button />}>
+              Close
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Left side: branding & image (hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 bg-[#8c1515] text-white overflow-hidden">
         <div className="absolute inset-0 z-0 opacity-20 dark:opacity-40 select-none pointer-events-none">
@@ -280,7 +300,7 @@ export const LoginView: React.FC = () => {
                
                <div className="mt-8 pt-6 border-t border-stone-100 dark:border-stone-800 text-center">
                   <p className="text-sm text-stone-500 dark:text-stone-400 font-medium">
-                     Need help? Contact <a href="#" className="text-[#8c1515] dark:text-[#ef4444] font-bold hover:underline">IT Support</a>
+                     Need help? Contact <button type="button" onClick={() => setIsSupportOpen(true)} className="text-[#8c1515] dark:text-[#ef4444] font-bold hover:underline">IT Support</button>
                   </p>
                </div>
             </Card>

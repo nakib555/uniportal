@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card } from '../../../components/ui/Card';
 import { Badge } from '../../../components/ui/Badge';
-import { Search, Filter, FileText, CheckCircle2 } from 'lucide-react';
+import { Search, Filter, FileText, CheckCircle2, FileSpreadsheet } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -17,6 +17,8 @@ import { Button } from '../../../components/ui/button';
 export function AdminGradeManagementView() {
   const [activeTab, setActiveTab] = useState<'pending' | 'approved'>('pending');
   const [gradeToApprove, setGradeToApprove] = useState<any | null>(null);
+  const [gradeToReturn, setGradeToReturn] = useState<any | null>(null);
+  const [gradeDetails, setGradeDetails] = useState<any | null>(null);
 
   const [pendingGrades, setPendingGrades] = useState([
     { course: 'CSE-101', section: 'A', instructor: 'Dr. Rahman', submittedAt: '2 hours ago', students: 45, average: '3.42' },
@@ -35,6 +37,13 @@ export function AdminGradeManagementView() {
     }
   };
 
+  const confirmReturn = () => {
+    if (gradeToReturn) {
+      setPendingGrades(prev => prev.filter(p => `${p.course}-${p.section}` !== `${gradeToReturn.course}-${gradeToReturn.section}`));
+      setGradeToReturn(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Dialog open={!!gradeToApprove} onOpenChange={(open) => !open && setGradeToApprove(null)}>
@@ -50,6 +59,47 @@ export function AdminGradeManagementView() {
               Cancel
             </DialogClose>
             <Button className="bg-[#8c1515] hover:bg-[#731010] dark:bg-[#ef4444] dark:hover:bg-[#dc2626] text-white" onClick={confirmApprove}>Confirm Approval</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!gradeToReturn} onOpenChange={(open) => !open && setGradeToReturn(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Return for Revision: {gradeToReturn?.course}</DialogTitle>
+            <DialogDescription>
+              Provide feedback for the instructor explaining why these grades are being returned.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <textarea placeholder="e.g. Please review the unusually low average for Section C..." className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515] h-24 resize-none" />
+          </div>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" />}>
+              Cancel
+            </DialogClose>
+            <Button variant="destructive" onClick={confirmReturn}>Send Revision Request</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!gradeDetails} onOpenChange={(open) => !open && setGradeDetails(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{gradeDetails?.action === 'sheet' ? 'Grade Sheet' : 'Grade Specifics'}: {gradeDetails?.doc?.course}</DialogTitle>
+            <DialogDescription>
+              Instructor: {gradeDetails?.doc?.instructor} | Section: {gradeDetails?.doc?.section}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-6 flex flex-col items-center justify-center border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-xl my-4 bg-stone-50 dark:bg-stone-900/50 text-stone-500 dark:text-stone-400">
+             <FileSpreadsheet className="w-12 h-12 mb-2 text-stone-400 dark:text-stone-600" />
+             <p className="font-medium">Grade_Report_{gradeDetails?.doc?.course}_SEC_{gradeDetails?.doc?.section}.xlsx</p>
+             <p className="text-sm mt-1">Spreadsheet preview is not available in the demo.</p>
+          </div>
+          <DialogFooter>
+            <DialogClose render={<Button />}>
+              Close Preview
+            </DialogClose>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -115,16 +165,21 @@ export function AdminGradeManagementView() {
             </div>
 
             {activeTab === 'pending' ? (
-              <div className="flex gap-3">
-                <button onClick={() => setGradeToApprove(submission)} className="flex-1 py-2 font-bold text-sm bg-[#8c1515] hover:bg-[#731010] dark:bg-[#ef4444] dark:hover:bg-[#dc2626] text-white rounded-lg transition-colors">
-                  Review & Approve
-                </button>
-                <button className="py-2 px-3 font-medium text-sm border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">
-                  Details
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <button onClick={() => setGradeToApprove(submission)} className="flex-1 py-1.5 font-bold text-sm bg-[#8c1515] hover:bg-[#731010] dark:bg-[#ef4444] dark:hover:bg-[#dc2626] text-white rounded-lg transition-colors">
+                    Approve
+                  </button>
+                  <button onClick={() => setGradeToReturn(submission)} className="flex-1 py-1.5 font-bold text-sm bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-lg transition-colors">
+                    Return
+                  </button>
+                </div>
+                <button onClick={() => setGradeDetails({ doc: submission, action: 'details' })} className="w-full py-1.5 font-medium text-sm border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">
+                  View Details
                 </button>
               </div>
             ) : (
-                <button className="w-full flex items-center justify-center gap-2 py-2 font-bold text-sm border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">
+                <button onClick={() => setGradeDetails({ doc: submission, action: 'sheet' })} className="w-full flex items-center justify-center gap-2 py-2 font-bold text-sm border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">
                  <FileText className="w-4 h-4" /> View Grade Sheet
                 </button>
             )}

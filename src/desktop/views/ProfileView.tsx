@@ -1,13 +1,70 @@
-import React from 'react';
-import { Camera, Mail, Phone, MapPin, KeyRound, Edit3 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Camera, Mail, Phone, MapPin, KeyRound, Edit3, CheckCircle2 } from 'lucide-react';
 import { Card, Badge } from '../components/ui';
 import { usePortalLogic } from '../../hooks/usePortalLogic';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from '../../components/ui/dialog';
+import { Button } from '../../components/ui/button';
 
 export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLogic> }) {
   const { student, profilePic, handleProfilePicUpload, fileInputRef } = portal;
+  const [isPasswordOpen, setIsPasswordOpen] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+
+  const handleChangePassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSuccessMsg('Password has been successfully updated.');
+    setIsPasswordOpen(false);
+    setTimeout(() => setSuccessMsg(''), 4000);
+  };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6 relative">
+      {successMsg && (
+        <div className="absolute top-0 right-0 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-lg font-medium text-sm flex items-center shadow-sm border border-emerald-100 dark:border-emerald-800 z-10">
+          <CheckCircle2 className="w-4 h-4 mr-2" />
+          {successMsg}
+        </div>
+      )}
+
+      <Dialog open={isPasswordOpen} onOpenChange={setIsPasswordOpen}>
+        <DialogContent>
+          <form onSubmit={handleChangePassword}>
+            <DialogHeader>
+              <DialogTitle>Change Password</DialogTitle>
+              <DialogDescription>
+                Ensure your account is using a long, random password to stay secure.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-stone-900 dark:text-stone-100">Current Password</label>
+                <input required type="password" placeholder="••••••••" className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-stone-900 dark:text-stone-100">New Password</label>
+                <input required type="password" placeholder="••••••••" className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-stone-900 dark:text-stone-100">Confirm New Password</label>
+                <input required type="password" placeholder="••••••••" className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]" />
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose render={<Button type="button" variant="outline" />}>Cancel</DialogClose>
+              <Button type="submit">Update Password</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <Card className="overflow-hidden">
         <div className="h-32 bg-gradient-to-r from-[#8c1515] to-[#b31b1b] relative">
           <div className="absolute -bottom-16 left-8 flex items-end gap-6">
@@ -99,7 +156,7 @@ export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLog
               <div className="flex-1">
                 <p className="text-sm font-medium text-stone-900 dark:text-stone-100">Password</p>
                 <p className="text-xs text-stone-500 mb-2">Last changed 3 months ago</p>
-                <button className="text-xs font-semibold text-[#8c1515] hover:underline">Change Password</button>
+                <button onClick={() => setIsPasswordOpen(true)} className="text-xs font-semibold text-[#8c1515] hover:underline">Change Password</button>
               </div>
             </div>
           </div>

@@ -31,6 +31,16 @@ import { AdminCourseManagementView } from './desktop/views/admin/AdminCourseMana
 import { AdminGradeManagementView } from './desktop/views/admin/AdminGradeManagementView';
 import { AdminEnrollmentApprovalsView } from './desktop/views/admin/AdminEnrollmentApprovalsView';
 import { AdminAttendanceManagementView } from './desktop/views/admin/AdminAttendanceManagementView';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from './components/ui/dialog';
+import { Button } from './components/ui/button';
 
 
 type NavItem = {
@@ -101,6 +111,8 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
   } = props;
   const [selectedSyllabusCourse, setSelectedSyllabusCourse] = useState<Course | null>(null);
   const [courseToDrop, setCourseToDrop] = useState<string | null>(null);
+  const [isPasswordOpen, setIsPasswordOpen] = useState(false);
+  const [passwordSuccessMsg, setPasswordSuccessMsg] = useState('');
   const { activeTab, setActiveTab, expandedMenus, isSidebarCollapsed, setIsSidebarCollapsed, isMobileMenuOpen, setIsMobileMenuOpen, isDarkMode, isAdmin } = store;
 
   const confirmDrop = () => {
@@ -109,6 +121,14 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
       setCourseToDrop(null);
     }
   };
+
+  const handleChangePassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordSuccessMsg('Password has been successfully updated.');
+    setIsPasswordOpen(false);
+    setTimeout(() => setPasswordSuccessMsg(''), 4000);
+  };
+
   const currentNavItems = getNavItems(isAdmin);
   const currentTabParent = currentNavItems.find(n => n.id === activeTab || n.subItems?.some(s => s.id === activeTab));
   const pageTitle = currentNavItems.find(n => n.id === activeTab)?.label || 
@@ -486,7 +506,45 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
 
                {/* === PROFILE TAB === */}
               {activeTab === 'profile' && (
-                <div className="space-y-6 max-w-4xl">
+                <div className="space-y-6 max-w-4xl relative">
+                  {passwordSuccessMsg && (
+                    <div className="absolute top-0 right-0 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-lg font-medium text-sm flex items-center shadow-sm border border-emerald-100 dark:border-emerald-800 z-10">
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      {passwordSuccessMsg}
+                    </div>
+                  )}
+
+                  <Dialog open={isPasswordOpen} onOpenChange={setIsPasswordOpen}>
+                    <DialogContent>
+                      <form onSubmit={handleChangePassword}>
+                        <DialogHeader>
+                          <DialogTitle>Change Password</DialogTitle>
+                          <DialogDescription>
+                            Ensure your account is using a long, random password to stay secure.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <label className="text-sm font-semibold text-stone-900 dark:text-stone-100">Current Password</label>
+                            <input required type="password" placeholder="••••••••" className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-sm font-semibold text-stone-900 dark:text-stone-100">New Password</label>
+                            <input required type="password" placeholder="••••••••" className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-sm font-semibold text-stone-900 dark:text-stone-100">Confirm New Password</label>
+                            <input required type="password" placeholder="••••••••" className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]" />
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <DialogClose render={<Button type="button" variant="outline" />}>Cancel</DialogClose>
+                          <Button type="submit">Update Password</Button>
+                        </DialogFooter>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+
                   <header className="mb-6 flex justify-between items-start">
                     <div>
                       <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">{pageTitle}</h2>
@@ -590,7 +648,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                           <div className="flex-1">
                             <p className="text-sm font-medium text-stone-900 dark:text-stone-100">Password</p>
                             <p className="text-xs text-stone-500 mb-2">Last changed 3 months ago</p>
-                            <button className="text-xs font-semibold text-[#8c1515] hover:underline">Change Password</button>
+                            <button onClick={() => setIsPasswordOpen(true)} className="text-xs font-semibold text-[#8c1515] hover:underline">Change Password</button>
                           </div>
                         </div>
                       </div>

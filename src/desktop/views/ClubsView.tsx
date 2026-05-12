@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
 import { Card, Badge } from '../components/ui';
-import { Users, Calendar, Plus, CalendarDays, ExternalLink, X } from 'lucide-react';
+import { Users, Calendar, Plus, CalendarDays, ExternalLink, X, CheckCircle2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from '../../components/ui/dialog';
+import { Button } from '../../components/ui/button';
 
 export function ClubsView() {
   const clubs = [
@@ -11,6 +21,8 @@ export function ClubsView() {
   ];
 
   const [activeCalendarMenu, setActiveCalendarMenu] = useState<string | null>(null);
+  const [requestClub, setRequestClub] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState('');
 
   const getGoogleCalendarUrl = (title: string, dateStr: string) => {
      const start = new Date(dateStr).toISOString().replace(/-|:|\.\d\d\d/g, "");
@@ -24,8 +36,40 @@ export function ClubsView() {
       return `https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&subject=${encodeURIComponent(title)}&startdt=${encodeURIComponent(start)}&enddt=${encodeURIComponent(end)}`;
   };
 
+  const submitRequest = () => {
+    setSuccessMsg(`Access request sent to ${requestClub} admins.`);
+    setRequestClub(null);
+    setTimeout(() => setSuccessMsg(''), 4000);
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {successMsg && (
+        <div className="absolute top-0 right-0 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-lg font-medium text-sm flex items-center shadow-sm border border-emerald-100 dark:border-emerald-800 z-10">
+          <CheckCircle2 className="w-4 h-4 mr-2" />
+          {successMsg}
+        </div>
+      )}
+
+      <Dialog open={!!requestClub} onOpenChange={(open) => !open && setRequestClub(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Request Access</DialogTitle>
+            <DialogDescription>
+              Submit a request to join the {requestClub}. The club admins will review your request and get back to you shortly.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" />}>
+              Cancel
+            </DialogClose>
+            <Button onClick={submitRequest}>
+              Submit Request
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <h2 className="text-2xl font-bold">Clubs & Extracurriculars</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
          {clubs.map(club => (
@@ -85,7 +129,7 @@ export function ClubsView() {
                  <div className="text-xs text-stone-500 dark:text-stone-400 mt-1.5 ml-6">{new Date(club.nextEventDate).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</div>
               </div>
               
-              <button className="w-full bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-white font-bold py-2.5 rounded-xl hover:bg-[#8c1515] dark:hover:bg-[#ef4444] hover:text-white transition-all cursor-pointer group-hover:bg-[#8c1515] dark:group-hover:bg-[#ef4444] group-hover:text-white group-hover:shadow-md group-hover:shadow-[#8c1515]/20 dark:group-hover:shadow-none active:scale-[0.98]">Request Access</button>
+              <button onClick={() => setRequestClub(club.name)} className="w-full bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-white font-bold py-2.5 rounded-xl hover:bg-[#8c1515] dark:hover:bg-[#ef4444] hover:text-white transition-all cursor-pointer group-hover:bg-[#8c1515] dark:group-hover:bg-[#ef4444] group-hover:text-white group-hover:shadow-md group-hover:shadow-[#8c1515]/20 dark:group-hover:shadow-none active:scale-[0.98]">Request Access</button>
            </Card>
          ))}
       </div>

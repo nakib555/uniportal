@@ -43,7 +43,7 @@ export function DegreeAuditView() {
       
       <div className="flex justify-between items-end mt-8 mb-4">
          <h3 className="font-bold text-lg text-stone-900 dark:text-white">Degree Requirement Areas</h3>
-         <button className="text-sm font-bold text-[#8c1515] dark:text-[#ef4444] hover:underline">View Full Audit Report</button>
+         <button onClick={() => window.print()} className="text-sm font-bold text-[#8c1515] dark:text-[#ef4444] hover:underline">View Full Audit Report</button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

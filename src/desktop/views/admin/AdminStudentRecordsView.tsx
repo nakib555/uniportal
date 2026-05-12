@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card } from '../../../components/ui/Card';
 import { Badge } from '../../../components/ui/Badge';
-import { Search, Filter, MoreVertical, FileText, CheckCircle2, XCircle, Trash2 } from 'lucide-react';
+import { Search, Filter, MoreVertical, FileText, CheckCircle2, XCircle, Trash2, Mail, Phone, Calendar } from 'lucide-react';
 import { useAppStore } from '../../../store';
 import {
   Dialog,
@@ -18,6 +18,8 @@ import { Button } from '../../../components/ui/button';
 export function AdminStudentRecordsView() {
   const [search, setSearch] = useState('');
   const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
+  const [studentToView, setStudentToView] = useState<any | null>(null);
+
   const { students, deleteStudent, updateStudentStatus } = useAppStore();
 
   const confirmDelete = () => {
@@ -42,6 +44,61 @@ export function AdminStudentRecordsView() {
               Cancel
             </DialogClose>
             <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!studentToView} onOpenChange={(open) => !open && setStudentToView(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Student Profile</DialogTitle>
+            <DialogDescription>
+              Detailed view of {studentToView?.name}.
+            </DialogDescription>
+          </DialogHeader>
+          {studentToView && (
+            <div className="py-4 space-y-4">
+              <div className="flex items-center gap-4 border-b border-stone-200 dark:border-stone-800 pb-4">
+                 <div className="w-16 h-16 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center font-bold text-2xl text-stone-400">
+                   {studentToView.name.charAt(0)}
+                 </div>
+                 <div>
+                   <h3 className="text-xl font-bold text-stone-900 dark:text-white">{studentToView.name}</h3>
+                   <span className="text-sm font-mono text-stone-500">{studentToView.id}</span>
+                 </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                 <div>
+                    <span className="block text-stone-500 dark:text-stone-400 font-medium text-xs uppercase mb-1">Program</span>
+                    <span className="font-bold text-stone-900 dark:text-white">{studentToView.program}</span>
+                 </div>
+                 <div>
+                    <span className="block text-stone-500 dark:text-stone-400 font-medium text-xs uppercase mb-1">Status</span>
+                    <Badge variant={studentToView.status === 'Regular' ? 'success' : studentToView.status === 'Probation' ? 'danger' : 'warning'}>
+                      {studentToView.status}
+                    </Badge>
+                 </div>
+                 <div>
+                    <span className="block text-stone-500 dark:text-stone-400 font-medium text-xs uppercase mb-1">Cumulative GPA</span>
+                    <span className="font-bold text-stone-900 dark:text-white">{studentToView.cgpa.toFixed(2)}</span>
+                 </div>
+              </div>
+              <div className="pt-4 space-y-3">
+                 <div className="flex items-center gap-3 text-sm text-stone-600 dark:text-stone-300 bg-stone-50 dark:bg-stone-900/50 p-2.5 rounded-lg border border-stone-100 dark:border-stone-800">
+                    <Mail className="w-4 h-4 text-stone-400" />
+                    <span>{studentToView.name.split(' ')[0].toLowerCase()}.{studentToView.id.slice(-4)}@university.edu</span>
+                 </div>
+                 <div className="flex items-center gap-3 text-sm text-stone-600 dark:text-stone-300 bg-stone-50 dark:bg-stone-900/50 p-2.5 rounded-lg border border-stone-100 dark:border-stone-800">
+                    <Calendar className="w-4 h-4 text-stone-400" />
+                    <span>Enrolled: Fall 2023</span>
+                 </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <DialogClose render={<Button />}>
+              Close
+            </DialogClose>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -102,7 +159,7 @@ export function AdminStudentRecordsView() {
                         <button onClick={() => setStudentToDelete(student.id)} className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:text-rose-400 dark:hover:bg-rose-900/30 rounded-lg transition-colors" title="Delete Student">
                           <Trash2 className="w-4 h-4" />
                         </button>
-                        <button className="p-1.5 text-stone-400 hover:text-[#8c1515] hover:bg-[#8c1515]/10 rounded-lg transition-colors">
+                        <button onClick={() => setStudentToView(student)} className="p-1.5 text-stone-400 hover:text-[#8c1515] hover:bg-[#8c1515]/10 rounded-lg transition-colors" title="View Details">
                           <MoreVertical className="w-4 h-4" />
                         </button>
                       </div>

@@ -19,6 +19,7 @@ export function AdminCourseManagementView() {
   const [search, setSearch] = useState('');
   const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
   const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
+  const [courseToEdit, setCourseToEdit] = useState<any | null>(null);
   
   // Add course form
   const [newCode, setNewCode] = useState('');
@@ -51,6 +52,14 @@ export function AdminCourseManagementView() {
     setNewTitle('');
     setNewCredits(3);
     setIsAddCourseOpen(false);
+  };
+
+  const handleEditCourse = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (courseToEdit) {
+      // Typically we'd call an editCourse(code, updates) action here. Let's close for demo.
+      setCourseToEdit(null);
+    }
   };
 
   return (
@@ -120,6 +129,43 @@ export function AdminCourseManagementView() {
                 Cancel
               </DialogClose>
               <Button type="submit">Create Course</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!courseToEdit} onOpenChange={(open) => !open && setCourseToEdit(null)}>
+        <DialogContent>
+          <form onSubmit={handleEditCourse}>
+            <DialogHeader>
+              <DialogTitle>Edit Course: {courseToEdit?.code}</DialogTitle>
+              <DialogDescription>
+                Update the course details.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <label className="text-sm font-semibold">Course Title</label>
+                <input 
+                  defaultValue={courseToEdit?.title}
+                  className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]" 
+                />
+              </div>
+              <div className="grid gap-2">
+                <label className="text-sm font-semibold">Credits</label>
+                <input 
+                  type="number"
+                  min="1" max="6"
+                  defaultValue={courseToEdit?.credits}
+                  className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]" 
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose render={<Button type="button" variant="outline" />}>
+                Cancel
+              </DialogClose>
+              <Button type="submit">Save Changes</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -201,7 +247,7 @@ export function AdminCourseManagementView() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button className="p-1.5 text-stone-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-md transition-colors" title="Edit">
+                        <button onClick={() => setCourseToEdit(course)} className="p-1.5 text-stone-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-md transition-colors" title="Edit">
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button onClick={() => setCourseToDelete(course.code)} className="p-1.5 text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-md transition-colors" title="Delete">
