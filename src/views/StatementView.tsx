@@ -5,7 +5,7 @@ import { Badge } from '../components/ui/Badge';
 import { useAppStore } from '../store';
 import { STUDENT_DATA, TRANSACTIONS_DATA } from '../data';
 import { AreaChart, Area, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
-import { TrendingDown, TrendingUp, Wallet, AlertCircle, Download, CreditCard, ArrowRight, CheckCircle2, Loader2, X } from 'lucide-react';
+import { TrendingDown, TrendingUp, Wallet, AlertCircle, Download, CreditCard, ArrowRight, CheckCircle2, Loader2, X, Lock } from 'lucide-react';
 
 export const StatementView: React.FC = () => {
   const { isDarkMode } = useAppStore();
@@ -300,36 +300,46 @@ export const StatementView: React.FC = () => {
                 </button>
               </div>
 
-              {paymentStep === 'amount' && (
-                 <div className="p-6 overflow-y-auto">
+               {paymentStep === 'amount' && (
+                 <div className="p-6 overflow-y-auto bg-stone-50/50 dark:bg-stone-900/10">
                    <div className="mb-6">
-                     <label className="block text-sm font-bold text-stone-700 dark:text-stone-300 mb-2">Amount to Pay</label>
+                     <label className="block text-sm font-bold text-stone-700 dark:text-stone-300 mb-2">Amount to Pay (BDT)</label>
                      <div className="relative">
                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500 font-bold">৳</span>
                        <input 
                          type="number" 
                          value={amountToPay} 
                          onChange={(e) => setAmountToPay(e.target.value)}
-                         className="w-full pl-8 pr-4 py-3 bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-xl focus:ring-2 focus:ring-[#8c1515] focus:border-transparent outline-none transition-all font-bold text-lg" 
+                         className="w-full pl-8 pr-4 py-3 border-2 border-transparent bg-white dark:bg-stone-950 shadow-sm rounded-xl focus:border-[#8c1515] focus:ring-4 focus:ring-[#8c1515]/10 outline-none transition-all font-mono font-bold text-lg text-stone-900 dark:text-white" 
                        />
                      </div>
                    </div>
                    
+                   <label className="block text-sm font-bold text-stone-700 dark:text-stone-300 mb-2">Payment Method</label>
                    <div className="space-y-3 mb-8">
-                     <div className="flex items-center gap-3 p-3 rounded-xl border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-900/10 cursor-pointer text-emerald-900 dark:text-emerald-100">
-                       <div className="w-5 h-5 rounded-full border-[6px] border-emerald-500 bg-white" />
-                       <div className="font-bold text-sm">Pay via ekpay gateway</div>
-                       <img src="https://wsrv.nl/?url=https://ekpay.gov.bd/images/ekpay-logo.png&output=webp" alt="ekpay" className="h-6 ml-auto object-contain" />
+                     <div className="flex flex-col gap-1 p-4 rounded-xl border-2 border-[#8c1515] bg-[#8c1515]/5 dark:bg-[#ef4444]/10 cursor-pointer text-stone-900 dark:text-stone-100 relative overflow-hidden">
+                       <div className="absolute top-0 right-0 -mr-4 -mt-4 w-16 h-16 rounded-full bg-[#8c1515]/10 blur-xl"></div>
+                       <div className="flex items-center gap-3 relative z-10">
+                          <div className="w-5 h-5 rounded-full border-[6px] border-[#8c1515] dark:border-[#ef4444] bg-white flex-shrink-0" />
+                          <div className="font-bold text-sm tracking-tight text-[#8c1515] dark:text-[#ef4444]">ekpay Gateway</div>
+                          <img src="https://wsrv.nl/?url=https://upload.wikimedia.org/wikipedia/commons/8/82/Bkash_logo.png&output=webp" alt="bkash" className="h-4 ml-auto object-contain opacity-80" />
+                          <img src="https://wsrv.nl/?url=https://upload.wikimedia.org/wikipedia/commons/a/a2/Nagad_Logo.png&output=webp" alt="nagad" className="h-4 object-contain opacity-80" />
+                       </div>
+                       <p className="text-xs text-stone-500 dark:text-stone-400 ml-8 mt-1 font-medium">Pay securely using Cards, Mobile Banking or Net Banking.</p>
                      </div>
                    </div>
 
                    <button 
                      onClick={processPayment}
                      disabled={!amountToPay || parseFloat(amountToPay) <= 0}
-                     className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#8c1515] hover:bg-[#7a1212] text-white font-bold transition-colors shadow-md disabled:opacity-50"
+                     className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#8c1515] hover:bg-[#731010] dark:bg-[#ef4444] dark:hover:bg-[#dc2626] text-white font-bold transition-all shadow-lg shadow-[#8c1515]/20 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5 active:translate-y-0"
                    >
                      Proceed to Checkout <ArrowRight className="w-4 h-4" />
                    </button>
+                   
+                   <div className="mt-4 flex items-center justify-center gap-1.5 text-stone-400 text-xs font-bold uppercase tracking-widest">
+                     <Lock className="w-3 h-3" /> Secure SSL Encrypted
+                   </div>
                  </div>
               )}
 

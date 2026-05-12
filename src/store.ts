@@ -38,11 +38,15 @@ interface AppState {
   // Auth
   isLoggedIn: boolean;
   setIsLoggedIn: (v: boolean) => void;
+  isAdmin: boolean;
+  setIsAdmin: (v: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
   isLoggedIn: false,
   setIsLoggedIn: (v) => set({ isLoggedIn: v }),
+  isAdmin: false,
+  setIsAdmin: (v) => set({ isAdmin: v }),
 
   activeTab: "home",
   setActiveTab: (tab) => set({ activeTab: tab }),

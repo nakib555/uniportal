@@ -5,7 +5,8 @@ import { Card } from '../components/ui/Card';
 import { Loader2, Lock, User, GraduationCap, ChevronRight } from 'lucide-react';
 
 export const LoginView: React.FC = () => {
-  const { setIsLoggedIn, isDarkMode } = useAppStore();
+  const { setIsLoggedIn, setIsAdmin } = useAppStore();
+  const [loginType, setLoginType] = useState<'student' | 'admin'>('student');
   const [studentId, setStudentId] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -24,6 +25,7 @@ export const LoginView: React.FC = () => {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
+      setIsAdmin(loginType === 'admin');
       setIsLoggedIn(true);
     }, 1500);
   };
@@ -80,10 +82,25 @@ export const LoginView: React.FC = () => {
          </div>
 
          <div className="w-full max-w-md">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10 text-center lg:text-left">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6 text-center lg:text-left">
                <h2 className="text-3xl sm:text-4xl font-black text-stone-900 dark:text-white tracking-tight mb-3">Welcome back</h2>
-               <p className="text-stone-500 dark:text-stone-400 font-medium">Please enter your Student ID and password to access your dashboard.</p>
+               <p className="text-stone-500 dark:text-stone-400 font-medium">Please enter your credentials to access your dashboard.</p>
             </motion.div>
+
+            <div className="flex bg-stone-100 dark:bg-stone-800/50 p-1 rounded-xl mb-8 relative z-10 w-full md:w-3/4 mx-auto lg:mx-0">
+               <button 
+                  onClick={() => { setLoginType('student'); setError(''); }}
+                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${loginType === 'student' ? 'bg-white dark:bg-stone-700 shadow-sm text-[#8c1515] dark:text-[#ef4444]' : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300'}`}
+               >
+                  Student
+               </button>
+               <button 
+                  onClick={() => { setLoginType('admin'); setError(''); }}
+                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${loginType === 'admin' ? 'bg-white dark:bg-stone-700 shadow-sm text-[#8c1515] dark:text-[#ef4444]' : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300'}`}
+               >
+                  Admin/Faculty
+               </button>
+            </div>
 
             <Card className="p-6 sm:p-8 bg-white dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 shadow-xl shadow-stone-200/20 dark:shadow-black/40 backdrop-blur-sm rounded-2xl lg:rounded-3xl relative overflow-hidden text-stone-900 dark:text-white">
                {/* Decorative elements */}
@@ -105,7 +122,7 @@ export const LoginView: React.FC = () => {
                   </AnimatePresence>
 
                   <div className="space-y-1.5 focus-within:text-[#8c1515] dark:focus-within:text-[#ef4444] transition-colors">
-                     <label className="text-sm font-bold text-stone-700 dark:text-stone-300 ml-1">Student ID</label>
+                     <label className="text-sm font-bold text-stone-700 dark:text-stone-300 ml-1">{loginType === 'student' ? 'Student ID' : 'Faculty/Admin ID'}</label>
                      <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                            <User className="h-5 w-5 text-stone-400" />
@@ -115,7 +132,7 @@ export const LoginView: React.FC = () => {
                            value={studentId}
                            onChange={(e) => setStudentId(e.target.value)}
                            className="w-full bg-stone-50 dark:bg-stone-950/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 pl-10 pr-4 text-stone-900 dark:text-white placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#8c1515]/20 dark:focus:ring-[#ef4444]/20 focus:border-[#8c1515] dark:focus:border-[#ef4444] transition-all font-medium"
-                           placeholder="e.g. 21104104"
+                           placeholder={loginType === 'student' ? "e.g. 21104104" : "e.g. FAC-2098"}
                         />
                      </div>
                   </div>
