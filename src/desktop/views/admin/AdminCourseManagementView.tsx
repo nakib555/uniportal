@@ -2,27 +2,135 @@ import React, { useState } from 'react';
 import { Card } from '../../../components/ui/Card';
 import { Badge } from '../../../components/ui/Badge';
 import { Search, Plus, MoreVertical, BookOpen, Layers, Edit2, Trash2 } from 'lucide-react';
+import { useAppStore } from '../../../store';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from '../../../components/ui/dialog';
+import { Button } from '../../../components/ui/button';
 
 export function AdminCourseManagementView() {
   const [search, setSearch] = useState('');
+  const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
+  const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
   
-  const mockCourses = [
-    { code: 'CSE-101', title: 'Introduction to Computer Science', credits: 3, section: 'A, B, C', enrolled: 120, status: 'Active' },
-    { code: 'CSE-102', title: 'Programming Language I', credits: 3, section: 'A, B', enrolled: 85, status: 'Active' },
-    { code: 'CSE-201', title: 'Data Structures', credits: 3, section: 'A', enrolled: 45, status: 'Active' },
-    { code: 'CSE-305', title: 'Software Engineering', credits: 3, section: 'A, B', enrolled: 72, status: 'Active' },
-    { code: 'MAT-101', title: 'Differential Calculus', credits: 3, section: 'A, B, C, D', enrolled: 150, status: 'Active' },
-    { code: 'PHY-101', title: 'Physics I', credits: 3, section: 'A, B', enrolled: 90, status: 'Inactive' },
-  ];
+  // Add course form
+  const [newCode, setNewCode] = useState('');
+  const [newTitle, setNewTitle] = useState('');
+  const [newCredits, setNewCredits] = useState(3);
+  
+  const { coursesData, deleteCourse, toggleCourseStatus, addCourse } = useAppStore();
+
+  const confirmDelete = () => {
+    if (courseToDelete) {
+      deleteCourse(courseToDelete);
+      setCourseToDelete(null);
+    }
+  };
+
+  const handleAddCourse = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCode || !newTitle) return;
+    
+    addCourse({
+      code: newCode.toUpperCase(),
+      title: newTitle,
+      credits: newCredits,
+      section: 'A',
+      enrolled: 0,
+      status: 'Active'
+    });
+    
+    setNewCode('');
+    setNewTitle('');
+    setNewCredits(3);
+    setIsAddCourseOpen(false);
+  };
 
   return (
     <div className="space-y-6">
+      <Dialog open={!!courseToDelete} onOpenChange={(open) => !open && setCourseToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Course</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete course {courseToDelete}? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" />}>
+              Cancel
+            </DialogClose>
+            <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAddCourseOpen} onOpenChange={setIsAddCourseOpen}>
+        <DialogContent>
+          <form onSubmit={handleAddCourse}>
+            <DialogHeader>
+              <DialogTitle>Add New Course</DialogTitle>
+              <DialogDescription>
+                Create a new course in the catalog.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <label className="text-sm font-semibold">Course Code</label>
+                <input 
+                  autoFocus
+                  required
+                  value={newCode}
+                  onChange={e => setNewCode(e.target.value)}
+                  placeholder="e.g. CSE-421"
+                  className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]" 
+                />
+              </div>
+              <div className="grid gap-2">
+                <label className="text-sm font-semibold">Course Title</label>
+                <input 
+                  required
+                  value={newTitle}
+                  onChange={e => setNewTitle(e.target.value)}
+                  placeholder="e.g. Machine Learning"
+                  className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]" 
+                />
+              </div>
+              <div className="grid gap-2">
+                <label className="text-sm font-semibold">Credits</label>
+                <input 
+                  type="number"
+                  min="1" max="6"
+                  required
+                  value={newCredits}
+                  onChange={e => setNewCredits(Number(e.target.value))}
+                  className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]" 
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose render={<Button type="button" variant="outline" />}>
+                Cancel
+              </DialogClose>
+              <Button type="submit">Create Course</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <h2 className="text-2xl font-bold text-stone-900 dark:text-white">Course Management</h2>
           <p className="text-stone-500 dark:text-stone-400 mt-1">Manage course catalog, sections, and allocations.</p>
         </div>
-        <button className="bg-[#8c1515] hover:bg-[#731010] dark:bg-[#ef4444] dark:hover:bg-[#dc2626] text-white px-4 py-2 rounded-lg font-bold shadow-sm transition-all flex items-center gap-2">
+        <button onClick={() => setIsAddCourseOpen(true)} className="bg-[#8c1515] hover:bg-[#731010] dark:bg-[#ef4444] dark:hover:bg-[#dc2626] text-white px-4 py-2 rounded-lg font-bold shadow-sm transition-all flex items-center gap-2">
           <Plus className="w-5 h-5" /> Add New Course
         </button>
       </div>
@@ -76,30 +184,34 @@ export function AdminCourseManagementView() {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
-              {mockCourses.filter(c => c.title.toLowerCase().includes(search.toLowerCase()) || c.code.toLowerCase().includes(search.toLowerCase())).map((course, idx) => (
-                <tr key={idx} className="hover:bg-stone-50 dark:hover:bg-stone-800/30 transition-colors group">
-                  <td className="px-6 py-4 font-mono font-medium text-stone-900 dark:text-stone-100">{course.code}</td>
-                  <td className="px-6 py-4 font-bold text-stone-900 dark:text-stone-100">{course.title}</td>
-                  <td className="px-6 py-4 text-stone-600 dark:text-stone-400">{course.credits}</td>
-                  <td className="px-6 py-4 text-stone-600 dark:text-stone-400 font-mono">{course.section}</td>
-                  <td className="px-6 py-4 text-stone-600 dark:text-stone-400">{course.enrolled}</td>
-                  <td className="px-6 py-4">
-                    <Badge variant={course.status === 'Active' ? 'success' : 'secondary'}>
-                      {course.status}
-                    </Badge>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2 text-stone-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-1.5 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-md transition-colors" title="Edit">
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button className="p-1.5 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-md transition-colors" title="Delete">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {coursesData.filter(c => c.title.toLowerCase().includes(search.toLowerCase()) || c.code.toLowerCase().includes(search.toLowerCase())).length === 0 ? (
+                <tr><td colSpan={7} className="px-6 py-8 text-center text-stone-500">No courses found.</td></tr>
+              ) : (
+                coursesData.filter(c => c.title.toLowerCase().includes(search.toLowerCase()) || c.code.toLowerCase().includes(search.toLowerCase())).map((course, idx) => (
+                  <tr key={idx} className="hover:bg-stone-50 dark:hover:bg-stone-800/30 transition-colors group">
+                    <td className="px-6 py-4 font-mono font-medium text-stone-900 dark:text-stone-100">{course.code}</td>
+                    <td className="px-6 py-4 font-bold text-stone-900 dark:text-stone-100">{course.title}</td>
+                    <td className="px-6 py-4 text-stone-600 dark:text-stone-400">{course.credits}</td>
+                    <td className="px-6 py-4 text-stone-600 dark:text-stone-400 font-mono">{course.section}</td>
+                    <td className="px-6 py-4 text-stone-600 dark:text-stone-400">{course.enrolled}</td>
+                    <td className="px-6 py-4 cursor-pointer" onClick={() => toggleCourseStatus(course.code)} title="Click to toggle status">
+                      <Badge variant={course.status === 'Active' ? 'success' : 'secondary'}>
+                        {course.status}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button className="p-1.5 text-stone-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-md transition-colors" title="Edit">
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => setCourseToDelete(course.code)} className="p-1.5 text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-md transition-colors" title="Delete">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

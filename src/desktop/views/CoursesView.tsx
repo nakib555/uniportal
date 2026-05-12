@@ -4,6 +4,16 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Card, Badge } from '../components/ui';
 import { usePortalLogic } from '../../hooks/usePortalLogic';
 import { Course } from '../../data';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from '../../components/ui/dialog';
+import { Button } from '../../components/ui/button';
 
 export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLogic> }) {
   const { 
@@ -19,11 +29,36 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
   } = portal;
   
   const [selectedSyllabusCourse, setSelectedSyllabusCourse] = useState<Course | null>(null);
+  const [courseToDrop, setCourseToDrop] = useState<string | null>(null);
+
+  const confirmDrop = () => {
+    if (courseToDrop) {
+      handleDropCourse(courseToDrop);
+      setCourseToDrop(null);
+    }
+  };
 
   if (store.activeTab === 'registered-courses') {
     const totalCredits = registeredCourses.reduce((acc, c) => acc + c.credits, 0);
     return (
       <div className="space-y-6">
+        <Dialog open={!!courseToDrop} onOpenChange={(open) => !open && setCourseToDrop(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Drop Course</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to drop this course?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <DialogClose render={<Button variant="outline" />}>
+                Cancel
+              </DialogClose>
+              <Button variant="destructive" onClick={confirmDrop}>Drop</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="px-4 py-2 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl shadow-sm flex items-center gap-3">
@@ -152,7 +187,7 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
 			<Info className="w-4 h-4" />
 			</button>
                       <button 
-                        onClick={() => handleDropCourse(course.code)}
+                        onClick={() => setCourseToDrop(course.code)}
                         disabled={isSelectionLocked}
                         className="flex-1 py-2 flex items-center justify-center gap-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
@@ -185,7 +220,7 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
 			<Info className="w-4 h-4" />
 		    </button>
                     <button 
-                      onClick={() => handleDropCourse(course.code)}
+                      onClick={() => setCourseToDrop(course.code)}
                       disabled={isSelectionLocked}
                       className="flex-1 py-2 flex items-center justify-center gap-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >

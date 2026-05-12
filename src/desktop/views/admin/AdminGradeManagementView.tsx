@@ -2,21 +2,58 @@ import React, { useState } from 'react';
 import { Card } from '../../../components/ui/Card';
 import { Badge } from '../../../components/ui/Badge';
 import { Search, Filter, FileText, CheckCircle2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from '../../../components/ui/dialog';
+import { Button } from '../../../components/ui/button';
 
 export function AdminGradeManagementView() {
   const [activeTab, setActiveTab] = useState<'pending' | 'approved'>('pending');
+  const [gradeToApprove, setGradeToApprove] = useState<any | null>(null);
 
-  const pendingGrades = [
+  const [pendingGrades, setPendingGrades] = useState([
     { course: 'CSE-101', section: 'A', instructor: 'Dr. Rahman', submittedAt: '2 hours ago', students: 45, average: '3.42' },
     { course: 'MAT-201', section: 'C', instructor: 'Prof. Islam', submittedAt: '1 day ago', students: 38, average: '3.15' },
-  ];
+  ]);
 
-  const approvedGrades = [
+  const [approvedGrades, setApprovedGrades] = useState([
     { course: 'PHY-101', section: 'A', instructor: 'Dr. Hasan', submittedAt: '3 days ago', approvedAt: '1 day ago', students: 40, average: '3.60' },
-  ];
+  ]);
+
+  const confirmApprove = () => {
+    if (gradeToApprove) {
+      setPendingGrades(prev => prev.filter(p => `${p.course}-${p.section}` !== `${gradeToApprove.course}-${gradeToApprove.section}`));
+      setApprovedGrades(prev => [{ ...gradeToApprove, approvedAt: 'Just now' }, ...prev]);
+      setGradeToApprove(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
+      <Dialog open={!!gradeToApprove} onOpenChange={(open) => !open && setGradeToApprove(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Approve Grades: {gradeToApprove?.course} - Sec {gradeToApprove?.section}</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to approve these grades submitted by {gradeToApprove?.instructor}? Once approved, grades will be published to the respective students.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" />}>
+              Cancel
+            </DialogClose>
+            <Button className="bg-[#8c1515] hover:bg-[#731010] dark:bg-[#ef4444] dark:hover:bg-[#dc2626] text-white" onClick={confirmApprove}>Confirm Approval</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
         <div>
           <h2 className="text-2xl font-bold text-stone-900 dark:text-white">Grade Submissions</h2>
@@ -79,7 +116,7 @@ export function AdminGradeManagementView() {
 
             {activeTab === 'pending' ? (
               <div className="flex gap-3">
-                <button className="flex-1 py-2 font-bold text-sm bg-[#8c1515] hover:bg-[#731010] dark:bg-[#ef4444] dark:hover:bg-[#dc2626] text-white rounded-lg transition-colors">
+                <button onClick={() => setGradeToApprove(submission)} className="flex-1 py-2 font-bold text-sm bg-[#8c1515] hover:bg-[#731010] dark:bg-[#ef4444] dark:hover:bg-[#dc2626] text-white rounded-lg transition-colors">
                   Review & Approve
                 </button>
                 <button className="py-2 px-3 font-medium text-sm border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">

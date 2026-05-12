@@ -1,22 +1,51 @@
 import React, { useState } from 'react';
 import { Card } from '../../../components/ui/Card';
 import { Badge } from '../../../components/ui/Badge';
-import { Search, Filter, MoreVertical, FileText, CheckCircle2, XCircle } from 'lucide-react';
-import { STUDENT_DATA } from '../../../data';
+import { Search, Filter, MoreVertical, FileText, CheckCircle2, XCircle, Trash2 } from 'lucide-react';
+import { useAppStore } from '../../../store';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from '../../../components/ui/dialog';
+import { Button } from '../../../components/ui/button';
 
 export function AdminStudentRecordsView() {
   const [search, setSearch] = useState('');
-  
-  const mockStudents = [
-    { id: '21104104', name: 'Al Ibrahim', program: 'BSc in CSE', cgpa: 3.82, status: 'Regular' },
-    { id: '21104105', name: 'Sarah Ahmed', program: 'BSc in SWE', cgpa: 3.91, status: 'Regular' },
-    { id: '21104106', name: 'Fahim Rahman', program: 'BSc in CSE', cgpa: 2.85, status: 'Probation' },
-    { id: '21104107', name: 'Nusrat Jahan', program: 'BSc in CIS', cgpa: 3.45, status: 'Regular' },
-    { id: '21104108', name: 'Rafiq Islam', program: 'BSc in CSE', cgpa: 3.12, status: 'Irregular' },
-  ];
+  const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
+  const { students, deleteStudent, updateStudentStatus } = useAppStore();
+
+  const confirmDelete = () => {
+    if (studentToDelete) {
+      deleteStudent(studentToDelete);
+      setStudentToDelete(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
+      <Dialog open={!!studentToDelete} onOpenChange={(open) => !open && setStudentToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Student</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this student record? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" />}>
+              Cancel
+            </DialogClose>
+            <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex justify-between items-end">
         <div>
           <h2 className="text-2xl font-bold text-stone-900 dark:text-white">Student Records</h2>
@@ -54,24 +83,33 @@ export function AdminStudentRecordsView() {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
-              {mockStudents.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.id.includes(search)).map((student, idx) => (
-                <tr key={idx} className="hover:bg-stone-50 dark:hover:bg-stone-800/30 transition-colors group">
-                  <td className="px-6 py-4 font-mono font-medium text-stone-900 dark:text-stone-100">{student.id}</td>
-                  <td className="px-6 py-4 font-bold text-stone-900 dark:text-stone-100">{student.name}</td>
-                  <td className="px-6 py-4 text-stone-600 dark:text-stone-400">{student.program}</td>
-                  <td className="px-6 py-4 font-bold text-stone-900 dark:text-stone-100">{student.cgpa.toFixed(2)}</td>
-                  <td className="px-6 py-4">
-                    <Badge variant={student.status === 'Regular' ? 'success' : student.status === 'Probation' ? 'danger' : 'warning'}>
-                      {student.status}
-                    </Badge>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button className="p-1.5 text-stone-400 hover:text-[#8c1515] hover:bg-[#8c1515]/10 rounded-lg transition-colors">
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {students.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.id.includes(search)).length === 0 ? (
+                <tr><td colSpan={6} className="px-6 py-8 text-center text-stone-500">No students found.</td></tr>
+              ) : (
+                students.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.id.includes(search)).map((student, idx) => (
+                  <tr key={idx} className="hover:bg-stone-50 dark:hover:bg-stone-800/30 transition-colors group">
+                    <td className="px-6 py-4 font-mono font-medium text-stone-900 dark:text-stone-100">{student.id}</td>
+                    <td className="px-6 py-4 font-bold text-stone-900 dark:text-stone-100">{student.name}</td>
+                    <td className="px-6 py-4 text-stone-600 dark:text-stone-400">{student.program}</td>
+                    <td className="px-6 py-4 font-bold text-stone-900 dark:text-stone-100">{student.cgpa.toFixed(2)}</td>
+                    <td className="px-6 py-4 cursor-pointer" onClick={() => updateStudentStatus(student.id, student.status === 'Regular' ? 'Probation' : student.status === 'Probation' ? 'Irregular' : 'Regular')} title="Click to toggle status">
+                      <Badge variant={student.status === 'Regular' ? 'success' : student.status === 'Probation' ? 'danger' : 'warning'}>
+                        {student.status}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => setStudentToDelete(student.id)} className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:text-rose-400 dark:hover:bg-rose-900/30 rounded-lg transition-colors" title="Delete Student">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <button className="p-1.5 text-stone-400 hover:text-[#8c1515] hover:bg-[#8c1515]/10 rounded-lg transition-colors">
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

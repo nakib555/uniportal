@@ -1,29 +1,86 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { useAppStore } from '../store';
-import { BookMarked } from 'lucide-react';
+import { BookMarked, AlertCircle } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from '../components/ui/dialog';
+import { Button } from '../components/ui/button';
 
 export const RegisteredCoursesView: React.FC = () => {
-  const { registeredCourses, setRegisteredCourses, isSelectionLocked, setIsSelectionLocked, setActiveTab } = useAppStore();
+  const { registeredCourses, setRegisteredCourses, isSelectionLocked, setActiveTab } = useAppStore();
 
-  const handleDropCourse = (courseCode: string) => {
+  const [courseToDrop, setCourseToDrop] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const confirmDrop = () => {
+    if (!courseToDrop) return;
+    
     if (isSelectionLocked) {
-      alert(`Course selection is locked for this semester.`);
+      setErrorMsg(`Course selection is locked for this semester.`);
+      setCourseToDrop(null);
       return;
     }
+
     // Check if dropping this course breaks corequisite rules for other registered courses
-    const brokenCoreqCourse = registeredCourses.find(c => c.corequisites?.includes(courseCode));
+    const brokenCoreqCourse = registeredCourses.find(c => c.corequisites?.includes(courseToDrop));
     if (brokenCoreqCourse) {
-      alert(`Cannot drop ${courseCode} because it is a co-requisite for ${brokenCoreqCourse.code}.`);
+      setErrorMsg(`Cannot drop ${courseToDrop} because it is a co-requisite for ${brokenCoreqCourse.code}.`);
+      setCourseToDrop(null);
       return;
     }
     
-    setRegisteredCourses(registeredCourses.filter(c => c.code !== courseCode));
+    setRegisteredCourses(registeredCourses.filter(c => c.code !== courseToDrop));
+    setCourseToDrop(null);
+  };
+
+  const handleDropCourse = (courseCode: string) => {
+    setCourseToDrop(courseCode);
   };
 
   return (
     <>
+      <Dialog open={!!courseToDrop} onOpenChange={(open) => !open && setCourseToDrop(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Drop Course</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to drop course {courseToDrop}?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" />}>
+              Cancel
+            </DialogClose>
+            <Button variant="destructive" onClick={confirmDrop}>Drop</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!errorMsg} onOpenChange={(open) => !open && setErrorMsg(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-red-500" />
+              <DialogTitle>Action Prevented</DialogTitle>
+            </div>
+            <DialogDescription className="pt-2">
+              {errorMsg}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setErrorMsg(null)}>Understood</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {registeredCourses.length === 0 ? (
         <Card className="p-12 flex flex-col items-center justify-center text-center bg-stone-50/50 dark:bg-stone-900/50 border-dashed border-2 dark:border-stone-800">
            <BookMarked className="w-12 h-12 text-stone-300 dark:text-stone-600 mb-4" />

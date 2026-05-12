@@ -3,9 +3,21 @@ import { Card } from '../../../components/ui/Card';
 import { Badge } from '../../../components/ui/Badge';
 import { Search, AlertTriangle, Users, Filter, CheckCircle2 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, Tooltip } from 'recharts';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from '../../../components/ui/dialog';
+import { Button } from '../../../components/ui/button';
 
 export function AdminAttendanceManagementView() {
   const [search, setSearch] = useState('');
+  const [warningStudent, setWarningStudent] = useState<any | null>(null);
 
   const chartData = [
     { name: 'Week 1', attendance: 95 },
@@ -16,13 +28,37 @@ export function AdminAttendanceManagementView() {
     { name: 'Week 6', attendance: 91 },
   ];
 
-  const flaggedStudents = [
+  const [flaggedStudents, setFlaggedStudents] = useState([
     { id: '21104104', name: 'Al Ibrahim', course: 'CSE-305', percentage: 65, missed: 4, consecutive: 3 },
     { id: '21104106', name: 'Fahim Rahman', course: 'MAT-201', percentage: 58, missed: 5, consecutive: 5 },
-  ];
+  ]);
+
+  const sendWarning = () => {
+    if (warningStudent) {
+      setFlaggedStudents(prev => prev.filter(s => s.id !== warningStudent.id));
+      setWarningStudent(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
+      <Dialog open={!!warningStudent} onOpenChange={(open) => !open && setWarningStudent(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Send Automated Warning</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to send a low attendance warning to {warningStudent?.name}? This will send an email and SMS to the student.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" />}>
+              Cancel
+            </DialogClose>
+            <Button onClick={sendWarning}>Send Warning</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
         <div>
           <h2 className="text-2xl font-bold text-stone-900 dark:text-white">Attendance Management</h2>
@@ -99,7 +135,7 @@ export function AdminAttendanceManagementView() {
                       <div className="w-12 h-12 rounded-full border-4 border-red-100 dark:border-red-900/30 flex items-center justify-center font-bold text-red-600 dark:text-red-400 text-sm">
                          {s.percentage}%
                       </div>
-                      <button className="text-xs font-bold text-[#8c1515] dark:text-[#ef4444] hover:underline whitespace-nowrap">Send Warning</button>
+                      <button onClick={() => setWarningStudent(s)} className="text-xs font-bold text-[#8c1515] dark:text-[#ef4444] hover:underline whitespace-nowrap">Send Warning</button>
                    </div>
                 </div>
              ))}

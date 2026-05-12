@@ -1,14 +1,27 @@
-import React, { useRef } from 'react';
-import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
+import React, { useRef, useState } from 'react';
+import { Card } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
 import { useAppStore } from '../store';
 import { STUDENT_DATA } from '../data';
-import { Camera } from 'lucide-react';
+import { Camera, CheckCircle2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from '../components/ui/dialog';
+import { Button } from '../components/ui/button';
 
 export const ProfileView: React.FC = () => {
   const { profilePic, setProfilePic } = useAppStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const student = STUDENT_DATA;
+  const [isUpdateOpen, setIsUpdateOpen] = useState(false);
+  const [updateText, setUpdateText] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
   const handleProfilePicUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -21,11 +34,58 @@ export const ProfileView: React.FC = () => {
     }
   };
 
+  const handleUpdateSubmit = () => {
+    setSuccessMsg('Your request has been submitted to the registrar.');
+    setIsUpdateOpen(false);
+    setUpdateText('');
+    setTimeout(() => setSuccessMsg(''), 3000);
+  };
+
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <header className="mb-6">
-        <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">Profile info</h2>
-        <p className="text-stone-500 dark:text-stone-400 mt-1">Your academic and personal records.</p>
+    <div className="space-y-6 max-w-4xl mx-auto relative">
+      {successMsg && (
+        <div className="absolute top-0 right-0 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-lg font-medium text-sm flex items-center shadow-sm border border-emerald-100 dark:border-emerald-800 z-10">
+          <CheckCircle2 className="w-4 h-4 mr-2" />
+          {successMsg}
+        </div>
+      )}
+
+      <Dialog open={isUpdateOpen} onOpenChange={setIsUpdateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Request Information Update</DialogTitle>
+            <DialogDescription>
+              Please describe what information needs to be updated (e.g., name correction, phone number change).
+              The registrar's office will process your request.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <textarea
+              className="w-full h-32 px-3 py-2 border border-stone-200 dark:border-stone-800 rounded-lg bg-stone-50 dark:bg-stone-900 focus:outline-none focus:ring-2 focus:ring-[#8c1515] dark:text-stone-100 resize-none"
+              placeholder="Explain the changes you need..."
+              value={updateText}
+              onChange={(e) => setUpdateText(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" />}>
+              Cancel
+            </DialogClose>
+            <Button onClick={handleUpdateSubmit} disabled={!updateText.trim()}>
+              Submit Request
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <header className="mb-6 flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">Profile info</h2>
+          <p className="text-stone-500 dark:text-stone-400 mt-1">Your academic and personal records.</p>
+        </div>
+        <Button onClick={() => setIsUpdateOpen(true)} variant="outline" className="hidden sm:inline-flex">
+          Request Update
+        </Button>
       </header>
       
       <Card className="overflow-hidden">

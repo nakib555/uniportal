@@ -100,7 +100,15 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
     handleRegister, confirmCoreqsRegistration, handleDropCourse, hasCompletedPrerequisites, setSelectedFees, setPendingCoreqCourse
   } = props;
   const [selectedSyllabusCourse, setSelectedSyllabusCourse] = useState<Course | null>(null);
+  const [courseToDrop, setCourseToDrop] = useState<string | null>(null);
   const { activeTab, setActiveTab, expandedMenus, isSidebarCollapsed, setIsSidebarCollapsed, isMobileMenuOpen, setIsMobileMenuOpen, isDarkMode, isAdmin } = store;
+
+  const confirmDrop = () => {
+    if (courseToDrop) {
+      handleDropCourse(courseToDrop);
+      setCourseToDrop(null);
+    }
+  };
   const currentNavItems = getNavItems(isAdmin);
   const currentTabParent = currentNavItems.find(n => n.id === activeTab || n.subItems?.some(s => s.id === activeTab));
   const pageTitle = currentNavItems.find(n => n.id === activeTab)?.label || 
@@ -594,6 +602,24 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
               {/* === COURSES: REGISTERED === */}
               {activeTab === 'registered-courses' && (
                 <div className="space-y-6">
+                  {courseToDrop && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/50 backdrop-blur-sm">
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white dark:bg-stone-900 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden border border-stone-200 dark:border-stone-800"
+                      >
+                        <div className="p-6">
+                          <h3 className="text-xl font-bold text-stone-900 dark:text-white mb-2">Drop Course</h3>
+                          <p className="text-stone-500 dark:text-stone-400">Are you sure you want to drop this course?</p>
+                        </div>
+                        <div className="p-4 border-t border-stone-100 dark:border-stone-800 flex justify-end gap-3 bg-stone-50 dark:bg-stone-950">
+                          <button onClick={() => setCourseToDrop(null)} className="px-4 py-2 text-stone-600 dark:text-stone-300 font-bold text-sm bg-white dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700 border border-stone-200 dark:border-stone-700 rounded-lg transition-colors">Cancel</button>
+                          <button onClick={confirmDrop} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-lg transition-colors">Drop</button>
+                        </div>
+                      </motion.div>
+                    </div>
+                  )}
                   <header>
                     <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">{pageTitle}</h2>
                     <p className="text-stone-500 dark:text-stone-400 mt-1">Courses you are currently enrolled in for {student.currentSemester}.</p>
@@ -680,7 +706,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                                       <FileText className="w-4 h-4" />
                                     </button>
                                     <button 
-                                      onClick={() => handleDropCourse(c.code)} 
+                                      onClick={() => setCourseToDrop(c.code)} 
                                       disabled={isSelectionLocked} 
                                       className={`px-4 py-1.5 text-xs font-bold rounded-lg border transition-colors shrink-0 ${isSelectionLocked ? 'bg-stone-50 dark:bg-stone-900 text-stone-400 border-stone-200 dark:border-stone-800 cursor-not-allowed' : 'bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50 hover:bg-red-100 dark:hover:bg-red-900/50'}`}
                                     >
@@ -715,7 +741,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                                       <FileText className="w-4 h-4" />
                                     </button>
                                     <button 
-                                      onClick={() => handleDropCourse(c.code)} 
+                                      onClick={() => setCourseToDrop(c.code)} 
                                     disabled={isSelectionLocked} 
                                     className={`px-4 py-1.5 text-xs font-bold rounded-lg border transition-colors shrink-0 ${isSelectionLocked ? 'bg-stone-50 dark:bg-stone-900 text-stone-400 border-stone-200 dark:border-stone-800 cursor-not-allowed' : 'bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50 hover:bg-red-100 dark:hover:bg-red-900/50'}`}
                                   >

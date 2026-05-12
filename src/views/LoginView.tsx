@@ -2,15 +2,31 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAppStore } from '../store';
 import { Card } from '../components/ui/Card';
-import { Loader2, Lock, User, GraduationCap, ChevronRight } from 'lucide-react';
+import { Loader2, Lock, User, Eye, EyeOff, ChevronRight, CheckCircle2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from '../components/ui/dialog';
+import { Button } from '../components/ui/button';
 
 export const LoginView: React.FC = () => {
   const { setIsLoggedIn, setIsAdmin } = useAppStore();
   const [loginType, setLoginType] = useState<'student' | 'admin'>('student');
   const [studentId, setStudentId] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // Forgot Password state
+  const [isForgotOpen, setIsForgotOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetSent, setResetSent] = useState(false);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,18 +38,97 @@ export const LoginView: React.FC = () => {
     setIsLoading(true);
     setError('');
 
-    // Simulate API call
+    // Simulate API call and validation
     setTimeout(() => {
       setIsLoading(false);
       const isUserAdmin = loginType === 'admin';
+      
+      // Basic validation
+      if (isUserAdmin && (studentId !== 'admin' || password !== 'admin')) {
+        setError('Invalid admin credentials. (Use ID: admin, Password: admin)');
+        return;
+      }
+      
+      if (!isUserAdmin && (studentId !== 'class' || password !== 'class')) {
+        setError('Invalid student credentials. (Use ID: class, Password: class)');
+        return;
+      }
+
       setIsAdmin(isUserAdmin);
       useAppStore.getState().setActiveTab(isUserAdmin ? 'admin-dashboard' : 'home');
       setIsLoggedIn(true);
     }, 1500);
   };
 
+  const handleResetPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail) return;
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      setResetSent(true);
+    }, 1000);
+  };
+
   return (
     <div className="min-h-screen w-full flex bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-100">
+      <Dialog open={isForgotOpen} onOpenChange={(open) => {
+        setIsForgotOpen(open);
+        if (!open) {
+          setTimeout(() => setResetSent(false), 200);
+          setResetEmail('');
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              {resetSent 
+                ? "If an account matches that email address, a password reset link has been sent."
+                : "Enter your registered email address or student ID and we will send you a password reset link."}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {resetSent ? (
+            <div className="py-6 flex flex-col items-center justify-center text-center">
+              <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center mb-4 text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <p className="font-medium text-stone-900 dark:text-white">Check your email</p>
+            </div>
+          ) : (
+            <form onSubmit={handleResetPassword} className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Email or Student ID</label>
+                <input 
+                  type="text"
+                  required
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  placeholder="e.g. 21104104 or user@pu.edu.bd"
+                  className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]"
+                />
+              </div>
+              <DialogFooter>
+                <DialogClose render={<Button type="button" variant="outline" />}>
+                  Cancel
+                </DialogClose>
+                <Button type="submit" disabled={!resetEmail || isLoading}>
+                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  Send Reset Link
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+          {resetSent && (
+            <DialogFooter>
+              <DialogClose render={<Button type="button" />}>
+                Close
+              </DialogClose>
+            </DialogFooter>
+          )}
+        </DialogContent>
+      </Dialog>
       {/* Left side: branding & image (hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 bg-[#8c1515] text-white overflow-hidden">
         <div className="absolute inset-0 z-0 opacity-20 dark:opacity-40 select-none pointer-events-none">
@@ -142,19 +237,26 @@ export const LoginView: React.FC = () => {
                   <div className="space-y-1.5 focus-within:text-[#8c1515] dark:focus-within:text-[#ef4444] transition-colors">
                      <div className="flex items-center justify-between ml-1">
                         <label className="text-sm font-bold text-stone-700 dark:text-stone-300">Password</label>
-                        <a href="#" className="text-xs font-bold text-[#8c1515] dark:text-[#ef4444] hover:underline">Forgot password?</a>
+                        <button type="button" onClick={() => setIsForgotOpen(true)} className="text-xs font-bold text-[#8c1515] dark:text-[#ef4444] hover:underline">Forgot password?</button>
                      </div>
                      <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                            <Lock className="h-5 w-5 text-stone-400" />
                         </div>
                         <input
-                           type="password"
+                           type={showPassword ? "text" : "password"}
                            value={password}
                            onChange={(e) => setPassword(e.target.value)}
-                           className="w-full bg-stone-50 dark:bg-stone-950/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 pl-10 pr-4 text-stone-900 dark:text-white placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#8c1515]/20 dark:focus:ring-[#ef4444]/20 focus:border-[#8c1515] dark:focus:border-[#ef4444] transition-all font-medium"
+                           className="w-full bg-stone-50 dark:bg-stone-950/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 pl-10 pr-12 text-stone-900 dark:text-white placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#8c1515]/20 dark:focus:ring-[#ef4444]/20 focus:border-[#8c1515] dark:focus:border-[#ef4444] transition-all font-medium"
                            placeholder="••••••••"
                         />
+                        <button
+                           type="button"
+                           onClick={() => setShowPassword(!showPassword)}
+                           className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 transition-colors focus:outline-none"
+                        >
+                           {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
                      </div>
                   </div>
 
