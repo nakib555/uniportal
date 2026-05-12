@@ -1,0 +1,61 @@
+import React from 'react';
+import { TRANSACTIONS_DATA } from '../../data';
+
+export function PrintableStatement({ student, totalDebit, totalCredit, simulatedDues }: any) {
+  return (
+    <div className="hidden print:block font-serif text-black bg-white w-full max-w-[21cm] mx-auto absolute right-0 top-0 left-0 bottom-0 z-[100] min-h-screen p-8 print:static [print-color-adjust:exact] [-webkit-print-color-adjust:exact]">
+       <div className="text-center border-b-2 border-black pb-4 mb-6">
+           <h1 className="text-2xl font-bold uppercase tracking-wider print:text-black">University Portal</h1>
+           <h2 className="text-xl font-bold mb-1 print:text-black">Statement of Account</h2>
+           <p className="text-sm print:text-gray-600 mt-1">Generated on: {new Date().toLocaleDateString()}</p>
+       </div>
+
+       <div className="grid grid-cols-2 gap-4 mb-8 border border-black p-4">
+           <div>
+              <p><span className="font-bold">Student Name:</span> {student.name}</p>
+              <p><span className="font-bold">Student ID:</span> 21104104</p>
+              <p><span className="font-bold">Program:</span> {student.program}</p>
+           </div>
+           <div className="text-right">
+              <p><span className="font-bold">Total Billed:</span> Tk {totalDebit.toLocaleString()}</p>
+              <p><span className="font-bold">Total Paid:</span> Tk {totalCredit.toLocaleString()}</p>
+              <p><span className="font-bold">Current Dues:</span> Tk {simulatedDues.toLocaleString()}</p>
+           </div>
+       </div>
+
+       <div className="mb-8">
+           <table className="w-full text-left border-collapse border border-black">
+              <thead>
+                <tr className="bg-gray-100 border-b border-black print:bg-gray-100">
+                   <th className="p-2 border-r border-black font-bold text-sm">Date</th>
+                   <th className="p-2 border-r border-black font-bold text-sm">Description</th>
+                   <th className="p-2 border-r border-black font-bold text-sm">Item</th>
+                   <th className="p-2 border-r border-black font-bold text-sm">Voucher</th>
+                   <th className="p-2 border-r border-black font-bold text-sm text-right">Debit (Tk)</th>
+                   <th className="p-2 border-r border-black font-bold text-sm text-right">Credit (Tk)</th>
+                   <th className="p-2 font-bold text-sm text-right">Balance (Tk)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {TRANSACTIONS_DATA.map((t, i) => (
+                  <tr key={i} className="border-b border-black text-sm">
+                     <td className="p-2 border-r border-black">{t.date}</td>
+                     <td className="p-2 border-r border-black">{t.description}</td>
+                     <td className="p-2 border-r border-black">{t.item || '-'}</td>
+                     <td className="p-2 border-r border-black">{t.voucher || '-'}</td>
+                     <td className="p-2 border-r border-black text-right">{t.debit ? t.debit.toLocaleString() : '-'}</td>
+                     <td className="p-2 border-r border-black text-right">{t.credit ? t.credit.toLocaleString() : '-'}</td>
+                     <td className="p-2 text-right">{t.balance.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+           </table>
+       </div>
+
+       <div className="mt-16 pt-4 border-t border-gray-400 text-center text-xs text-gray-500">
+           <p>This document is a computer-generated statement and does not require a signature.</p>
+           <p className="mt-1 font-mono text-[10px]">Report ID: {Math.random().toString(36).substring(2, 10).toUpperCase()} - {new Date().toISOString()}</p>
+       </div>
+    </div>
+  );
+}

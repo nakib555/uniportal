@@ -6,9 +6,7 @@ import { useAppStore } from '../store';
 import { STUDENT_DATA, TRANSACTIONS_DATA } from '../data';
 import { AreaChart, Area, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { TrendingDown, TrendingUp, Wallet, AlertCircle, Download, CreditCard, ArrowRight, CheckCircle2, Loader2, X, Lock } from 'lucide-react';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { openPdfInNativeViewer } from '../utils/pdfHelper';
+import { PrintableStatement } from '../components/print/PrintableStatement';
 
 export const StatementView: React.FC = () => {
   const { isDarkMode } = useAppStore();
@@ -55,86 +53,19 @@ export const StatementView: React.FC = () => {
     return { totalDebit: debit, totalCredit: credit, statementChartData: chartData };
   }, []);
 
-  const handleDownloadPDF = () => {
-    const doc = new jsPDF();
-    
-    // Header
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.text("University Portal", 105, 20, { align: "center" });
-    
-    doc.setFontSize(14);
-    doc.text("Statement of Account", 105, 30, { align: "center" });
-    
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 38, { align: "center" });
-
-    doc.setLineWidth(0.5);
-    doc.line(14, 42, 196, 42); // Horizontal line
-
-    // Student Info
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text("Student Details:", 14, 52);
-    
-    doc.setFont("helvetica", "normal");
-    doc.text(`Name: ${student.name}`, 14, 60);
-    doc.text(`Student ID: 21104104`, 14, 66);
-    doc.text(`Program: ${student.program}`, 14, 72);
-
-    // Summary Info
-    doc.setFont("helvetica", "bold");
-    doc.text("Financial Summary:", 120, 52);
-    
-    doc.setFont("helvetica", "normal");
-    doc.text(`Total Billed: Tk ${totalDebit.toLocaleString()}`, 120, 60);
-    doc.text(`Total Paid: Tk ${totalCredit.toLocaleString()}`, 120, 66);
-    doc.text(`Current Dues: Tk ${simulatedDues.toLocaleString()}`, 120, 72);
-
-    // Table
-    autoTable(doc, {
-      startY: 85,
-      head: [['Date', 'Description', 'Item', 'Voucher', 'Debit (Tk)', 'Credit (Tk)', 'Balance (Tk)']],
-      body: TRANSACTIONS_DATA.map(t => [
-        t.date,
-        t.description,
-        t.item || '-',
-        t.voucher || '-',
-        t.debit ? t.debit.toLocaleString() : '-',
-        t.credit ? t.credit.toLocaleString() : '-',
-        t.balance.toLocaleString()
-      ]),
-      styles: { fontSize: 9, cellPadding: 3 },
-      headStyles: { fillColor: [140, 21, 21], textColor: [255, 255, 255], fontStyle: 'bold' }, // #8c1515 equivalent
-      alternateRowStyles: { fillColor: [248, 248, 248] },
-      margin: { top: 85 }
-    });
-
-    // Footer
-    const pageCount = (doc as any).internal.getNumberOfPages();
-    for(let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text(`Page ${i} of ${pageCount}`, 105, doc.internal.pageSize.getHeight() - 10, { align: "center" });
-    }
-
-    // Open in native PDF Viewer
-    openPdfInNativeViewer(doc, 'Statement of Account');
-  };
-
   return (
-    <div className="space-y-6 max-w-5xl">
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">Statement of Account</h2>
-          <p className="text-stone-500 dark:text-stone-400 mt-1">Overall financial summary and transaction history.</p>
-        </div>
-        <button onClick={handleDownloadPDF} className="flex w-fit items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold transition-colors">
-           <Download className="w-4 h-4" /> Download PDF
-        </button>
-      </header>
+    <>
+      <PrintableStatement student={student} totalDebit={totalDebit} totalCredit={totalCredit} simulatedDues={simulatedDues} />
+      <div className="space-y-6 max-w-5xl print-hide">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">Statement of Account</h2>
+            <p className="text-stone-500 dark:text-stone-400 mt-1">Overall financial summary and transaction history.</p>
+          </div>
+          <button onClick={() => window.print()} className="flex w-fit items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold transition-colors">
+             <Download className="w-4 h-4" /> Download PDF
+          </button>
+        </header>
 
       {/* Beautiful Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -442,6 +373,7 @@ export const StatementView: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
-    </div>
+      </div>
+    </>
   );
 };
