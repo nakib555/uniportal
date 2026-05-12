@@ -6,6 +6,7 @@ import { Course } from '../data';
 import { Download } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { openPdfInNativeViewer } from '../utils/pdfHelper';
 
 export const CompletedCoursesView: React.FC = () => {
   const { completedCourses } = useAppStore();
@@ -72,8 +73,8 @@ export const CompletedCoursesView: React.FC = () => {
         doc.text(`Page ${i} of ${pageCount}`, 105, doc.internal.pageSize.getHeight() - 10, { align: "center" });
     }
 
-    // Download the PDF
-    doc.save('Completed_Courses.pdf');
+    // Open in native PDF Viewer
+    openPdfInNativeViewer(doc, 'Completed Courses');
   };
 
   return (

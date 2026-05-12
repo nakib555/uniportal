@@ -8,6 +8,7 @@ import { AreaChart, Area, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer
 import { TrendingDown, TrendingUp, Wallet, AlertCircle, Download, CreditCard, ArrowRight, CheckCircle2, Loader2, X, Lock } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { openPdfInNativeViewer } from '../utils/pdfHelper';
 
 export const StatementView: React.FC = () => {
   const { isDarkMode } = useAppStore();
@@ -119,8 +120,8 @@ export const StatementView: React.FC = () => {
         doc.text(`Page ${i} of ${pageCount}`, 105, doc.internal.pageSize.getHeight() - 10, { align: "center" });
     }
 
-    // Download the PDF
-    doc.save('Statement_of_Account.pdf');
+    // Open in native PDF Viewer
+    openPdfInNativeViewer(doc, 'Statement of Account');
   };
 
   return (

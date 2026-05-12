@@ -4,6 +4,7 @@ import { COMPLETED_COURSES } from '../../data';
 import { ChevronRight, GraduationCap, ArrowRight, CheckCircle2, Lock, Download } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { openPdfInNativeViewer } from '../../utils/pdfHelper';
 
 export function DegreeAuditView() {
   const totalRequired = 130;
@@ -124,8 +125,8 @@ export function DegreeAuditView() {
         doc.text(`Page ${i} of ${pageCount}`, 105, doc.internal.pageSize.getHeight() - 10, { align: "center" });
     }
 
-    // Download the PDF
-    doc.save('Degree_Audit_Report.pdf');
+    // Open in native PDF Viewer
+    openPdfInNativeViewer(doc, 'Degree Audit Report');
   };
 
   return (

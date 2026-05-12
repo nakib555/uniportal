@@ -4,6 +4,7 @@ import { COMPLETED_COURSES } from '../../data';
 import { Download, FileText } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { openPdfInNativeViewer } from '../../utils/pdfHelper';
 
 export function GradesView() {
   const handleDownloadTranscriptPDF = () => {
@@ -53,8 +54,8 @@ export function GradesView() {
         doc.text(`Page ${i} of ${pageCount}`, 105, doc.internal.pageSize.getHeight() - 10, { align: "center" });
     }
 
-    // Download the PDF
-    doc.save('Academic_Transcript.pdf');
+    // Open in native PDF Viewer
+    openPdfInNativeViewer(doc, 'Academic Transcript');
   };
 
   return (
