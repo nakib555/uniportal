@@ -5,7 +5,7 @@ import {
   Home, User, BookOpen, Calendar, Wallet, Users, ChevronRight, ChevronDown, BookMarked
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { navItems } from '../desktop/navData';
+import { getNavItems } from '../desktop/navData';
 
 interface SidebarProps {
   portal: ReturnType<typeof usePortalLogic>;
@@ -13,7 +13,8 @@ interface SidebarProps {
 
 export function Sidebar({ portal }: SidebarProps) {
   const { store, handleNavClick } = portal;
-  const { activeTab, expandedMenus, isSidebarCollapsed } = store;
+  const { activeTab, expandedMenus, isSidebarCollapsed, isAdmin } = store;
+  const currentNavItems = getNavItems(isAdmin);
 
   return (
     <aside 
@@ -34,7 +35,7 @@ export function Sidebar({ portal }: SidebarProps) {
       </div>
 
       <div className="flex-1 overflow-y-auto w-full py-4 px-3 flex flex-col gap-1 hide-scrollbar" data-lenis-prevent>
-        {navItems.map((item) => {
+        {currentNavItems.map((item) => {
           const isActive = activeTab === item.id || (item.subItems && item.subItems.some(s => s.id === activeTab));
           const isExpanded = expandedMenus[item.id];
           const Icon = item.icon;

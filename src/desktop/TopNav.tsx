@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Bell, Search, Sun, Moon, LogOut, CheckCircle2, AlertCircle, Info, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { usePortalLogic } from '../hooks/usePortalLogic';
-import { navItems } from './navData';
+import { getNavItems } from './navData';
 
 const NOTIFICATIONS = [
   { id: 1, type: 'alert', title: 'Tuition Fee Due', desc: 'Fall 2026 tuition fee is due in 3 days.', time: '2 hours ago', icon: AlertCircle, color: 'text-amber-500' },
@@ -19,8 +19,9 @@ export function TopNav({ portal }: TopNavProps) {
   const { store, toggleDarkMode, profilePic } = portal;
   const [showNotifications, setShowNotifications] = useState(false);
   
-  const pageTitle = navItems.find(n => n.id === store.activeTab)?.label || 
-                    navItems.flatMap(n => n.subItems || []).find(s => s.id === store.activeTab)?.label;
+  const currentNavItems = getNavItems(store.isAdmin);
+  const pageTitle = currentNavItems.find(n => n.id === store.activeTab)?.label || 
+                    currentNavItems.flatMap(n => n.subItems || []).find(s => s.id === store.activeTab)?.label;
 
   return (
     <header className="h-20 flex-shrink-0 flex items-center justify-between px-8 bg-white/50 dark:bg-stone-900/50 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 z-50 sticky top-0 print:hidden relative">

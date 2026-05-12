@@ -18,6 +18,12 @@ import { ClubsView } from './views/ClubsView';
 import { AdvisingView } from './views/AdvisingView';
 import { FinancialAidView } from './views/FinancialAidView';
 import { StatementView } from '../views/StatementView';
+import { AdminDashboardView } from './views/admin/AdminDashboardView';
+import { AdminStudentRecordsView } from './views/admin/AdminStudentRecordsView';
+import { AdminCourseManagementView } from './views/admin/AdminCourseManagementView';
+import { AdminGradeManagementView } from './views/admin/AdminGradeManagementView';
+import { AdminEnrollmentApprovalsView } from './views/admin/AdminEnrollmentApprovalsView';
+import { AdminAttendanceManagementView } from './views/admin/AdminAttendanceManagementView';
 
 interface DesktopLayoutProps {
   portal: ReturnType<typeof usePortalLogic>;
@@ -29,6 +35,12 @@ export function DesktopLayout(portal: ReturnType<typeof usePortalLogic>) {
   const renderContent = () => {
     switch (store.activeTab) {
       case 'home': return <HomeView portal={portal} />;
+      case 'admin-dashboard': return <AdminDashboardView />;
+      case 'student-records': return <AdminStudentRecordsView />;
+      case 'course-management': return <AdminCourseManagementView />;
+      case 'grade-submissions': return <AdminGradeManagementView />;
+      case 'enrollment-approvals': return <AdminEnrollmentApprovalsView />;
+      case 'attendance-tracking': return <AdminAttendanceManagementView />;
       case 'profile': return <ProfileView portal={portal} />;
       case 'statement': return <StatementView />;
       case 'financial-aid': return <FinancialAidView />;

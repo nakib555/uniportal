@@ -25,7 +25,9 @@ export const LoginView: React.FC = () => {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      setIsAdmin(loginType === 'admin');
+      const isUserAdmin = loginType === 'admin';
+      setIsAdmin(isUserAdmin);
+      useAppStore.getState().setActiveTab(isUserAdmin ? 'admin-dashboard' : 'home');
       setIsLoggedIn(true);
     }, 1500);
   };

@@ -12,6 +12,7 @@ import {
   SCHEDULE_DATA, TRANSACTIONS_DATA, TEACHERS_DATA, FEES_LIST,
   Course
 } from './data';
+import { getNavItems } from './desktop/navData';
 import { ScheduleWeeklyView } from './desktop/views/ScheduleWeeklyView';
 import { ScheduleTable } from './components/ScheduleTable';
 import { DegreeAuditView } from './desktop/views/DegreeAuditView';
@@ -24,6 +25,12 @@ import { ClubsView } from './desktop/views/ClubsView';
 import { AdvisingView } from './desktop/views/AdvisingView';
 import { FinancialAidView } from './desktop/views/FinancialAidView';
 import { StatementView } from './views/StatementView';
+import { AdminDashboardView } from './desktop/views/admin/AdminDashboardView';
+import { AdminStudentRecordsView } from './desktop/views/admin/AdminStudentRecordsView';
+import { AdminCourseManagementView } from './desktop/views/admin/AdminCourseManagementView';
+import { AdminGradeManagementView } from './desktop/views/admin/AdminGradeManagementView';
+import { AdminEnrollmentApprovalsView } from './desktop/views/admin/AdminEnrollmentApprovalsView';
+import { AdminAttendanceManagementView } from './desktop/views/admin/AdminAttendanceManagementView';
 
 
 type NavItem = {
@@ -32,36 +39,6 @@ type NavItem = {
   icon: React.ElementType;
   subItems?: { id: string; label: string }[];
 };
-
-const navItems: NavItem[] = [
-  { id: 'home', label: 'Home', icon: Home },
-  { id: 'profile', label: 'Profile', icon: User },
-  { id: 'accounts', label: 'Accounts', icon: Wallet, subItems: [
-    { id: 'statement', label: 'Statement of Account' },
-    { id: 'financial-aid', label: 'Financial Aid' }
-  ]},
-  { id: 'courses', label: 'Courses', icon: BookOpen, subItems: [
-    { id: 'registered-courses', label: 'Registered Courses' },
-    { id: 'completed-courses', label: 'Completed Courses' },
-    { id: 'available-courses', label: 'Course Enrollment' }
-  ]},
-  { id: 'schedule', label: 'Schedule', icon: Calendar, subItems: [
-    { id: 'class-schedule', label: 'Class Schedule' }
-  ]},
-  { id: 'academics', label: 'Academics', icon: GraduationCap, subItems: [
-    { id: 'degree-audit', label: 'Degree Audit' },
-    { id: 'transcript', label: 'Grades & Transcript' },
-    { id: 'exam-routine', label: 'Exam Routine' },
-    { id: 'attendance', label: 'Attendance' },
-    { id: 'faculty-evaluation', label: 'Faculty Evaluation' },
-  ]},
-  { id: 'campus-life', label: 'Campus Life', icon: MapPin, subItems: [
-    { id: 'library', label: 'Library' },
-    { id: 'clubs', label: 'Clubs & Events' },
-    { id: 'advising', label: 'Advising' },
-  ]},
-  { id: 'teachers', label: 'Related Teachers', icon: Users },
-];
 
 // Simple format time utility
 const formatTime = (timeString: string, is24HourFormat: boolean) => {
@@ -123,10 +100,11 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
     handleRegister, confirmCoreqsRegistration, handleDropCourse, hasCompletedPrerequisites, setSelectedFees, setPendingCoreqCourse
   } = props;
   const [selectedSyllabusCourse, setSelectedSyllabusCourse] = useState<Course | null>(null);
-  const { activeTab, setActiveTab, expandedMenus, isSidebarCollapsed, setIsSidebarCollapsed, isMobileMenuOpen, setIsMobileMenuOpen, isDarkMode } = store;
-  const currentTabParent = navItems.find(n => n.id === activeTab || n.subItems?.some(s => s.id === activeTab));
-  const pageTitle = navItems.find(n => n.id === activeTab)?.label || 
-                    navItems.flatMap(n => n.subItems || []).find(s => s.id === activeTab)?.label;
+  const { activeTab, setActiveTab, expandedMenus, isSidebarCollapsed, setIsSidebarCollapsed, isMobileMenuOpen, setIsMobileMenuOpen, isDarkMode, isAdmin } = store;
+  const currentNavItems = getNavItems(isAdmin);
+  const currentTabParent = currentNavItems.find(n => n.id === activeTab || n.subItems?.some(s => s.id === activeTab));
+  const pageTitle = currentNavItems.find(n => n.id === activeTab)?.label || 
+                    currentNavItems.flatMap(n => n.subItems || []).find(s => s.id === activeTab)?.label;
 
   return (
     <div className="min-h-screen bg-[#f9fafb] dark:bg-stone-950 font-sans selection:bg-[#8c1515]/20 text-stone-900 dark:text-stone-100 flex flex-col md:flex-row">
@@ -168,7 +146,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
         <div className={`flex-1 overflow-y-auto py-6 space-y-1 scrollbar-hide ${isSidebarCollapsed ? 'px-3' : 'px-4'}`}>
           {!isSidebarCollapsed && <div className="text-[11px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-3 px-3">Menu</div>}
           
-          {navItems.map(item => {
+          {currentNavItems.map(item => {
             const isParentActive = activeTab === item.id || item.subItems?.some(s => s.id === activeTab);
             const isExpanded = expandedMenus[item.id];
 
@@ -248,8 +226,8 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
             <img src={profilePic} onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${student.name}` }} alt="Profile" className={`rounded-full bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 object-cover ${isSidebarCollapsed ? 'w-10 h-10' : 'w-10 h-10'}`} />
             {!isSidebarCollapsed && (
               <div className="min-w-0">
-                <p className="text-[13px] font-bold text-stone-900 dark:text-stone-100 truncate">{student.name.split(' ')[0]}</p>
-                <p className="text-[11px] text-stone-500 dark:text-stone-400 font-mono truncate border dark:border-stone-700 bg-white dark:bg-stone-900 px-1.5 rounded w-fit mt-0.5">{student.id}</p>
+                <p className="text-[13px] font-bold text-stone-900 dark:text-stone-100 truncate">{isAdmin ? 'Dr. Sarah Connor' : student.name.split(' ')[0]}</p>
+                <p className="text-[11px] text-stone-500 dark:text-stone-400 font-mono truncate border dark:border-stone-700 bg-white dark:bg-stone-900 px-1.5 rounded w-fit mt-0.5">{isAdmin ? 'Admin' : student.id}</p>
               </div>
             )}
           </div>
@@ -323,6 +301,14 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
               className="max-w-6xl mx-auto w-full pb-10"
             >
               
+              {/* === ADMIN TABS === */}
+              {activeTab === 'admin-dashboard' && <AdminDashboardView />}
+              {activeTab === 'student-records' && <AdminStudentRecordsView />}
+              {activeTab === 'course-management' && <AdminCourseManagementView />}
+              {activeTab === 'grade-submissions' && <AdminGradeManagementView />}
+              {activeTab === 'enrollment-approvals' && <AdminEnrollmentApprovalsView />}
+              {activeTab === 'attendance-tracking' && <AdminAttendanceManagementView />}
+
               {/* === HOME TAB === */}
               {activeTab === 'home' && (
                 <div className="space-y-6 md:space-y-8">
