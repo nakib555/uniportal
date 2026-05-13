@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAppStore } from '../store';
-import { Card } from '../components/ui/Card';
+import { Card } from '../components/ui/card';
 import { Loader2, Lock, User, Eye, EyeOff, ChevronRight, CheckCircle2 } from 'lucide-react';
 import {
   Dialog,

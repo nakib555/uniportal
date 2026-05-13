@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
+import { Card } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
 import { useAppStore } from '../store';
 import { STUDENT_DATA, TRANSACTIONS_DATA } from '../data';
 import { AreaChart, Area, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';

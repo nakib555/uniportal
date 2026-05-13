@@ -4,7 +4,7 @@ import { STUDENT_DATA } from '../../data';
 export function PrintableCompletedCourses({ courses }: { courses: any }) {
   const student = STUDENT_DATA;
   return (
-    <div className="hidden print:block font-serif text-black bg-white w-full max-w-[21cm] mx-auto absolute right-0 top-0 left-0 bottom-0 z-[100] min-h-screen p-8 print:static [print-color-adjust:exact] [-webkit-print-color-adjust:exact]">
+    <div className="hidden print:block font-serif text-black bg-white w-full print:p-0 [print-color-adjust:exact] [-webkit-print-color-adjust:exact]">
        <div className="text-center border-b-2 border-black pb-4 mb-6">
            <h1 className="text-2xl font-bold uppercase tracking-wider print:text-black">University Portal</h1>
            <h2 className="text-xl font-bold mb-1 print:text-black">Completed Courses Summary</h2>

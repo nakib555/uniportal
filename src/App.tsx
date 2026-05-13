@@ -1,7 +1,7 @@
 import React from 'react';
 import { usePortalLogic } from './hooks/usePortalLogic';
-import { MobileLayout } from './MobileLayout';
-import { DesktopLayout } from './desktop/DesktopLayout';
+import { MobileLayout } from './components/layout/MobileLayout';
+import { DesktopLayout } from './components/layout/DesktopLayout';
 import { ReactLenis } from 'lenis/react';
 import { useAppStore } from './store';
 import { LoginView } from './views/LoginView';

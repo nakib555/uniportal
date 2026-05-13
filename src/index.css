@@ -155,12 +155,24 @@
 
 @media print {
   @page {
-    margin: 1cm;
+    margin: 1.5cm 1cm;
     size: A4 portrait;
   }
   
+  table, tr, td, th {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    break-after: avoid;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
   /* Hide purely interactive elements from print */
-  button, nav, aside, header, .desktop-sidebar, .mobile-bottom-nav, .print-hide {
+  button, nav, aside, header, .desktop-sidebar, .mobile-bottom-nav, .print-hide, .print\:hidden {
     display: none !important;
   }
 
@@ -168,6 +180,8 @@
     height: auto !important;
     background-color: white !important;
     color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .dark {

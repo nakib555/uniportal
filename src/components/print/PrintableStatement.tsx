@@ -3,7 +3,7 @@ import { TRANSACTIONS_DATA } from '../../data';
 
 export function PrintableStatement({ student, totalDebit, totalCredit, simulatedDues }: any) {
   return (
-    <div className="hidden print:block font-serif text-black bg-white w-full max-w-[21cm] mx-auto absolute right-0 top-0 left-0 bottom-0 z-[100] min-h-screen p-8 print:static [print-color-adjust:exact] [-webkit-print-color-adjust:exact]">
+    <div className="hidden print:block font-serif text-black bg-white w-full print:p-0 [print-color-adjust:exact] [-webkit-print-color-adjust:exact]">
        <div className="text-center border-b-2 border-black pb-4 mb-6">
            <h1 className="text-2xl font-bold uppercase tracking-wider print:text-black">University Portal</h1>
            <h2 className="text-xl font-bold mb-1 print:text-black">Statement of Account</h2>
@@ -41,8 +41,8 @@ export function PrintableStatement({ student, totalDebit, totalCredit, simulated
                   <tr key={i} className="border-b border-black text-sm">
                      <td className="p-2 border-r border-black">{t.date}</td>
                      <td className="p-2 border-r border-black">{t.description}</td>
-                     <td className="p-2 border-r border-black">{t.item || '-'}</td>
-                     <td className="p-2 border-r border-black">{t.voucher || '-'}</td>
+                     <td className="p-2 border-r border-black">{t.code || '-'}</td>
+                     <td className="p-2 border-r border-black">{t.id || '-'}</td>
                      <td className="p-2 border-r border-black text-right">{t.debit ? t.debit.toLocaleString() : '-'}</td>
                      <td className="p-2 border-r border-black text-right">{t.credit ? t.credit.toLocaleString() : '-'}</td>
                      <td className="p-2 text-right">{t.balance.toLocaleString()}</td>

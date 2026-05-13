@@ -1,147 +1,147 @@
 import React from 'react';
-import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
-import { useAppStore } from '../store';
-import { STUDENT_DATA } from '../data';
-import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
-import { 
-  GraduationCap, CheckCircle2, Wallet, BookMarked, TrendingUp, ChevronRight
-} from 'lucide-react';
+import { motion } from 'motion/react';
+import { BookOpen, Calendar, Clock, GraduationCap, MapPin, TrendingUp, Wallet, Users } from 'lucide-react';
+import { Card, Badge } from '../components/ui';
+import { usePortalLogic } from '../hooks/usePortalLogic';
 
-export const HomeView: React.FC = () => {
-  const { registeredCourses, isDarkMode } = useAppStore();
-  const student = STUDENT_DATA;
-
+export function HomeView({ portal }: { portal: ReturnType<typeof usePortalLogic> }) {
+  const { student, bankSlipTotal, handleNavClick } = portal;
+  
   return (
-    <div className="space-y-6 md:space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-stone-900 dark:text-white">Welcome, {student.name.split(' ')[0]}</h2>
-          <p className="text-stone-500 dark:text-stone-400 mt-1">Here is what's happening with your academics today.</p>
-        </div>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'CGPA', value: student.cgpa, sub: 'Out of 4.0', icon: GraduationCap, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
+          { label: 'Credits Completed', value: student.creditsCompleted, sub: 'Total 124 required', icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30' },
+          { label: 'Upcoming Classes', value: '3', sub: 'Today', icon: Calendar, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30' },
+          { label: 'Due Payment', value: `৳${bankSlipTotal}`, sub: 'For this semester', icon: Wallet, color: 'text-rose-600', bg: 'bg-rose-100 dark:bg-rose-900/30' }
+        ].map((stat, i) => (
+          <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
+            <Card className="p-5 flex items-start gap-4">
+              <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
+                <stat.icon className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm text-stone-500 font-medium mb-1">{stat.label}</p>
+                <p className="text-2xl font-bold text-stone-900 dark:text-white leading-tight mb-0.5">{stat.value}</p>
+                <p className="text-xs text-stone-400">{stat.sub}</p>
+              </div>
+            </Card>
+          </motion.div>
+        ))}
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <Card className="p-5 md:p-6 relative group transition-all hover:-translate-y-1 hover:shadow-md cursor-pointer" onClick={() => useAppStore.getState().setActiveTab('transcript')}>
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 flex items-center justify-center mb-4 text-indigo-600 dark:text-indigo-400">
-            <GraduationCap className="w-5 h-5" />
-          </div>
-          <div className="text-stone-500 dark:text-stone-400 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-1">Current CGPA</div>
-          <div className="text-2xl md:text-3xl font-extrabold text-stone-900 dark:text-white tracking-tight">{student.cgpa.toFixed(2)}</div>
-        </Card>
-        
-        <Card className="p-5 md:p-6 relative group transition-all hover:-translate-y-1 hover:shadow-md cursor-pointer" onClick={() => useAppStore.getState().setActiveTab('degree-audit')}>
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center mb-4 text-emerald-600 dark:text-emerald-400">
-            <CheckCircle2 className="w-5 h-5" />
-          </div>
-          <div className="text-stone-500 dark:text-stone-400 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-1">Credits Earned</div>
-          <div className="text-2xl md:text-3xl font-extrabold text-stone-900 dark:text-white tracking-tight">{student.creditsCompleted} <span className="text-base font-medium text-stone-400 dark:text-stone-600">/ 140</span></div>
-        </Card>
-        
-        <Card className="p-5 md:p-6 relative group transition-all hover:-translate-y-1 hover:shadow-md cursor-pointer" onClick={() => useAppStore.getState().setActiveTab('registered-courses')}>
-          <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 border border-amber-100 dark:border-amber-800 flex items-center justify-center mb-4 text-amber-600 dark:text-amber-400">
-            <BookMarked className="w-5 h-5" />
-          </div>
-          <div className="text-stone-500 dark:text-stone-400 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-1">Enrolled Courses</div>
-          <div className="text-2xl md:text-3xl font-extrabold text-stone-900 dark:text-white tracking-tight">{registeredCourses.length}</div>
-        </Card>
-        
-        <Card className="p-5 md:p-6 relative group transition-all hover:-translate-y-1 hover:shadow-md cursor-pointer" onClick={() => useAppStore.getState().setActiveTab('statement')}>
-          <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800 flex items-center justify-center mb-4 text-[#8c1515] dark:text-[#ef4444]">
-            <Wallet className="w-5 h-5" />
-          </div>
-          <div className="text-stone-500 dark:text-stone-400 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-1">Balance</div>
-          <div className={`text-2xl md:text-3xl font-extrabold tracking-tight ${student.accountBalance < 0 ? 'text-[#8c1515] dark:text-[#ef4444]' : 'text-emerald-600 dark:text-emerald-400'}`}>
-            {Math.abs(student.accountBalance).toLocaleString()} <span className="text-base font-semibold opacity-50 tracking-normal">Tk</span>
-          </div>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {student.gpaHistory && student.gpaHistory.length > 0 && (
-          <Card className="p-0 col-span-full lg:col-span-2 flex flex-col">
-             <div className="px-6 py-4 md:py-5 border-b border-stone-100 dark:border-stone-800 flex justify-between items-center bg-stone-50/30 dark:bg-stone-900/30">
-                <h3 className="font-bold text-stone-900 dark:text-white flex items-center gap-2">
-                   <TrendingUp className="w-5 h-5 text-indigo-500" /> Academic Progression
-                </h3>
-             </div>
-             <div className="p-4 md:p-6 h-64 md:h-72 w-full">
-                <ResponsiveContainer width="100%" height="100%" minHeight={200} minWidth={0}>
-                   <AreaChart data={student.gpaHistory}>
-                      <defs>
-                         <linearGradient id="colorGpa" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
-                         </linearGradient>
-                      </defs>
-                      <XAxis dataKey="semester" fontSize={12} tickLine={false} axisLine={false} tickMargin={10} stroke="#888" />
-                      <YAxis domain={['dataMin - 0.2', 4.0]} hide />
-                      <RechartsTooltip contentStyle={{ backgroundColor: isDarkMode ? '#1c1917' : '#fff', color: isDarkMode ? '#fff' : '#000', borderRadius: '12px', border: isDarkMode ? '1px solid #292524' : '1px solid #f5f5f4', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(v: number) => [v.toFixed(2), 'Semester GPA']} />
-                      <Area type="monotone" dataKey="gpa" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorGpa)" />
-                   </AreaChart>
-                </ResponsiveContainer>
-             </div>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2 space-y-6">
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <Clock className="w-5 h-5 text-[#8c1515]" /> Today's Schedule
+              </h3>
+              <button 
+                onClick={() => portal.store.setActiveTab('class-schedule')}
+                className="text-sm font-medium text-[#8c1515] hover:underline"
+              >
+                View Full Schedule
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {portal.filteredSchedule.slice(0, 3).map((item, i) => (
+                <div key={i} className="flex items-start gap-4 p-4 rounded-xl border border-stone-100 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/50 hover:border-stone-200 dark:hover:border-stone-700 transition-colors">
+                  <div className="w-[100px] shrink-0 text-center py-2 px-3 bg-white dark:bg-stone-900 rounded-lg shadow-sm border border-stone-200 dark:border-stone-800">
+                    <p className="text-sm font-bold text-stone-900 dark:text-stone-100">{item.start}</p>
+                    <p className="text-xs text-stone-500 mt-0.5">{item.end}</p>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <h4 className="font-semibold text-stone-900 dark:text-stone-100 truncate">{item.courseCode}</h4>
+                      <Badge variant="outline">{item.type}</Badge>
+                    </div>
+                    <p className="text-sm text-stone-600 dark:text-stone-400 mb-2">{item.title}</p>
+                    <div className="flex items-center gap-3 text-xs text-stone-500">
+                      <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Room {item.room}</span>
+                      <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> Sect {item.section}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </Card>
-        )}
+        </div>
 
-        <Card className="p-0 flex flex-col h-full">
-          <div className="px-6 py-4 border-b border-stone-100 dark:border-stone-800 flex justify-between items-center bg-stone-50/50 dark:bg-stone-900/50">
-            <h3 className="font-bold text-stone-900 dark:text-white">Latest Notices</h3>
-            {useAppStore.getState().notices.length > 0 && <Badge variant="brand">{useAppStore.getState().notices.length} New</Badge>}
-          </div>
-          <ul className="divide-y divide-stone-100 dark:divide-stone-800 flex-1">
-            {useAppStore(state => state.notices).length === 0 ? (
-               <li className="p-6 text-center text-stone-500 text-sm">No new notices.</li>
-            ) : (
-               useAppStore(state => state.notices).map((notice) => (
-                 <li key={notice.id} className="p-4 px-6 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors group cursor-pointer flex gap-4 items-start" onClick={() => useAppStore.getState().dismissNotice(notice.id)}>
-                   <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${notice.important ? 'bg-[#8c1515] dark:bg-[#ef4444]' : 'bg-stone-300 dark:bg-stone-600'}`} />
-                   <div className="flex-1 min-w-0 pr-4">
-                     <h4 className={`text-sm font-semibold mb-1 leading-snug line-clamp-2 transition-colors ${notice.important ? 'text-stone-900 dark:text-stone-100 group-hover:text-[#8c1515] dark:group-hover:text-[#ef4444]' : 'text-stone-700 dark:text-stone-300 group-hover:text-stone-900 dark:group-hover:text-white'}`}>
-                       {notice.title}
-                     </h4>
-                     <div className="text-[11px] font-bold uppercase tracking-widest text-stone-400">{notice.date}</div>
-                   </div>
-                   <div className="text-xs text-stone-300 dark:text-stone-700 opacity-0 group-hover:opacity-100 transition-opacity mt-1">Dismiss</div>
-                 </li>
-               ))
-            )}
-          </ul>
-        </Card>
+        <div className="space-y-6">
+          <Card className="p-6">
+            <h3 className="font-semibold text-lg mb-6 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-[#8c1515]" /> Academic Progress
+            </h3>
+            
+            <div className="space-y-5">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-stone-600 dark:text-stone-400">Total Credits</span>
+                  <span className="text-sm font-bold">{student.creditsCompleted} / 124</span>
+                </div>
+                <div className="h-2.5 w-full bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${(student.creditsCompleted / 124) * 100}%` }} />
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-stone-600 dark:text-stone-400">Major Core</span>
+                  <span className="text-sm font-bold">45 / 60</span>
+                </div>
+                <div className="h-2.5 w-full bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-indigo-500 rounded-full" style={{ width: '75%' }} />
+                </div>
+              </div>
 
-        <Card className="p-0 flex flex-col h-full">
-          <div className="px-6 py-4 border-b border-stone-100 dark:border-stone-800 flex justify-between items-center bg-stone-50/50 dark:bg-stone-900/50">
-            <h3 className="font-bold text-stone-900 dark:text-white">Upcoming Classes</h3>
-            <span className="text-xs font-bold text-stone-500 dark:text-stone-400">Today</span>
-          </div>
-          <div className="flex-1 flex flex-col">
-            {registeredCourses.length === 0 ? (
-               <div className="p-6 flex-1 flex flex-col justify-center items-center text-center">
-                 <div className="w-16 h-16 bg-stone-50 dark:bg-stone-800/50 rounded-full flex items-center justify-center mb-4">
-                   <CheckCircle2 className="w-8 h-8 text-stone-300 dark:text-stone-600" />
-                 </div>
-                 <h4 className="font-bold text-stone-900 dark:text-stone-100 mb-1">No more classes today</h4>
-                 <p className="text-sm text-stone-500 dark:text-stone-400 max-w-[200px]">You're all caught up for the day. Great job!</p>
-               </div>
-            ) : (
-               <ul className="divide-y divide-stone-100 dark:divide-stone-800">
-                 {registeredCourses.slice(0, 3).map((course, idx) => (
-                    <li key={course.code + idx} className="p-4 px-6 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors flex gap-4 items-center">
-                       <div className="w-12 shrink-0 text-center">
-                          <p className="text-sm font-bold text-stone-900 dark:text-white">{idx === 0 ? '08:00' : idx === 1 ? '10:00' : '13:00'}</p>
-                          <p className="text-xs text-stone-400">AM</p>
-                       </div>
-                       <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-stone-900 dark:text-white truncate">{course.code}</h4>
-                          <p className="text-sm text-stone-500 dark:text-stone-400 truncate">{course.title}</p>
-                       </div>
-                    </li>
-                 ))}
-               </ul>
-            )}
-          </div>
-        </Card>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-stone-600 dark:text-stone-400">Electives</span>
+                  <span className="text-sm font-bold">12 / 24</span>
+                </div>
+                <div className="h-2.5 w-full bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: '50%' }} />
+                </div>
+              </div>
+            </div>
+            
+            <button 
+              onClick={() => portal.store.setActiveTab('degree-audit')}
+              className="mt-6 w-full py-2.5 text-sm font-medium text-[#8c1515] border border-[#8c1515]/20 hover:bg-[#8c1515]/5 rounded-lg transition-colors"
+            >
+              View Full Audit
+            </button>
+          </Card>
+
+          <Card className="p-0 border-stone-200 flex flex-col">
+            <div className="px-6 py-4 border-b border-stone-100 dark:border-stone-800 flex justify-between items-center bg-stone-50/50 dark:bg-stone-900/50">
+              <h3 className="font-bold text-stone-900 dark:text-white">Latest Notices</h3>
+              {portal.store.notices.length > 0 && <Badge variant="brand">{portal.store.notices.length} New</Badge>}
+            </div>
+            <ul className="divide-y divide-stone-100 dark:divide-stone-800">
+              {portal.store.notices.length === 0 ? (
+                 <li className="p-6 text-center text-stone-500 text-sm">No new notices.</li>
+              ) : (
+                 portal.store.notices.map((notice) => (
+                   <li key={notice.id} className="p-4 px-6 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors group cursor-pointer flex gap-4 items-start" onClick={() => portal.store.dismissNotice(notice.id)}>
+                     <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${notice.important ? 'bg-[#8c1515] dark:bg-[#ef4444]' : 'bg-stone-300 dark:bg-stone-600'}`} />
+                     <div className="flex-1 min-w-0 pr-4">
+                       <h4 className={`text-sm font-semibold mb-1 leading-snug line-clamp-2 transition-colors ${notice.important ? 'text-stone-900 dark:text-stone-100 group-hover:text-[#8c1515] dark:group-hover:text-[#ef4444]' : 'text-stone-700 dark:text-stone-300 group-hover:text-stone-900 dark:group-hover:text-white'}`}>
+                         {notice.title}
+                       </h4>
+                       <div className="text-[11px] font-bold uppercase tracking-widest text-stone-400">{notice.date}</div>
+                     </div>
+                     <div className="text-xs text-stone-300 dark:text-stone-700 opacity-0 group-hover:opacity-100 transition-opacity mt-1">Dismiss</div>
+                   </li>
+                 ))
+              )}
+            </ul>
+          </Card>
+        </div>
       </div>
     </div>
   );
-};
+}
