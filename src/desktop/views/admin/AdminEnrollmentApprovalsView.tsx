@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Card } from '../../../components/ui/Card';
-import { Badge } from '../../../components/ui/Badge';
+import { Card } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
 import { Search, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import {
   Dialog,

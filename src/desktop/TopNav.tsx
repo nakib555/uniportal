@@ -2,14 +2,8 @@ import React, { useState } from 'react';
 import { Bell, Search, Sun, Moon, LogOut, CheckCircle2, AlertCircle, Info, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { usePortalLogic } from '../hooks/usePortalLogic';
+import { useAppStore } from '../store';
 import { getNavItems } from './navData';
-
-const NOTIFICATIONS = [
-  { id: 1, type: 'alert', title: 'Tuition Fee Due', desc: 'Fall 2026 tuition fee is due in 3 days.', time: '2 hours ago', icon: AlertCircle, color: 'text-amber-500' },
-  { id: 2, type: 'success', title: 'Grade Posted', desc: 'Your final grade for CSE-305 has been posted.', time: '5 hours ago', icon: CheckCircle2, color: 'text-emerald-500' },
-  { id: 3, type: 'info', title: 'New Course Material', desc: 'Dr. Rahman uploaded "Chapter 4 Notes".', time: '1 day ago', icon: Info, color: 'text-blue-500' },
-  { id: 4, type: 'event', title: 'Robotics Club Meeting', desc: 'Tomorrow at 4:00 PM in Room 301.', time: '1 day ago', icon: Calendar, color: 'text-indigo-500' },
-];
 
 interface TopNavProps {
   portal: ReturnType<typeof usePortalLogic>;
@@ -17,6 +11,7 @@ interface TopNavProps {
 
 export function TopNav({ portal }: TopNavProps) {
   const { store, toggleDarkMode, profilePic } = portal;
+  const appStore = useAppStore();
   const [showNotifications, setShowNotifications] = useState(false);
   
   const currentNavItems = getNavItems(store.isAdmin);
@@ -51,13 +46,13 @@ export function TopNav({ portal }: TopNavProps) {
               title="Notifications"
             >
               <Bell className="w-5 h-5" />
-              {!showNotifications && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#8c1515] dark:bg-[#ef4444] rounded-full ring-2 ring-white dark:ring-stone-900 border-none inline-block"></span>}
+              {!showNotifications && appStore.topNotifications.some(n => !n.read) && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#8c1515] dark:bg-[#ef4444] rounded-full ring-2 ring-white dark:ring-stone-900 border-none inline-block"></span>}
             </button>
 
             <AnimatePresence>
                {showNotifications && (
                  <>
-                   <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)}></div>
+                   <div className="cursor-pointer fixed inset-0 z-40" onClick={() => setShowNotifications(false)}></div>
                    <motion.div 
                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
                      animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -67,29 +62,37 @@ export function TopNav({ portal }: TopNavProps) {
                    >
                       <div className="p-4 border-b border-stone-200 dark:border-stone-800 flex justify-between items-center bg-stone-50/50 dark:bg-stone-900/50">
                          <h3 className="font-bold text-stone-900 dark:text-white">Notifications</h3>
-                         <button className="text-xs text-[#8c1515] dark:text-[#ef4444] font-medium hover:underline">Mark all as read</button>
+                         <button onClick={() => appStore.markAllTopNotificationsAsRead()} className="text-xs text-[#8c1515] dark:text-[#ef4444] font-medium hover:underline">Mark all as read</button>
                       </div>
                       <div className="max-h-[400px] overflow-y-auto divide-y divide-stone-100 dark:divide-stone-800">
-                         {NOTIFICATIONS.map(notif => {
-                            const Icon = notif.icon;
+                         {appStore.topNotifications.map(notif => {
+                            const Icon = notif.type === 'alert' ? AlertCircle :
+                                         notif.type === 'success' ? CheckCircle2 :
+                                         notif.type === 'info' ? Info : Calendar;
                             return (
-                               <div key={notif.id} className="p-4 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors flex gap-4 cursor-pointer group">
+                               <div key={notif.id} onClick={() => appStore.removeTopNotification(notif.id)} className="p-4 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors flex gap-4 cursor-pointer group">
                                   <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 shrink-0 ${notif.color}`}>
                                      <Icon className="w-5 h-5" />
                                   </div>
                                   <div>
-                                     <h4 className="font-bold text-sm text-stone-900 dark:text-white group-hover:text-[#8c1515] dark:group-hover:text-[#ef4444] transition-colors">{notif.title}</h4>
+                                     <h4 className={`font-bold text-sm transition-colors ${notif.read ? 'text-stone-500' : 'text-stone-900 dark:text-white group-hover:text-[#8c1515] dark:group-hover:text-[#ef4444]'}`}>{notif.title}</h4>
                                      <p className="text-sm text-stone-500 dark:text-stone-400 mt-0.5 line-clamp-2">{notif.desc}</p>
                                      <span className="text-xs text-stone-400 mt-2 block font-medium">{notif.time}</span>
                                   </div>
                                </div>
                             )
                          })}
+                             {appStore.topNotifications.length === 0 && (
+                               <div className="p-6 text-center text-stone-500 text-sm">No new notifications</div>
+                             )}
                       </div>
                       <div className="p-3 border-t border-stone-200 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/50 text-center">
                          <button className="text-sm font-bold text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white transition-colors">View All Notifications</button>
                       </div>
-                   </motion.div>
+                          <div className="p-3 bg-stone-50 dark:bg-stone-900/50 border-t border-stone-200 dark:border-stone-800">
+                             <button onClick={() => appStore.clearAllTopNotifications()} className="w-full py-2 text-sm font-semibold text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors">Clear All</button>
+                          </div>
+                       </motion.div>
                  </>
                )}
             </AnimatePresence>

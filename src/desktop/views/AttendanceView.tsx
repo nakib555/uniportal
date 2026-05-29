@@ -1,16 +1,18 @@
 import React from 'react';
 import { Card } from '../components/ui';
-import { REGISTERED_COURSES } from '../../data';
+import { useAppStore } from '../../store';
 import { CheckCircle2, XCircle } from 'lucide-react';
 
 export function AttendanceView() {
+  const registeredCourses = useAppStore(state => state.registeredCourses);
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-stone-900 dark:text-white">Attendance Tracking</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-         {REGISTERED_COURSES.map(course => {
+         {registeredCourses.map(course => {
             const totalClasses = 24;
-            const attended = Math.floor(Math.random() * 5) + 18;
+            const hashCode = (str) => str.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0);
+            const attended = (Math.abs(hashCode(course.code)) % 5) + 18;
             const percentage = (attended / totalClasses) * 100;
             const isWarning = percentage < 80;
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Card } from '../../../components/ui/Card';
-import { Badge } from '../../../components/ui/Badge';
+import { Card } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
 import { Search, AlertTriangle, Users, Filter, CheckCircle2 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, Tooltip } from 'recharts';
 import {

@@ -633,11 +633,11 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
       {/* Syllabus Modal */}
       <AnimatePresence>
         {selectedSyllabusCourse && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 dark:bg-black/60 backdrop-blur-sm"
+          <div className="cursor-pointer fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 dark:bg-black/60 backdrop-blur-sm"
                onClick={() => setSelectedSyllabusCourse(null)}>
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
               onClick={e => e.stopPropagation()}
-              className="bg-white dark:bg-stone-900 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden border border-stone-200 dark:border-stone-800"
+              className="cursor-default bg-white dark:bg-stone-900 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden border border-stone-200 dark:border-stone-800"
             >
               <div className="px-6 py-4 border-b border-stone-100 dark:border-stone-800 flex justify-between items-center bg-stone-50 dark:bg-stone-800/30">
                 <div className="flex items-center gap-3">

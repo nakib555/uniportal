@@ -42,12 +42,17 @@ interface AppState {
   isAdmin: boolean;
   setIsAdmin: (v: boolean) => void;
 
-  // Added Logic State
+// Added Logic State
   notices: { id: string; title: string; date: string; important: boolean }[];
   dismissNotice: (id: string) => void;
 
   pendingApprovals: { id: string; type: string; reqId: string }[];
   resolveApproval: (id: string) => void;
+
+  topNotifications: { id: number; type: string; title: string; desc: string; time: string; color: string; read?: boolean }[];
+  clearAllTopNotifications: () => void;
+  removeTopNotification: (id: number) => void;
+  markAllTopNotificationsAsRead: () => void;
 
   // Admin Data
   students: { id: string; name: string; program: string; cgpa: number; status: string }[];
@@ -81,6 +86,17 @@ export const useAppStore = create<AppState>((set) => ({
     { id: '4', type: 'Credit Transfer Request', reqId: 'REQ-1004' },
   ],
   resolveApproval: (id) => set((state) => ({ pendingApprovals: state.pendingApprovals.filter(p => p.id !== id) })),
+
+
+  topNotifications: [
+    { id: 1, type: 'alert', title: 'Tuition Fee Due', desc: 'Fall 2026 tuition fee is due in 3 days.', time: '2 hours ago', color: 'text-amber-500' },
+    { id: 2, type: 'success', title: 'Grade Posted', desc: 'Your final grade for CSE-305 has been posted.', time: '5 hours ago', color: 'text-emerald-500' },
+    { id: 3, type: 'info', title: 'New Course Material', desc: 'Dr. Rahman uploaded "Chapter 4 Notes".', time: '1 day ago', color: 'text-blue-500' },
+    { id: 4, type: 'event', title: 'Robotics Club Meeting', desc: 'Tomorrow at 4:00 PM in Room 301.', time: '1 day ago', color: 'text-indigo-500' },
+  ],
+  clearAllTopNotifications: () => set({ topNotifications: [] }),
+  removeTopNotification: (id) => set(state => ({ topNotifications: state.topNotifications.filter(n => n.id !== id) })),
+  markAllTopNotificationsAsRead: () => set(state => ({ topNotifications: state.topNotifications.map(n => ({ ...n, read: true })) })),
 
   students: [
     { id: '21104104', name: 'Al Ibrahim', program: 'BSc in CSE', cgpa: 3.82, status: 'Regular' },

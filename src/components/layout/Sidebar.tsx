@@ -145,7 +145,7 @@ export const Sidebar: React.FC = () => {
         {isMobileMenuOpen && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-stone-900/40 dark:bg-black/60 z-40 lg:hidden backdrop-blur-sm"
+            className="cursor-pointer fixed inset-0 bg-stone-900/40 dark:bg-black/60 z-40 lg:hidden backdrop-blur-sm"
             onClick={() => setIsMobileMenuOpen(false)}
           />
         )}

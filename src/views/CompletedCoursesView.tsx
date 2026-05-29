@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
+import { Card } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
 import { useAppStore } from '../store';
 import { Course } from '../data';
 import { Download } from 'lucide-react';

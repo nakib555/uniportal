@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Card } from '../../../components/ui/Card';
-import { Badge } from '../../../components/ui/Badge';
+import { Card } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
 import { Search, Filter, MoreVertical, FileText, CheckCircle2, XCircle, Trash2, Mail, Phone, Calendar } from 'lucide-react';
 import { useAppStore } from '../../../store';
 import {

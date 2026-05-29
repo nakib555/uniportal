@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Card } from '../../../components/ui/Card';
-import { Badge } from '../../../components/ui/Badge';
+import { Card } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
 import { Search, Plus, MoreVertical, BookOpen, Layers, Edit2, Trash2 } from 'lucide-react';
 import { useAppStore } from '../../../store';
 import {

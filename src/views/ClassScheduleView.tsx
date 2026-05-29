@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
+import { Card } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
 import { useAppStore } from '../store';
 import { SCHEDULE_DATA } from '../data';
 import { formatTime } from '../lib/utils';
