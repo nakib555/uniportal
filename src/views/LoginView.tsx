@@ -156,23 +156,20 @@ export const LoginView: React.FC = () => {
       </Dialog>
 
       {/* Left side: branding & image (hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 bg-[#8c1515] text-white overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-end p-12 bg-[#8c1515] text-white overflow-hidden">
         <div className="absolute inset-0 z-0 opacity-20 dark:opacity-40 select-none pointer-events-none">
            <img src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=2070&auto=format&fit=crop" alt="Campus" className="object-cover w-full h-full mix-blend-overlay" />
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-[#8c1515] via-[#8c1515]/80 to-transparent z-0"></div>
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAzNHYtbDItMi0ydjJIMzZ6IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz48L2c+PC9zdmc+')] z-0"></div>
 
-        <div className="relative z-10 flex items-center gap-3">
-          <img src="https://wsrv.nl/?url=http://www.sims.pu.edu.bd/img/layout/header_logo.png&output=webp" alt="PU" className="h-10 w-auto object-contain brightness-0 invert" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-          <div>
-            <h1 className="text-2xl font-black tracking-tight leading-none text-white">University Portal</h1>
-            <p className="text-white/80 font-medium text-sm mt-0.5">Student Information System</p>
-          </div>
+        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
+            <img src="https://wsrv.nl/?url=http://www.sims.pu.edu.bd/img/layout/header_logo.png&output=webp" alt="PU" className="h-28 w-auto object-contain brightness-0 invert" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
         </div>
 
         <div className="relative z-10 max-w-md">
            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+              <h1 className="text-2xl font-black tracking-widest uppercase mb-4 text-[#ffcfcf]">University Portal</h1>
               <h2 className="text-5xl font-bold tracking-tight mb-6 leading-[1.1] text-white">Your academic journey, <br/><span className="text-[#ffcfcf]">simplified.</span></h2>
               <p className="text-white/90 text-lg font-medium leading-relaxed mb-8">Access your courses, grades, statements, and campus resources all in one secure place.</p>
            </motion.div>
@@ -192,25 +189,24 @@ export const LoginView: React.FC = () => {
            </div>
         </div>
         
-        <div className="relative z-10 text-white/60 text-sm font-medium">
+        <div className="relative z-10 text-white/60 text-sm font-medium mt-12">
           &copy; {new Date().getFullYear()} University Name. All rights reserved.
         </div>
       </div>
 
       {/* Right side: Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative">
-         <div className="absolute top-6 right-6 lg:hidden flex items-center gap-2">
-            <img src="https://wsrv.nl/?url=http://www.sims.pu.edu.bd/img/layout/header_logo.png&output=webp" alt="PU" className="h-8 w-auto object-contain dark:brightness-0 dark:invert" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-            <span className="font-bold text-stone-900 dark:text-white tracking-tight">Portal</span>
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative pt-24 sm:pt-32">
+         <div className="absolute top-8 left-1/2 -translate-x-1/2 z-20 lg:hidden">
+            <img src="https://wsrv.nl/?url=http://www.sims.pu.edu.bd/img/layout/header_logo.png&output=webp" alt="PU" className="h-16 w-auto object-contain dark:brightness-0 dark:invert" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
          </div>
 
          <div className="w-full max-w-md">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6 text-center lg:text-left">
-               <h2 className="text-3xl sm:text-4xl font-black text-stone-900 dark:text-white tracking-tight mb-3">Sign in</h2>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6 text-center">
+               <h1 className="text-3xl sm:text-4xl font-black text-stone-900 dark:text-white tracking-tight mb-3">University Portal</h1>
                <p className="text-stone-500 dark:text-stone-400 font-medium">Please enter your credentials to access your dashboard.</p>
             </motion.div>
 
-            <div className="flex bg-stone-100 dark:bg-stone-800/50 p-1 rounded-xl mb-8 relative z-10 w-full md:w-3/4 mx-auto lg:mx-0">
+            <div className="flex bg-stone-100 dark:bg-stone-800/50 p-1 rounded-xl mb-8 relative z-10 w-full md:w-3/4 mx-auto">
                <button 
                   onClick={() => { setLoginType('student'); setError(''); }}
                   className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${loginType === 'student' ? 'bg-white dark:bg-stone-700 shadow-sm text-[#8c1515] dark:text-[#ef4444]' : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300'}`}
@@ -315,6 +311,7 @@ export const LoginView: React.FC = () => {
                      <button
                         type="submit"
                         disabled={isLoading}
+                        style={{ paddingTop: '12px', paddingBottom: '13px', marginBottom: '-27px' }}
                         className="w-full bg-[#8c1515] dark:bg-[#ef4444] hover:bg-[#731010] dark:hover:bg-[#dc2626] text-white py-3.5 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none shadow-md shadow-[#8c1515]/20 dark:shadow-none"
                      >
                         {isLoading ? (

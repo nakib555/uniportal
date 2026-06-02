@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { CreditCard, X, ArrowRight, Loader2, CheckCircle2, Lock, Smartphone, Building2 } from 'lucide-react';
 
@@ -13,6 +14,11 @@ export const PaymentPortal: React.FC<PaymentPortalProps> = ({ isOpen, onClose, o
   const [step, setStep] = useState<'amount' | 'processing' | 'success'>('amount');
   const [amountToPay, setAmountToPay] = useState<string>(outstandingBalance > 0 ? outstandingBalance.toString() : '0');
   const [selectedMethod, setSelectedMethod] = useState<'card' | 'mfs' | 'bank'>('card');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -33,15 +39,15 @@ export const PaymentPortal: React.FC<PaymentPortalProps> = ({ isOpen, onClose, o
     }, 2000);
   };
 
-  return (
+  const content = (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-900/60 dark:bg-black/70 backdrop-blur-sm print:hidden">
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-4 bg-stone-900/60 dark:bg-black/70 backdrop-blur-sm print:hidden">
           <motion.div 
-            initial={{ opacity: 0, scale: 0.95, y: 10 }} 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }} 
             animate={{ opacity: 1, scale: 1, y: 0 }} 
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="bg-white dark:bg-stone-900 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden border border-stone-200 dark:border-stone-800 flex flex-col max-h-[90vh]"
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            className="bg-white dark:bg-stone-900 rounded-2xl sm:rounded-3xl w-full max-w-md sm:max-w-lg shadow-2xl overflow-hidden border border-stone-200 dark:border-stone-800 flex flex-col max-h-[90vh] h-auto m-auto"
           >
             <div className="px-6 py-5 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between bg-stone-50 dark:bg-stone-950/50">
               <div className="flex items-center gap-3">
@@ -196,4 +202,7 @@ export const PaymentPortal: React.FC<PaymentPortalProps> = ({ isOpen, onClose, o
       )}
     </AnimatePresence>
   );
+
+  if (!mounted) return null;
+  return createPortal(content, document.body);
 };

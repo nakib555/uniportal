@@ -163,7 +163,7 @@ export const StatementView: React.FC = () => {
       <div className="flex justify-center mt-10">
         <div className="w-full max-w-2xl">
           <Card className="overflow-hidden border border-stone-200 dark:border-stone-800 shadow-sm">
-            <div className="bg-stone-100 dark:bg-stone-900/50 py-2 text-center border-b border-stone-200 dark:border-stone-800">
+            <div style={{ marginTop: '-16px' }} className="bg-stone-100 dark:bg-stone-900/50 py-2 text-center border-b border-stone-200 dark:border-stone-800">
               <h4 className="font-bold text-stone-700 dark:text-stone-300 text-sm">Statement Summary (Summer-26)</h4>
             </div>
             <table className="w-full text-right text-sm">
@@ -209,8 +209,8 @@ export const StatementView: React.FC = () => {
                   <td className="py-1.5 px-4 font-mono font-medium text-emerald-600 dark:text-emerald-400">{simulatedCashPaid.toLocaleString()} Taka</td>
                 </tr>
                 <tr className="bg-stone-100 dark:bg-stone-800 font-bold border-t-2 border-stone-200 dark:border-stone-700">
-                  <td className="py-2 px-4 text-stone-900 dark:text-stone-100">Total Dues</td>
-                  <td className="py-2 px-4 font-mono text-[#8c1515] dark:text-[#ef4444]">{simulatedDues > 0 ? simulatedDues.toLocaleString() : "0"} Taka</td>
+                  <td style={{ marginTop: '0px', marginBottom: '0px' }} className="py-2 px-4 text-stone-900 dark:text-stone-100">Total Dues</td>
+                  <td style={{ marginBottom: '0px', paddingBottom: '8px' }} className="py-2 px-4 font-mono text-[#8c1515] dark:text-[#ef4444]">{simulatedDues > 0 ? simulatedDues.toLocaleString() : "0"} Taka</td>
                 </tr>
               </tbody>
             </table>
@@ -220,7 +220,7 @@ export const StatementView: React.FC = () => {
 
       <div className="mt-8">
         <Card className="overflow-hidden border border-stone-200 dark:border-stone-800 shadow-sm">
-           <div className="bg-stone-100 dark:bg-stone-900/50 py-2 text-center border-b border-stone-200 dark:border-stone-800">
+           <div style={{ paddingTop: '8px', marginLeft: '0px', marginBottom: '-17px', marginTop: '-17px' }} className="bg-stone-100 dark:bg-stone-900/50 py-2 text-center border-b border-stone-200 dark:border-stone-800">
               <h4 className="font-bold text-stone-700 dark:text-stone-300 text-sm">Installment Payment</h4>
            </div>
            <div className="overflow-x-auto">
