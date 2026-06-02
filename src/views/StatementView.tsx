@@ -7,6 +7,7 @@ import { STUDENT_DATA, TRANSACTIONS_DATA } from '../data';
 import { AreaChart, Area, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { TrendingDown, TrendingUp, Wallet, AlertCircle, Download, CreditCard, ArrowRight, CheckCircle2, Loader2, X, Lock } from 'lucide-react';
 import { PrintableStatement } from '../components/print/PrintableStatement';
+import { PaymentPortal } from '../components/PaymentPortal'; '../components/print/PrintableStatement';
 
 export const StatementView: React.FC = () => {
   const { isDarkMode } = useAppStore();
@@ -16,30 +17,14 @@ export const StatementView: React.FC = () => {
   const [simulatedCashPaid, setSimulatedCashPaid] = useState(7605);
   const totalFeesToPay = 30375;
   const simulatedDues = totalFeesToPay - simulatedCashPaid;
-  const [amountToPay, setAmountToPay] = useState(simulatedDues > 0 ? simulatedDues.toString() : '0');
-  const [paymentStep, setPaymentStep] = useState<'amount' | 'processing' | 'success'>('amount');
-
-  useEffect(() => {
-     if (simulatedDues > 0 && !isPaymentModalOpen) {
-       setAmountToPay(simulatedDues.toString());
-     }
-  }, [simulatedDues, isPaymentModalOpen]);
 
   const handlePayOnline = () => {
-    setPaymentStep('amount');
     setIsPaymentModalOpen(true);
   };
-
-  const processPayment = () => {
-    setPaymentStep('processing');
-    setTimeout(() => {
-      setPaymentStep('success');
-      const paymentAmount = parseFloat(amountToPay) || 0;
-      setSimulatedCashPaid(prev => prev + paymentAmount);
-      setTimeout(() => {
-        setIsPaymentModalOpen(false);
-      }, 3000);
-    }, 2000);
+  
+  const handlePaymentSuccess = (amount) => {
+    setSimulatedCashPaid(prev => prev + amount);
+    setIsPaymentModalOpen(false);
   };
 
   const { totalDebit, totalCredit, statementChartData } = useMemo(() => {
@@ -285,94 +270,12 @@ export const StatementView: React.FC = () => {
          </ol>
       </div>
 
-      <AnimatePresence>
-        {isPaymentModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-900/40 dark:bg-black/60 backdrop-blur-sm print:hidden">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-stone-900 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-stone-200 dark:border-stone-800 flex flex-col max-h-[90vh]"
-            >
-              <div className="px-6 py-4 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between bg-stone-50 dark:bg-stone-950">
-                <div className="flex items-center gap-2">
-                   <div className="w-8 h-8 rounded-lg bg-[#8c1515] flex items-center justify-center">
-                     <CreditCard className="w-4 h-4 text-white" />
-                   </div>
-                   <h3 className="font-bold text-lg text-stone-900 dark:text-white leading-none">Online Payment (ekpay)</h3>
-                </div>
-                <button onClick={() => setIsPaymentModalOpen(false)} className="text-stone-400 hover:text-stone-900 dark:hover:text-white transition-colors">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-               {paymentStep === 'amount' && (
-                 <div className="p-6 overflow-y-auto bg-stone-50/50 dark:bg-stone-900/10">
-                   <div className="mb-6">
-                     <label className="block text-sm font-bold text-stone-700 dark:text-stone-300 mb-2">Amount to Pay (BDT)</label>
-                     <div className="relative">
-                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500 font-bold">৳</span>
-                       <input 
-                         type="number" 
-                         value={amountToPay} 
-                         onChange={(e) => setAmountToPay(e.target.value)}
-                         className="w-full pl-8 pr-4 py-3 border-2 border-transparent bg-white dark:bg-stone-950 shadow-sm rounded-xl focus:border-[#8c1515] focus:ring-4 focus:ring-[#8c1515]/10 outline-none transition-all font-mono font-bold text-lg text-stone-900 dark:text-white" 
-                       />
-                     </div>
-                   </div>
-                   
-                   <label className="block text-sm font-bold text-stone-700 dark:text-stone-300 mb-2">Payment Method</label>
-                   <div className="space-y-3 mb-8">
-                     <div className="flex flex-col gap-1 p-4 rounded-xl border-2 border-[#8c1515] bg-[#8c1515]/5 dark:bg-[#ef4444]/10 cursor-pointer text-stone-900 dark:text-stone-100 relative overflow-hidden">
-                       <div className="absolute top-0 right-0 -mr-4 -mt-4 w-16 h-16 rounded-full bg-[#8c1515]/10 blur-xl"></div>
-                       <div className="flex items-center gap-3 relative z-10">
-                          <div className="w-5 h-5 rounded-full border-[6px] border-[#8c1515] dark:border-[#ef4444] bg-white flex-shrink-0" />
-                          <div className="font-bold text-sm tracking-tight text-[#8c1515] dark:text-[#ef4444]">ekpay Gateway</div>
-                          <img src="https://wsrv.nl/?url=https://upload.wikimedia.org/wikipedia/commons/8/82/Bkash_logo.png&output=webp" alt="bkash" className="h-4 ml-auto object-contain opacity-80" />
-                          <img src="https://wsrv.nl/?url=https://upload.wikimedia.org/wikipedia/commons/a/a2/Nagad_Logo.png&output=webp" alt="nagad" className="h-4 object-contain opacity-80" />
-                       </div>
-                       <p className="text-xs text-stone-500 dark:text-stone-400 ml-8 mt-1 font-medium">Pay securely using Cards, Mobile Banking or Net Banking.</p>
-                     </div>
-                   </div>
-
-                   <button 
-                     onClick={processPayment}
-                     disabled={!amountToPay || parseFloat(amountToPay) <= 0}
-                     className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#8c1515] hover:bg-[#731010] dark:bg-[#ef4444] dark:hover:bg-[#dc2626] text-white font-bold transition-all shadow-lg shadow-[#8c1515]/20 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5 active:translate-y-0"
-                   >
-                     Proceed to Checkout <ArrowRight className="w-4 h-4" />
-                   </button>
-                   
-                   <div className="mt-4 flex items-center justify-center gap-1.5 text-stone-400 text-xs font-bold uppercase tracking-widest">
-                     <Lock className="w-3 h-3" /> Secure SSL Encrypted
-                   </div>
-                 </div>
-              )}
-
-              {paymentStep === 'processing' && (
-                 <div className="p-12 flex flex-col items-center justify-center text-center">
-                    <Loader2 className="w-12 h-12 text-[#8c1515] animate-spin mb-6" />
-                    <h3 className="text-xl font-bold text-stone-900 dark:text-white mb-2">Connecting to ekpay...</h3>
-                    <p className="text-stone-500 dark:text-stone-400 max-w-[250px]">Please complete the payment in the secure gateway window.</p>
-                 </div>
-              )}
-
-              {paymentStep === 'success' && (
-                 <div className="p-10 flex flex-col items-center justify-center text-center">
-                    <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center mb-6 text-emerald-600 dark:text-emerald-400">
-                       <CheckCircle2 className="w-8 h-8" />
-                    </div>
-                    <h3 className="text-2xl font-extrabold text-stone-900 dark:text-white mb-2 tracking-tight">Payment Successful</h3>
-                    <p className="text-stone-500 dark:text-stone-400 mb-6">Your payment of <strong>৳{amountToPay}</strong> has been received and processed.</p>
-                    <button 
-                      onClick={() => setIsPaymentModalOpen(false)}
-                      className="w-full py-3 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-900 dark:text-white rounded-xl font-bold transition-colors"
-                    >
-                      Close
-                    </button>
-                 </div>
-              )}
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <PaymentPortal 
+        isOpen={isPaymentModalOpen} 
+        onClose={() => setIsPaymentModalOpen(false)} 
+        outstandingBalance={simulatedDues} 
+        onPaymentSuccess={handlePaymentSuccess} 
+      />
       </div>
     </>
   );
