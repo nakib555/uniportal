@@ -102,7 +102,7 @@ export function AdminAttendanceManagementView() {
             <h3 className="font-bold text-stone-900 dark:text-white">Overall Trend</h3>
           </div>
           <div className="h-64 px-4 pt-4 w-full bg-white dark:bg-stone-950">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minHeight={150} minWidth={0}>
               <AreaChart data={chartData}>
                 <defs>
                    <linearGradient id="colorAttd" x1="0" y1="0" x2="0" y2="1">

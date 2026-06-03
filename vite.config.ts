@@ -9,7 +9,16 @@ export default defineConfig(({mode}) => {
     build: {
       target: 'esnext',
       minify: 'esbuild',
-      cssMinify: true
+      cssMinify: true,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom'],
+            'vendor-motion': ['motion'],
+            'vendor-recharts': ['recharts'],
+          }
+        }
+      }
     },
     plugins: [
       react(),

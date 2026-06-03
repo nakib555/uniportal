@@ -177,7 +177,7 @@ export const LoginView: React.FC = () => {
            <div className="flex gap-4">
              <div className="flex -space-x-4">
                 {[1, 2, 3, 4].map((i) => (
-                   <img key={i} className="w-12 h-12 rounded-full border-2 border-[#8c1515] shadow-sm" src={`https://i.pravatar.cc/100?img=${i + 10}`} alt={`Student ${i}`} />
+                   <img key={i} className="w-12 h-12 rounded-full border-2 border-[#8c1515] shadow-sm" src={`https://i.pravatar.cc/100?img=${i + 10}`} alt={`Student ${i}`} loading="lazy" />
                 ))}
              </div>
              <div className="flex flex-col justify-center">

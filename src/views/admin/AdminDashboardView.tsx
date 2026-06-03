@@ -110,7 +110,7 @@ export function AdminDashboardView() {
             </h3>
           </div>
           <div className="h-64 px-4 pt-4 w-full flex-1 min-h-[250px]">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minHeight={150} minWidth={0}>
               <AreaChart data={chartData}>
                 <defs>
                    <linearGradient id="colorAtt" x1="0" y1="0" x2="0" y2="1">
