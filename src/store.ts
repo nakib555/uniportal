@@ -41,6 +41,8 @@ interface AppState {
   setIsLoggedIn: (v: boolean) => void;
   isAdmin: boolean;
   setIsAdmin: (v: boolean) => void;
+  currentStudentId: string | null;
+  setCurrentStudentId: (v: string | null) => void;
 
 // Added Logic State
   notices: { id: string; title: string; date: string; important: boolean }[];
@@ -70,6 +72,8 @@ export const useAppStore = create<AppState>((set) => ({
   setIsLoggedIn: (v) => set({ isLoggedIn: v }),
   isAdmin: false,
   setIsAdmin: (v) => set({ isAdmin: v }),
+  currentStudentId: null,
+  setCurrentStudentId: (v) => set({ currentStudentId: v }),
 
   notices: [
     { id: '1', title: "Report on Conversion from Tri-Semester to Bi-Semester", date: "Today", important: true },

@@ -14,7 +14,7 @@ export function HomeView({ portal }: { portal: ReturnType<typeof usePortalLogic>
           { label: 'CGPA', value: student.cgpa, sub: 'Out of 4.0', icon: GraduationCap, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
           { label: 'Credits Completed', value: student.creditsCompleted, sub: 'Total 124 required', icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30' },
           { label: 'Upcoming Classes', value: '3', sub: 'Today', icon: Calendar, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30' },
-          { label: 'Due Payment', value: `৳${bankSlipTotal}`, sub: 'For this semester', icon: Wallet, color: 'text-rose-600', bg: 'bg-rose-100 dark:bg-rose-900/30' }
+          { label: 'Due Payment', value: student.accountBalance < 0 ? `৳${Math.abs(student.accountBalance).toLocaleString()}` : '৳0', sub: 'Outstanding Dues', icon: Wallet, color: 'text-rose-600', bg: 'bg-rose-100 dark:bg-rose-900/30' }
         ].map((stat, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
             <Card className="p-5 flex items-start gap-4">

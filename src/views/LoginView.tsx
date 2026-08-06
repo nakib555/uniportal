@@ -34,8 +34,15 @@ export const LoginView: React.FC = () => {
 
   
   const hints = loginType === 'student' 
-    ? [{ id: 'class', label: 'Demo Student', pass: 'class' }]
-    : [{ id: 'admin', label: 'Demo Admin', pass: 'admin' }];
+    ? [
+        { id: '2610329040', label: 'Nakib Hassan Prince (EEE)', pass: '2610329040' },
+        { id: '21104104', label: 'Al Ibrahim (CSE)', pass: '21104104' },
+        { id: '21104105', label: 'Sarah Ahmed (CSE)', pass: '21104105' },
+        { id: '21104106', label: 'Fahim Rahman (CSE)', pass: '21104106' },
+        { id: '21104107', label: 'Nusrat Jahan (CSE)', pass: '21104107' },
+        { id: '21104108', label: 'Rafiq Islam (BBA)', pass: '21104108' }
+      ]
+    : [{ id: 'admin', label: 'University Administrator', pass: 'admin' }];
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,20 +60,37 @@ export const LoginView: React.FC = () => {
       const isUserAdmin = loginType === 'admin';
       
       // Basic validation
-      if (isUserAdmin && (studentId !== 'admin' || password !== 'admin')) {
-        setError('Invalid credentials. Use "admin" for both Admin ID and Password. (Use "class" for Student login)');
-        return;
-      }
-      
-      if (!isUserAdmin && (studentId !== 'class' || password !== 'class')) {
-        setError('Invalid credentials. Use "class" for both Student ID and Password. (Use "admin" for Admin login)');
-        return;
-      }
+      if (isUserAdmin) {
+        if (studentId.toLowerCase() !== 'admin' || password !== 'admin') {
+          setError('Invalid admin credentials. Use ID "admin" and Password "admin".');
+          return;
+        }
+        setIsAdmin(true);
+        useAppStore.getState().setCurrentStudentId(null); // Admin view doesn't restrict to one student
+        useAppStore.getState().setActiveTab('admin-dashboard');
+        setIsLoggedIn(true);
+      } else {
+        const isNumeric = /^\d+$/.test(studentId);
+        const isDemo = studentId === 'class';
+        
+        if (!isNumeric && !isDemo) {
+          setError('Invalid student credentials. Please enter a valid numeric Student ID (e.g., 2610329040).');
+          return;
+        }
 
-      setIsAdmin(isUserAdmin);
-      useAppStore.getState().setActiveTab(isUserAdmin ? 'admin-dashboard' : 'home');
-      setIsLoggedIn(true);
-    }, 1500);
+        // Validate password - accept any password of length >= 4 for numeric IDs for realistic user simulation
+        if (password.length < 4) {
+          setError('Password must be at least 4 characters long.');
+          return;
+        }
+
+        const loggedId = isDemo ? '2610329040' : studentId;
+        setIsAdmin(false);
+        useAppStore.getState().setCurrentStudentId(loggedId);
+        useAppStore.getState().setActiveTab('home');
+        setIsLoggedIn(true);
+      }
+    }, 1200);
   };
 
   const handleResetPassword = (e: React.FormEvent) => {
@@ -253,16 +277,16 @@ export const LoginView: React.FC = () => {
                            onFocus={() => setShowHints(true)}
                            onBlur={() => setTimeout(() => setShowHints(false), 200)}
                            className="w-full bg-stone-50 dark:bg-stone-950/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 pl-10 pr-4 text-stone-900 dark:text-white placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#8c1515]/20 dark:focus:ring-[#ef4444]/20 focus:border-[#8c1515] dark:focus:border-[#ef4444] transition-all font-medium"
-                           placeholder={loginType === 'student' ? "e.g. class" : "e.g. admin"}
+                           placeholder={loginType === 'student' ? "e.g. 2610329040" : "e.g. admin"}
                            autoComplete="off"
                         />
                         <AnimatePresence>
-                           {showHints && hints.filter(h => h.id.includes(studentId.toLowerCase())).length > 0 && (
+                           {showHints && hints.filter(h => h.id.toLowerCase().includes(studentId.toLowerCase()) || h.label.toLowerCase().includes(studentId.toLowerCase())).length > 0 && (
                               <motion.div 
                                  initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
                                  className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-xl rounded-xl overflow-hidden z-50"
                               >
-                                 {hints.filter(h => h.id.includes(studentId.toLowerCase())).map((hint, idx) => (
+                                 {hints.filter(h => h.id.toLowerCase().includes(studentId.toLowerCase()) || h.label.toLowerCase().includes(studentId.toLowerCase())).map((hint, idx) => (
                                     <div 
                                        key={idx} 
                                        onClick={() => { setStudentId(hint.id); setPassword(hint.pass); setShowHints(false); }}

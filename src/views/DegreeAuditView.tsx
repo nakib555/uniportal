@@ -1,43 +1,96 @@
 import React from 'react';
 import { Card, Badge } from '../components/ui';
 import { COMPLETED_COURSES } from '../data';
+import { usePortalLogic } from '../hooks/usePortalLogic';
 import { ChevronRight, GraduationCap, ArrowRight, CheckCircle2, Lock, Download } from 'lucide-react';
 import { PrintableDegreeAudit } from '../components/print/PrintableDegreeAudit';
 
-export function DegreeAuditView() {
+export function DegreeAuditView({ portal }: { portal?: ReturnType<typeof usePortalLogic> }) {
   const totalRequired = 130;
-  const totalCompleted = COMPLETED_COURSES.reduce((sum, c) => sum + c.credits, 0);
+  const completedCourses = portal ? portal.completedCourses : COMPLETED_COURSES;
+  const student = portal ? portal.student : null;
+
+  const totalCompleted = completedCourses.reduce((sum, c) => sum + c.credits, 0);
   const totalProgress = (totalCompleted / totalRequired) * 100;
 
   const studentInfo = {
-    name: "Al Ibrahim",
-    id: "21104104",
-    program: "BSc in Computer Science & Engineering",
-    cgpa: 3.82,
+    name: student ? student.name : "Al Ibrahim",
+    id: student ? student.id : "21104104",
+    program: student ? student.program : "BSc in Computer Science & Engineering",
+    cgpa: student ? student.cgpa : 3.82,
     creditsReq: totalRequired,
     creditsComp: totalCompleted
   };
 
+  // Program-based requirements calculation
+  const isCSE = studentInfo.program.includes("Computer Science");
+  const isBBA = studentInfo.program.includes("Business Administration");
+
+  const corePrefix = isCSE ? "CSE" : isBBA ? "BUS" : "EEE";
+  
+  // Calculate completed credits dynamically from active student
+  const coreCompleted = completedCourses
+    .filter(c => c.code.startsWith(corePrefix) || (isBBA && (c.code.startsWith("ACT") || c.code.startsWith("ECO"))))
+    .reduce((sum, c) => sum + c.credits, 0);
+  
+  const mathSciCompleted = completedCourses
+    .filter(c => c.code.startsWith("MAT") || c.code.startsWith("PHY"))
+    .reduce((sum, c) => sum + c.credits, 0);
+
+  const genEdCompleted = completedCourses
+    .filter(c => c.code.startsWith("ENG") || c.code.startsWith("HUM") || c.code.startsWith("SOC"))
+    .reduce((sum, c) => sum + c.credits, 0);
+
+  const capstoneCompleted = completedCourses
+    .filter(c => c.code.includes("400") || c.code.includes("499"))
+    .reduce((sum, c) => sum + c.credits, 0);
+
+  const coreTarget = isBBA ? 60 : 65;
+  const mathSciTarget = isBBA ? 15 : 20;
+  const genEdTarget = 30;
+  const capstoneTarget = 6;
+
   const reqs = [
-    { area: 'Core Requirements', req: 60, comp: 45 },
-    { area: 'Electives', req: 30, comp: 12 },
-    { area: 'Free Electives', req: 34, comp: 20 },
-    { area: 'Capstone Project', req: 6, comp: 0 },
+    { area: 'Core Requirements', req: coreTarget, comp: coreCompleted },
+    { area: 'Math & Sciences', req: mathSciTarget, comp: mathSciCompleted },
+    { area: 'General Education', req: genEdTarget, comp: genEdCompleted },
+    { area: 'Capstone Project', req: capstoneTarget, comp: capstoneCompleted },
   ];
 
+  // Map pathway map to real-world courses
+  type PathwayCourse = { code: string; status: 'completed' | 'current' | 'locked' };
+
+  const mathCourses: PathwayCourse[] = completedCourses
+    .filter(c => c.code.startsWith("MAT"))
+    .map(c => ({ code: c.code, status: 'completed' as const }));
+  if (mathCourses.length === 0) {
+    mathCourses.push({ code: 'MAT121', status: 'completed' as const });
+  }
+  const currentMath = (portal?.registeredCourses || [])
+    .filter(c => c.code.startsWith("MAT"))
+    .map(c => ({ code: c.code, status: 'current' as const }));
+  mathCourses.push(...currentMath);
+  if (mathCourses.length < 4) {
+    mathCourses.push({ code: isBBA ? 'MAT211' : 'MAT215', status: 'locked' as const });
+  }
+
+  const coreCourses: PathwayCourse[] = completedCourses
+    .filter(c => c.code.startsWith(corePrefix))
+    .map(c => ({ code: c.code, status: 'completed' as const }));
+  if (coreCourses.length === 0) {
+    coreCourses.push({ code: `${corePrefix}101`, status: 'completed' as const });
+  }
+  const currentCore = (portal?.registeredCourses || [])
+    .filter(c => c.code.startsWith(corePrefix))
+    .map(c => ({ code: c.code, status: 'current' as const }));
+  coreCourses.push(...currentCore);
+  if (coreCourses.length < 4) {
+    coreCourses.push({ code: `${corePrefix}301`, status: 'locked' as const });
+  }
+
   const pathways = [
-    { id: 'math', title: 'Mathematics', courses: [
-      { code: 'MAT-101', status: 'completed' },
-      { code: 'MAT-102', status: 'completed' },
-      { code: 'MAT-201', status: 'current' },
-      { code: 'MAT-301', status: 'locked' }
-    ]},
-    { id: 'core', title: 'Core CS', courses: [
-      { code: 'CSE-101', status: 'completed' },
-      { code: 'CSE-201', status: 'completed' },
-      { code: 'CSE-301', status: 'completed' },
-      { code: 'CSE-401', status: 'locked' }
-    ]}
+    { id: 'math', title: 'Mathematics', courses: mathCourses.slice(0, 4) },
+    { id: 'core', title: isBBA ? 'Business Core' : 'Engineering Core', courses: coreCourses.slice(0, 4) }
   ];
 
   return (
@@ -67,45 +120,30 @@ export function DegreeAuditView() {
          </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-         <Card className="p-4 border-l-4 border-l-emerald-500 border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-950 cursor-pointer hover:shadow-md transition-all hover:-translate-y-0.5 group">
-           <h4 className="font-bold mb-2 group-hover:text-emerald-600 transition-colors text-stone-900 dark:text-white">Core Requirements</h4>
-           <div className="flex justify-between items-center mb-2">
-             <p className="text-sm text-stone-600 dark:text-stone-400">45 / 60 credits</p>
-             <span className="text-xs font-bold text-emerald-500">75%</span>
-           </div>
-           <div className="w-full bg-stone-100 dark:bg-stone-800 rounded-full h-1.5 mb-3">
-             <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `75%` }} />
-           </div>
-           <button className="text-emerald-600 dark:text-emerald-500 text-sm font-bold mt-2 flex items-center group-hover:underline">View completion <ChevronRight className="w-4 h-4" /></button>
-         </Card>
-         
-         <Card className="p-4 border-l-4 border-l-amber-500 border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-950 cursor-pointer hover:shadow-md transition-all hover:-translate-y-0.5 group">
-           <h4 className="font-bold mb-2 group-hover:text-amber-600 dark:group-hover:text-amber-500 transition-colors text-stone-900 dark:text-white">Electives</h4>
-           <div className="flex justify-between items-center mb-2">
-             <p className="text-sm text-stone-600 dark:text-stone-400">12 / 30 credits</p>
-             <span className="text-xs font-bold text-amber-500">40%</span>
-           </div>
-           <div className="w-full bg-stone-100 dark:bg-stone-800 rounded-full h-1.5 mb-3">
-             <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: `40%` }} />
-           </div>
-           <button className="text-amber-600 dark:text-amber-500 text-sm font-bold mt-2 flex items-center group-hover:underline">View options <ChevronRight className="w-4 h-4" /></button>
-         </Card>
-         
-         <Card className="p-4 border-l-4 border-l-blue-500 border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-950 cursor-pointer hover:shadow-md transition-all hover:-translate-y-0.5 group">
-           <h4 className="font-bold mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-500 transition-colors text-stone-900 dark:text-white">Capstone Project</h4>
-           <div className="flex justify-between items-center mb-2">
-             <p className="text-sm text-stone-600 dark:text-stone-400">0 / 6 credits</p>
-             <span className="text-xs font-bold text-stone-400">0%</span>
-           </div>
-           <div className="w-full bg-stone-100 dark:bg-stone-800 rounded-full h-1.5 mb-3">
-             <div className="bg-stone-300 dark:bg-stone-700 h-1.5 rounded-full" style={{ width: `0%` }} />
-           </div>
-           <div className="flex gap-2">
-             <Badge variant="outline" className="mt-1">Locked</Badge>
-             <Badge variant="outline" className="mt-1 border-blue-200 text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800">Requires 100 Cr</Badge>
-           </div>
-         </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+         {reqs.map((r, index) => {
+           const percent = r.req > 0 ? Math.min(Math.round((r.comp / r.req) * 100), 100) : 0;
+           const colorClass = index === 0 ? 'border-l-emerald-500' : index === 1 ? 'border-l-amber-500' : index === 2 ? 'border-l-indigo-500' : 'border-l-blue-500';
+           const bgClass = index === 0 ? 'bg-emerald-500' : index === 1 ? 'bg-amber-500' : index === 2 ? 'bg-indigo-500' : 'bg-blue-500';
+           
+           return (
+             <Card key={r.area} className={`p-4 border-l-4 ${colorClass} border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-950 cursor-pointer hover:shadow-md transition-all hover:-translate-y-0.5 group flex flex-col justify-between`}>
+               <div>
+                 <h4 className="font-bold mb-2 group-hover:text-stone-600 dark:group-hover:text-stone-400 transition-colors text-stone-900 dark:text-white">{r.area}</h4>
+                 <div className="flex justify-between items-center mb-2">
+                   <p className="text-sm text-stone-600 dark:text-stone-400">{r.comp} / {r.req} credits</p>
+                   <span className="text-xs font-bold text-stone-500">{percent}%</span>
+                 </div>
+                 <div className="w-full bg-stone-100 dark:bg-stone-800 rounded-full h-1.5 mb-3">
+                   <div className={`${bgClass} h-1.5 rounded-full`} style={{ width: `${percent}%` }} />
+                 </div>
+               </div>
+               <button className="text-stone-600 dark:text-stone-400 text-sm font-bold mt-2 flex items-center group-hover:underline self-start">
+                 View details <ChevronRight className="w-4 h-4" />
+               </button>
+             </Card>
+           );
+         })}
       </div>
 
       <div className="mt-8">

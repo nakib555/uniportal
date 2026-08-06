@@ -1,8 +1,7 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { useAppStore } from '../store';
 import { 
-  STUDENT_DATA, REGISTERED_COURSES, COMPLETED_COURSES, AVAILABLE_COURSES,
-  SCHEDULE_DATA, TRANSACTIONS_DATA, TEACHERS_DATA, FEES_LIST, Course 
+  AVAILABLE_COURSES, FEES_LIST, Course, getStudentData, ClassSchedule 
 } from '../data';
 
 export type NavItem = {
@@ -67,7 +66,21 @@ export const usePortalLogic = () => {
   const [scheduleCourseFilter, setScheduleCourseFilter] = useState("All");
   const [scheduleDayFilter, setScheduleDayFilter] = useState("All");
   
-  const student = STUDENT_DATA;
+  // Load dynamic student details based on current ID
+  const studentData = useMemo(() => {
+    return getStudentData(store.currentStudentId);
+  }, [store.currentStudentId]);
+
+  // Synchronize courses whenever student ID changes
+  useEffect(() => {
+    if (store.currentStudentId) {
+      const data = getStudentData(store.currentStudentId);
+      setRegisteredCourses(data.registeredCourses);
+      setCompletedCourses(data.completedCourses);
+    }
+  }, [store.currentStudentId, setRegisteredCourses, setCompletedCourses]);
+
+  const student = studentData.profile;
 
   // Bank slips state
   const [selectedFees, setSelectedFees] = useState<string[]>([]);
@@ -96,16 +109,16 @@ export const usePortalLogic = () => {
 
   // Schedule logic
   const filteredSchedule = useMemo(() => {
-    return SCHEDULE_DATA.filter(s => {
+    return studentData.schedule.filter(s => {
       const matchCourse = scheduleCourseFilter === "All" || s.courseCode === scheduleCourseFilter;
       const matchDay = scheduleDayFilter === "All" || s.day === scheduleDayFilter;
       return matchCourse && matchDay;
     });
-  }, [scheduleCourseFilter, scheduleDayFilter]);
+  }, [studentData.schedule, scheduleCourseFilter, scheduleDayFilter]);
 
   const groupedSchedule = useMemo(() => {
     const daysOrder = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const groups: Record<string, typeof SCHEDULE_DATA> = {};
+    const groups: Record<string, ClassSchedule[]> = {};
     daysOrder.forEach(day => groups[day] = []);
     
     filteredSchedule.forEach(s => {
@@ -172,15 +185,15 @@ export const usePortalLogic = () => {
 
   // statement logic
   const { totalDebit, totalCredit, statementChartData } = useMemo(() => {
-    const debit = TRANSACTIONS_DATA.reduce((acc, t) => acc + Math.abs(t.debit || 0), 0);
-    const credit = TRANSACTIONS_DATA.reduce((acc, t) => acc + Math.abs(t.credit || 0), 0);
-    const chartData = TRANSACTIONS_DATA.map((t, idx) => ({
+    const debit = studentData.transactions.reduce((acc, t) => acc + Math.abs(t.debit || 0), 0);
+    const credit = studentData.transactions.reduce((acc, t) => acc + Math.abs(t.credit || 0), 0);
+    const chartData = studentData.transactions.map((t, idx) => ({
       name: t.date,
       balance: t.balance,
       index: idx
     })).reverse();
     return { totalDebit: debit, totalCredit: credit, statementChartData: chartData };
-  }, []);
+  }, [studentData.transactions]);
 
   const handleMenuToggle = (id: string) => {
     store.toggleMenu(id);
@@ -343,6 +356,7 @@ export const usePortalLogic = () => {
     scheduleCourseFilter, setScheduleCourseFilter,
     scheduleDayFilter, setScheduleDayFilter,
     student,
+    studentData,
     selectedFees, setSelectedFees, toggleFee,
     bankSlipTotal,
     isBankSlipSuccess, setIsBankSlipSuccess,

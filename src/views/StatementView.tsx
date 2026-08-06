@@ -4,18 +4,42 @@ import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { useAppStore } from '../store';
 import { STUDENT_DATA, TRANSACTIONS_DATA } from '../data';
+import { usePortalLogic } from '../hooks/usePortalLogic';
 import { AreaChart, Area, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { TrendingDown, TrendingUp, Wallet, AlertCircle, Download, CreditCard, ArrowRight, CheckCircle2, Loader2, X, Lock } from 'lucide-react';
 import { PrintableStatement } from '../components/print/PrintableStatement';
 import { PaymentPortal } from '../components/PaymentPortal'; '../components/print/PrintableStatement';
 
-export const StatementView: React.FC = () => {
+export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic> }> = ({ portal }) => {
   const { isDarkMode } = useAppStore();
-  const student = STUDENT_DATA;
-  
+
+  const student = portal ? portal.student : STUDENT_DATA;
+  const transactions = portal ? portal.studentData.transactions : TRANSACTIONS_DATA;
+
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [simulatedCashPaid, setSimulatedCashPaid] = useState(7605);
-  const totalFeesToPay = 30375;
+
+  const { totalDebit, totalCredit, statementChartData } = useMemo(() => {
+    const debit = transactions.reduce((acc, t) => acc + Math.abs(t.debit || 0), 0);
+    const credit = transactions.reduce((acc, t) => acc + Math.abs(t.credit || 0), 0);
+    const chartData = transactions.map((t, idx) => ({
+      name: t.date,
+      balance: t.balance,
+      index: idx
+    })).reverse();
+    return { totalDebit: debit, totalCredit: credit, statementChartData: chartData };
+  }, [transactions]);
+
+  const waiverAmount = useMemo(() => {
+    return transactions.filter(t => t.code === 'WAV001').reduce((acc, t) => acc + t.credit, 0);
+  }, [transactions]);
+
+  const totalFeesToPay = totalDebit - waiverAmount;
+  const [simulatedCashPaid, setSimulatedCashPaid] = useState(totalCredit - waiverAmount);
+
+  useEffect(() => {
+    setSimulatedCashPaid(totalCredit - waiverAmount);
+  }, [student.id, totalCredit, waiverAmount]);
+
   const simulatedDues = totalFeesToPay - simulatedCashPaid;
 
   const handlePayOnline = () => {
@@ -27,20 +51,9 @@ export const StatementView: React.FC = () => {
     setIsPaymentModalOpen(false);
   };
 
-  const { totalDebit, totalCredit, statementChartData } = useMemo(() => {
-    const debit = TRANSACTIONS_DATA.reduce((acc, t) => acc + Math.abs(t.debit || 0), 0);
-    const credit = TRANSACTIONS_DATA.reduce((acc, t) => acc + Math.abs(t.credit || 0), 0);
-    const chartData = TRANSACTIONS_DATA.map((t, idx) => ({
-      name: t.date,
-      balance: t.balance,
-      index: idx
-    })).reverse();
-    return { totalDebit: debit, totalCredit: credit, statementChartData: chartData };
-  }, []);
-
   return (
     <>
-      <PrintableStatement student={student} totalDebit={totalDebit} totalCredit={totalCredit} simulatedDues={simulatedDues} />
+      <PrintableStatement student={student} totalDebit={totalDebit} totalCredit={totalCredit} simulatedDues={simulatedDues} transactions={transactions} />
       <div className="space-y-6 max-w-5xl print-hide">
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -128,7 +141,7 @@ export const StatementView: React.FC = () => {
 
       <Card className="overflow-hidden">
         <div className="divide-y divide-stone-100 dark:divide-stone-800 bg-white dark:bg-stone-900">
-           {TRANSACTIONS_DATA.map((t, i) => (
+           {transactions.map((t, i) => (
               <div key={i} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:bg-stone-50/50 dark:hover:bg-stone-800/50 transition-colors">
                  <div className="flex-1">
                     <div className="flex justify-between sm:justify-start sm:items-center gap-3 mb-2">

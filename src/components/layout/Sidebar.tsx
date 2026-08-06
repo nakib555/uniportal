@@ -7,30 +7,18 @@ import {
 } from 'lucide-react';
 import clsx from 'clsx';
 
-export const NAVIGATION_ITEMS = [
-  { id: 'home', label: 'Dashboard', icon: Home },
-  { id: 'courses', label: 'Courses', icon: BookOpen, subItems: [
-    { id: 'registered-courses', label: 'Registered', icon: Book },
-    { id: 'completed-courses', label: 'Completed', icon: CheckCircle2 },
-    { id: 'available-courses', label: 'Enrollment', icon: BookMarked }
-  ]},
-  { id: 'accounts', label: 'Accounts', icon: Calculator, subItems: [
-    { id: 'statement', label: 'Statement', icon: Receipt }
-  ]},
-  { id: 'schedule', label: 'Schedule', icon: CalendarIcon, subItems: [
-    { id: 'class-schedule', label: 'Class Schedule', icon: CalendarIcon }
-  ]},
-  { id: 'teachers', label: 'Related Teachers', icon: Users },
-  { id: 'profile', label: 'Profile', icon: User },
-];
+import { getNavItems } from '../../data/navData';
 
 export const Sidebar: React.FC = () => {
   const { 
     activeTab, setActiveTab, 
     expandedMenus, toggleMenu, 
     isSidebarCollapsed, setIsSidebarCollapsed,
-    isMobileMenuOpen, setIsMobileMenuOpen
+    isMobileMenuOpen, setIsMobileMenuOpen,
+    isAdmin
   } = useAppStore();
+
+  const navigationItems = getNavItems(isAdmin);
 
   const handleNavClick = (id: string, isParent: boolean = false) => {
     if (isParent) {
@@ -62,7 +50,7 @@ export const Sidebar: React.FC = () => {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-4 md:px-6 pb-20 space-y-2 relative no-scrollbar">
-        {NAVIGATION_ITEMS.map((item) => {
+        {navigationItems.map((item) => {
           const isExpanded = expandedMenus[item.id];
           const hasSubs = !!item.subItems;
           const isActive = activeTab === item.id || (hasSubs && item.subItems?.some(s => s.id === activeTab));

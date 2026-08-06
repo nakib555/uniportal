@@ -1,7 +1,8 @@
 import React from 'react';
-import { TRANSACTIONS_DATA } from '../../data';
+import { Transaction } from '../../data';
 
-export function PrintableStatement({ student, totalDebit, totalCredit, simulatedDues }: any) {
+export function PrintableStatement({ student, totalDebit, totalCredit, simulatedDues, transactions }: { student: any; totalDebit: number; totalCredit: number; simulatedDues: number; transactions: Transaction[] }) {
+  const displayTransactions = transactions || [];
   return (
     <div className="hidden print:block font-serif text-black bg-white w-full print:p-0 [print-color-adjust:exact] [-webkit-print-color-adjust:exact]">
        <div className="text-center border-b-2 border-black pb-4 mb-6">
@@ -13,7 +14,7 @@ export function PrintableStatement({ student, totalDebit, totalCredit, simulated
        <div className="grid grid-cols-2 gap-4 mb-8 border border-black p-4">
            <div>
               <p><span className="font-bold">Student Name:</span> {student.name}</p>
-              <p><span className="font-bold">Student ID:</span> 21104104</p>
+              <p><span className="font-bold">Student ID:</span> {student.id}</p>
               <p><span className="font-bold">Program:</span> {student.program}</p>
            </div>
            <div className="text-right">
@@ -37,24 +38,24 @@ export function PrintableStatement({ student, totalDebit, totalCredit, simulated
                 </tr>
               </thead>
               <tbody>
-                {TRANSACTIONS_DATA.map((t, i) => (
-                  <tr key={i} className="border-b border-black text-sm">
-                     <td className="p-2 border-r border-black">{t.date}</td>
-                     <td className="p-2 border-r border-black">{t.description}</td>
-                     <td className="p-2 border-r border-black">{t.code || '-'}</td>
-                     <td className="p-2 border-r border-black">{t.id || '-'}</td>
-                     <td className="p-2 border-r border-black text-right">{t.debit ? t.debit.toLocaleString() : '-'}</td>
-                     <td className="p-2 border-r border-black text-right">{t.credit ? t.credit.toLocaleString() : '-'}</td>
-                     <td className="p-2 text-right">{t.balance.toLocaleString()}</td>
-                  </tr>
+                {displayTransactions.map((t, i) => (
+                   <tr key={i} className="border-b border-black text-sm">
+                      <td className="p-2 border-r border-black">{t.date}</td>
+                      <td className="p-2 border-r border-black">{t.description}</td>
+                      <td className="p-2 border-r border-black">{t.code || '-'}</td>
+                      <td className="p-2 border-r border-black">{t.id || '-'}</td>
+                      <td className="p-2 border-r border-black text-right">{t.debit ? t.debit.toLocaleString() : '-'}</td>
+                      <td className="p-2 border-r border-black text-right">{t.credit ? t.credit.toLocaleString() : '-'}</td>
+                      <td className="p-2 text-right">{t.balance.toLocaleString()}</td>
+                   </tr>
                 ))}
               </tbody>
            </table>
        </div>
 
        <div className="mt-16 pt-4 border-t border-gray-400 text-center text-xs text-gray-500">
-           <p>This document is a computer-generated statement and does not require a signature.</p>
-           <p className="mt-1 font-mono text-[10px]">Report ID: {Math.random().toString(36).substring(2, 10).toUpperCase()} - {new Date().toISOString()}</p>
+            <p>This document is a computer-generated statement and does not require a signature.</p>
+            <p className="mt-1 font-mono text-[10px]">Report ID: {Math.random().toString(36).substring(2, 10).toUpperCase()} - {new Date().toISOString()}</p>
        </div>
     </div>
   );

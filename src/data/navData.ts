@@ -24,6 +24,7 @@ export const getNavItems = (isAdmin: boolean): NavItem[] => {
     { id: 'home', label: 'Home', icon: Home },
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'accounts', label: 'Accounts', icon: Wallet, subItems: [
+      { id: 'bank-slips', label: 'Bank Slips' },
       { id: 'statement', label: 'Statement of Account' },
       { id: 'financial-aid', label: 'Financial Aid' }
     ]},
@@ -33,12 +34,13 @@ export const getNavItems = (isAdmin: boolean): NavItem[] => {
       { id: 'available-courses', label: 'Course Enrollment' }
     ]},
     { id: 'schedule', label: 'Schedule', icon: Calendar, subItems: [
-      { id: 'class-schedule', label: 'Class Schedule' }
+      { id: 'class-schedule', label: 'Class Schedule' },
+      { id: 'exam-routine', label: 'Exam Schedule' },
+      { id: 'exam-admit-card', label: 'Exam Admit Card' }
     ]},
     { id: 'academics', label: 'Academics', icon: GraduationCap, subItems: [
       { id: 'degree-audit', label: 'Degree Audit' },
       { id: 'transcript', label: 'Grades & Transcript' },
-      { id: 'exam-routine', label: 'Exam Routine' },
       { id: 'attendance', label: 'Attendance' },
       { id: 'faculty-evaluation', label: 'Faculty Evaluation' },
     ]},

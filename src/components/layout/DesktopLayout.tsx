@@ -18,6 +18,8 @@ import { ClubsView } from '../../views/ClubsView';
 import { AdvisingView } from '../../views/AdvisingView';
 import { FinancialAidView } from '../../views/FinancialAidView';
 import { StatementView } from '../../views/StatementView';
+import { AdmitCardView } from '../../views/AdmitCardView';
+import { BankSlipsView } from '../../views/BankSlipsView';
 import { AdminDashboardView } from '../../views/admin/AdminDashboardView';
 import { AdminStudentRecordsView } from '../../views/admin/AdminStudentRecordsView';
 import { AdminCourseManagementView } from '../../views/admin/AdminCourseManagementView';
@@ -42,15 +44,17 @@ export function DesktopLayout(portal: ReturnType<typeof usePortalLogic>) {
       case 'enrollment-approvals': return <AdminEnrollmentApprovalsView />;
       case 'attendance-tracking': return <AdminAttendanceManagementView />;
       case 'profile': return <ProfileView portal={portal} />;
-      case 'statement': return <StatementView />;
+      case 'bank-slips': return <BankSlipsView portal={portal} />;
+      case 'statement': return <StatementView portal={portal} />;
       case 'financial-aid': return <FinancialAidView />;
       case 'registered-courses':
       case 'completed-courses':
       case 'available-courses': return <CoursesView portal={portal} />;
       case 'class-schedule': return <ScheduleWeeklyView portal={portal} />;
-      case 'degree-audit': return <DegreeAuditView />;
-      case 'transcript': return <GradesView />;
-      case 'exam-routine': return <ExamsView />;
+      case 'degree-audit': return <DegreeAuditView portal={portal} />;
+      case 'transcript': return <GradesView portal={portal} />;
+      case 'exam-routine': return <ExamsView portal={portal} />;
+      case 'exam-admit-card': return <AdmitCardView portal={portal} />;
       case 'attendance': return <AttendanceView />;
       case 'faculty-evaluation': return <FacultyEvalView />;
       case 'library': return <LibraryView />;
