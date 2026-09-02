@@ -34,26 +34,26 @@ export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic
   }, [transactions]);
 
   const totalFeesToPay = totalDebit - waiverAmount;
-  const [simulatedCashPaid, setSimulatedCashPaid] = useState(totalCredit - waiverAmount);
+  const [paidAmount, setPaidAmount] = useState(totalCredit - waiverAmount);
 
   useEffect(() => {
-    setSimulatedCashPaid(totalCredit - waiverAmount);
+    setPaidAmount(totalCredit - waiverAmount);
   }, [student.id, totalCredit, waiverAmount]);
 
-  const simulatedDues = totalFeesToPay - simulatedCashPaid;
+  const currentDues = totalFeesToPay - paidAmount;
 
   const handlePayOnline = () => {
     setIsPaymentModalOpen(true);
   };
   
   const handlePaymentSuccess = (amount) => {
-    setSimulatedCashPaid(prev => prev + amount);
+    setPaidAmount(prev => prev + amount);
     setIsPaymentModalOpen(false);
   };
 
   return (
     <>
-      <PrintableStatement student={student} totalDebit={totalDebit} totalCredit={totalCredit} simulatedDues={simulatedDues} transactions={transactions} />
+      <PrintableStatement student={student} totalDebit={totalDebit} totalCredit={totalCredit} currentDues={currentDues} transactions={transactions} />
       <div className="space-y-6 max-w-5xl print-hide">
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -93,13 +93,13 @@ export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic
                <div>
                   <p className="text-[11px] font-bold uppercase tracking-widest text-[#ffcfcf] dark:text-stone-400 mb-1">Current Dues</p>
                   <div className="text-2xl font-black mb-3">
-                     {simulatedDues > 0 ? `${simulatedDues.toLocaleString()}` : Math.abs(simulatedDues).toLocaleString()} <span className="text-sm font-bold opacity-80">Tk</span>
+                     {currentDues > 0 ? `${currentDues.toLocaleString()}` : Math.abs(currentDues).toLocaleString()} <span className="text-sm font-bold opacity-80">Tk</span>
                   </div>
-                  {simulatedDues > 0 ? (
+                  {currentDues > 0 ? (
                      <button onClick={handlePayOnline} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-[#8c1515] dark:bg-stone-900 dark:text-white rounded-lg text-xs font-bold shadow-sm hover:opacity-90 transition-opacity whitespace-nowrap">
                         <CreditCard className="w-3.5 h-3.5" /> Pay via ekpay
                      </button>
-                  ) : simulatedDues < 0 ? (
+                  ) : currentDues < 0 ? (
                      <p className="text-xs font-bold text-red-300 mt-1 flex items-center gap-1">
                         <AlertCircle className="w-3.5 h-3.5 shrink-0" /> Overpaid - Can be refunded
                      </p>
@@ -219,11 +219,11 @@ export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic
                 </tr>
                 <tr>
                   <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Total Cash Paid (Summer-26)</td>
-                  <td className="py-1.5 px-4 font-mono font-medium text-emerald-600 dark:text-emerald-400">{simulatedCashPaid.toLocaleString()} Taka</td>
+                  <td className="py-1.5 px-4 font-mono font-medium text-emerald-600 dark:text-emerald-400">{paidAmount.toLocaleString()} Taka</td>
                 </tr>
                 <tr className="bg-stone-100 dark:bg-stone-800 font-bold border-t-2 border-stone-200 dark:border-stone-700">
                   <td style={{ marginTop: '0px', marginBottom: '0px' }} className="py-2 px-4 text-stone-900 dark:text-stone-100">Total Dues</td>
-                  <td style={{ marginBottom: '0px', paddingBottom: '8px' }} className="py-2 px-4 font-mono text-[#8c1515] dark:text-[#ef4444]">{simulatedDues > 0 ? simulatedDues.toLocaleString() : "0"} Taka</td>
+                  <td style={{ marginBottom: '0px', paddingBottom: '8px' }} className="py-2 px-4 font-mono text-[#8c1515] dark:text-[#ef4444]">{currentDues > 0 ? currentDues.toLocaleString() : "0"} Taka</td>
                 </tr>
               </tbody>
             </table>
@@ -267,7 +267,7 @@ export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic
                      <td className="py-3 px-4 text-stone-600 dark:text-stone-400">Academic Calendar</td>
                      <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">4,875 Taka</td>
                      <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300"></td>
-                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">{simulatedDues > 0 ? simulatedDues.toLocaleString() : "0"} Taka</td>
+                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">{currentDues > 0 ? currentDues.toLocaleString() : "0"} Taka</td>
                   </tr>
                </tbody>
              </table>
@@ -286,7 +286,7 @@ export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic
       <PaymentPortal 
         isOpen={isPaymentModalOpen} 
         onClose={() => setIsPaymentModalOpen(false)} 
-        outstandingBalance={simulatedDues} 
+        outstandingBalance={currentDues} 
         onPaymentSuccess={handlePaymentSuccess} 
       />
       </div>

@@ -20,12 +20,11 @@ export function AdminEnrollmentApprovalsView() {
   const [rejectReason, setRejectReason] = useState('');
 
   const [pendingRequests, setPendingRequests] = useState([
-    { id: 'REQ-1042', studentId: '21104104', studentName: 'Al Ibrahim', reason: 'Prerequisite override requested. Taken equivalent course in summer.', course: 'CSE-401', date: '2 hours ago' },
-    { id: 'REQ-1043', studentId: '21104105', studentName: 'Sarah Ahmed', reason: 'Credit limit exceeded (requests 24 credits). Needs approval.', course: 'MAT-301', date: '4 hours ago' },
+    { id: 'REQ-1042', studentId: '2610329040', studentName: 'Nakib Hassan Prince', reason: 'Prerequisite override requested for Advanced Circuit Analysis.', course: 'EEE-301', date: '2 hours ago' },
   ]);
 
   const [resolvedRequests, setResolvedRequests] = useState([
-    { id: 'REQ-1040', studentId: '21104102', studentName: 'Fahim Rahman', course: 'CSE-301', status: 'Approved', date: '1 day ago' },
+    { id: 'REQ-1040', studentId: '2610329040', studentName: 'Nakib Hassan Prince', course: 'PHY-108', status: 'Approved', date: '1 day ago' },
   ]);
 
   const confirmAction = () => {

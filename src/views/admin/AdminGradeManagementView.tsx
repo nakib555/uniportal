@@ -84,17 +84,42 @@ export function AdminGradeManagementView() {
       </Dialog>
 
       <Dialog open={!!gradeDetails} onOpenChange={(open) => !open && setGradeDetails(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>{gradeDetails?.action === 'sheet' ? 'Grade Sheet' : 'Grade Specifics'}: {gradeDetails?.doc?.course}</DialogTitle>
+            <DialogTitle>Grade Evaluation Sheet: {gradeDetails?.doc?.course}</DialogTitle>
             <DialogDescription>
-              Instructor: {gradeDetails?.doc?.instructor} | Section: {gradeDetails?.doc?.section}
+              Instructor: {gradeDetails?.doc?.instructor} | Section: {gradeDetails?.doc?.section} | Term: Summer-26
             </DialogDescription>
           </DialogHeader>
-          <div className="py-6 flex flex-col items-center justify-center border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-xl my-4 bg-stone-50 dark:bg-stone-900/50 text-stone-500 dark:text-stone-400">
-             <FileSpreadsheet className="w-12 h-12 mb-2 text-stone-400 dark:text-stone-600" />
-             <p className="font-medium">Grade_Report_{gradeDetails?.doc?.course}_SEC_{gradeDetails?.doc?.section}.xlsx</p>
-             <p className="text-sm mt-1">Spreadsheet preview is not available in the demo.</p>
+          <div className="py-4 space-y-4">
+             <div className="border border-stone-200 dark:border-stone-800 rounded-xl overflow-hidden">
+                <table className="w-full text-left text-xs">
+                   <thead className="bg-stone-100 dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 font-bold text-stone-700 dark:text-stone-300">
+                      <tr>
+                         <th className="py-2.5 px-3">Student ID</th>
+                         <th className="py-2.5 px-3">Name</th>
+                         <th className="py-2.5 px-3 text-center">Continuous (40)</th>
+                         <th className="py-2.5 px-3 text-center">Final Exam (60)</th>
+                         <th className="py-2.5 px-3 text-center">Total (100)</th>
+                         <th className="py-2.5 px-3 text-center">Grade</th>
+                      </tr>
+                   </thead>
+                   <tbody className="divide-y divide-stone-100 dark:divide-stone-800 font-medium">
+                      <tr>
+                         <td className="py-2.5 px-3 font-mono">2610329040</td>
+                         <td className="py-2.5 px-3 font-bold text-stone-900 dark:text-white">Nakib Hassan Prince</td>
+                         <td className="py-2.5 px-3 text-center font-mono">36</td>
+                         <td className="py-2.5 px-3 text-center font-mono">50</td>
+                         <td className="py-2.5 px-3 text-center font-mono font-bold text-emerald-600 dark:text-emerald-400">86</td>
+                         <td className="py-2.5 px-3 text-center"><Badge variant="default" className="bg-emerald-600">A-</Badge></td>
+                      </tr>
+                   </tbody>
+                </table>
+             </div>
+             <div className="flex justify-between items-center text-xs text-stone-500 dark:text-stone-400 px-1">
+                <span>Class Average: 82.4%</span>
+                <span>Passing Rate: 100%</span>
+             </div>
           </div>
           <DialogFooter>
             <DialogClose render={<Button />}>

@@ -9,7 +9,7 @@ import {
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { 
   STUDENT_DATA, REGISTERED_COURSES, COMPLETED_COURSES, AVAILABLE_COURSES,
-  SCHEDULE_DATA, TRANSACTIONS_DATA, TEACHERS_DATA, FEES_LIST,
+  SCHEDULE_DATA, TRANSACTIONS_DATA, FEES_LIST,
   Course
 } from '../../data';
 import { getNavItems } from '../../data/navData';
@@ -20,13 +20,11 @@ import { GradesView } from '../../views/GradesView';
 import { ExamsView } from '../../views/ExamsView';
 import { AttendanceView } from '../../views/AttendanceView';
 import { FacultyEvalView } from '../../views/FacultyEvalView';
-import { LibraryView } from '../../views/LibraryView';
-import { ClubsView } from '../../views/ClubsView';
-import { AdvisingView } from '../../views/AdvisingView';
 import { FinancialAidView } from '../../views/FinancialAidView';
 import { StatementView } from '../../views/StatementView';
 import { AdmitCardView } from '../../views/AdmitCardView';
 import { BankSlipsView } from '../../views/BankSlipsView';
+import { CompletedCoursesView } from '../../views/CompletedCoursesView';
 import { AdminDashboardView } from '../../views/admin/AdminDashboardView';
 import { AdminStudentRecordsView } from '../../views/admin/AdminStudentRecordsView';
 import { AdminCourseManagementView } from '../../views/admin/AdminCourseManagementView';
@@ -174,7 +172,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
           </button>
         </div>
         
-        <div className={`flex-1 overflow-y-auto py-6 space-y-1 scrollbar-hide ${isSidebarCollapsed ? 'px-3' : 'px-4'}`}>
+        <div className={`flex-1 overflow-y-auto py-6 space-y-1 scrollbar-hide ${isSidebarCollapsed ? 'px-3' : 'px-4'}`} data-lenis-prevent>
           {!isSidebarCollapsed && <div className="text-[11px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-3 px-3">Menu</div>}
           
           {currentNavItems.map(item => {
@@ -337,7 +335,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                              <h3 className="font-bold text-stone-900 dark:text-white">Notifications</h3>
                              <button onClick={() => store.markAllTopNotificationsAsRead()} className="text-xs text-[#8c1515] dark:text-[#ef4444] font-medium hover:underline">Mark all as read</button>
                           </div>
-                          <div className="max-h-[400px] overflow-y-auto divide-y divide-stone-100 dark:divide-stone-800">
+                          <div className="max-h-[400px] overflow-y-auto divide-y divide-stone-100 dark:divide-stone-800" data-lenis-prevent>
                              {store.topNotifications.map(notif => {
                                 const Icon = notif.type === 'alert' ? AlertCircle :
                                              notif.type === 'success' ? CheckCircle2 :
@@ -905,107 +903,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
 
                {/* === COURSES: COMPLETED === */}
               {activeTab === 'completed-courses' && (
-                <div className="space-y-6">
-                  <header>
-                    <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">{pageTitle}</h2>
-                    <p className="text-stone-500 dark:text-stone-400 mt-1">List of all courses you have completed so far.</p>
-                  </header>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                     {groupedCompletedCourses.map(([semester, courses]) => (
-                        <div key={semester} className="space-y-4">
-                          <div className="font-bold text-xs uppercase tracking-widest text-[#8c1515] dark:text-[#ef4444] px-1 mb-2">{semester}</div>
-                          <div className="space-y-4">
-                            {(() => {
-                              const bundles: any[] = [];
-                              const processed = new Set<string>();
-
-                              courses.forEach((course) => {
-                                if (processed.has(course.code)) return;
-
-                                const labs = courses.filter((c) => c.corequisites?.includes(course.code));
-
-                                if (course.corequisites?.length && courses.some((c) => course.corequisites?.includes(c.code))) {
-                                  return;
-                                }
-
-                                if (labs.length > 0) {
-                                  bundles.push({
-                                    isBundle: true,
-                                    main: course,
-                                    labs: labs,
-                                    totalCredits: course.credits + labs.reduce((sum: number, l: any) => sum + l.credits, 0),
-                                  });
-                                  processed.add(course.code);
-                                  labs.forEach((l) => processed.add(l.code));
-                                } else {
-                                  bundles.push({ isBundle: false, main: course, labs: [], totalCredits: course.credits });
-                                  processed.add(course.code);
-                                }
-                              });
-
-                              return bundles.map((bundle, i) => {
-                                const c = bundle.main;
-
-                                if (bundle.isBundle) {
-                                  const titleMain = c.title;
-                                  const titleLab = bundle.labs.map((l: any) => l.title.replace(titleMain, '').trim() || 'Laboratory').join(' + ');
-
-                                  return (
-                                    <Card key={'bundle-' + i} className="p-4 bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 flex flex-col hover:shadow-md transition-shadow">
-                                       <div className="flex justify-between items-start mb-2 gap-2">
-                                          <div className="flex flex-wrap items-center">
-                                            <Badge variant="outline" className="font-mono bg-stone-50 dark:bg-stone-950 px-2 py-0.5 text-[10px]">{c.code}</Badge>
-                                            {bundle.labs.map((l: any) => (
-                                              <React.Fragment key={l.code}>
-                                                <span className="font-bold text-stone-400 dark:text-stone-500 mx-1 text-[10px]">x</span>
-                                                <Badge variant="outline" className="font-mono bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 px-2 py-0.5 text-[10px]">{l.code}</Badge>
-                                              </React.Fragment>
-                                            ))}
-                                          </div>
-                                          <div className="flex flex-col gap-1 items-end shrink-0">
-                                            <span className={`font-black tracking-tight px-2.5 py-1 rounded-md text-xs border ${['A+', 'A', 'A-'].includes(c.grade || '') ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50' : 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-900/50'}`}>
-                                              {c.grade}
-                                            </span>
-                                            {bundle.labs.map((l: any) => (
-                                              <span key={l.code} className={`font-black tracking-tight px-2.5 py-0.5 rounded-md text-[10px] border ${['A+', 'A', 'A-'].includes(l.grade || '') ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50' : 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-900/50'}`}>
-                                                {l.grade}
-                                              </span>
-                                            ))}
-                                          </div>
-                                       </div>
-                                       <h4 className="font-bold text-stone-900 dark:text-stone-100 text-sm mb-2 mt-1 leading-snug line-clamp-2">
-                                         {titleMain} <span className="text-stone-400 font-normal">x {titleLab}</span>
-                                       </h4>
-                                       <div className="text-xs font-medium text-stone-500 dark:text-stone-400 mt-auto pt-2 border-t border-stone-100 dark:border-stone-800 flex justify-between items-center">
-                                          <span>Total Credits: <span className="font-bold text-stone-700 dark:text-stone-300 ml-1">{bundle.totalCredits.toFixed(2)}</span></span>
-                                          <span className="text-[10px] font-bold text-stone-400">({c.credits.toFixed(2)} x {bundle.labs.map((l: any) => l.credits.toFixed(2)).join(' x ')})</span>
-                                       </div>
-                                    </Card>
-                                  );
-                                }
-
-                                return (
-                                  <Card key={i} className="p-4 bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 flex flex-col hover:shadow-md transition-shadow">
-                                     <div className="flex justify-between items-start mb-2">
-                                        <Badge variant="outline" className="font-mono bg-stone-50 dark:bg-stone-950">{c.code}</Badge>
-                                        <span className={`font-black tracking-tight px-2.5 py-1 rounded-md text-xs border ${['A+', 'A', 'A-'].includes(c.grade || '') ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50' : 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-900/50'}`}>
-                                          {c.grade}
-                                        </span>
-                                     </div>
-                                     <h4 className="font-bold text-stone-900 dark:text-stone-100 text-sm mb-2 mt-1 leading-snug line-clamp-2" title={c.title}>{c.title}</h4>
-                                     <div className="text-xs font-medium text-stone-500 dark:text-stone-400 mt-auto pt-2 border-t border-stone-100 dark:border-stone-800">
-                                        Credits: <span className="font-bold text-stone-700 dark:text-stone-300 ml-1">{c.credits.toFixed(2)}</span>
-                                     </div>
-                                  </Card>
-                                );
-                              });
-                            })()}
-                          </div>
-                        </div>
-                     ))}
-                  </div>
-                </div>
+                 <CompletedCoursesView />
               )}
 
               {/* === COURSES: AVAILABLE ENROLLMENT === */}
@@ -1461,48 +1359,6 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                 </div>
               )}
 
-              {/* === TEACHERS === */}
-              {activeTab === 'teachers' && (
-                <div className="space-y-6">
-                  <header>
-                    <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">{pageTitle}</h2>
-                    <p className="text-stone-500 dark:text-stone-400 mt-1">Related teachers information for the running semester.</p>
-                  </header>
-
-                  <Card className="overflow-hidden">
-                     <div className="divide-y divide-stone-100 dark:divide-stone-800 bg-white dark:bg-stone-900">
-                        {TEACHERS_DATA.map((t, i) => (
-                           <div key={i} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:bg-stone-50/50 dark:hover:bg-stone-800/50 transition-colors">
-                              <div className="flex-1 flex items-start gap-4">
-                                 <div className="hidden sm:flex w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-800 items-center justify-center text-xs font-bold text-stone-500 dark:text-stone-400 shrink-0">
-                                    {i+1}
-                                 </div>
-                                 <div className="flex-1">
-                                    <div className="flex sm:flex-col sm:items-start justify-between items-center gap-2 mb-2 sm:mb-1">
-                                       <div className="font-bold text-stone-900 dark:text-white text-base leading-tight">
-                                          {t.name}
-                                          <span className="inline-block sm:hidden text-xs text-stone-500 dark:text-stone-400 font-normal ml-2">({t.name.split(' ')[0]})</span>
-                                       </div>
-                                       <Badge variant="outline" className="font-bold text-[#8c1515] dark:text-[#ef4444] border-[#8c1515]/20 dark:border-[#ef4444]/20 bg-[#8c1515]/5 dark:bg-[#ef4444]/10 shrink-0">
-                                          {t.department}
-                                       </Badge>
-                                    </div>
-                                    <div className="hidden sm:block text-xs text-stone-500 dark:text-stone-400 uppercase tracking-widest font-bold">
-                                       Initial: {t.name.split(' ')[0]}
-                                    </div>
-                                 </div>
-                              </div>
-                              <div className="sm:max-w-xs w-full bg-stone-50 dark:bg-stone-800/30 p-2 sm:p-3 rounded-lg border border-stone-100 dark:border-stone-800/50 text-sm flex items-center gap-3">
-                                 <span className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest shrink-0">Courses</span>
-                                 <span className="font-mono font-medium text-stone-700 dark:text-stone-300 truncate">{t.courses}</span>
-                              </div>
-                           </div>
-                        ))}
-                     </div>
-                  </Card>
-                </div>
-              )}
-
               {/* === ACADEMICS TAB === */}
               {activeTab === 'degree-audit' && <DegreeAuditView portal={props} />}
               {activeTab === 'transcript' && <GradesView portal={props} />}
@@ -1510,11 +1366,6 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
               {activeTab === 'exam-admit-card' && <AdmitCardView portal={props} />}
               {activeTab === 'attendance' && <AttendanceView />}
               {activeTab === 'faculty-evaluation' && <FacultyEvalView />}
-
-              {/* === CAMPUS LIFE TAB === */}
-              {activeTab === 'library' && <LibraryView />}
-              {activeTab === 'clubs' && <ClubsView />}
-              {activeTab === 'advising' && <AdvisingView />}
 
               {/* === FINANCIAL AID === */}
               {activeTab === 'financial-aid' && <FinancialAidView />}
@@ -1598,7 +1449,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                     <X className="w-5 h-5" />
                  </button>
               </div>
-              <div className="p-6 overflow-y-auto flex-1 text-stone-700 dark:text-stone-300">
+              <div className="p-6 overflow-y-auto flex-1 text-stone-700 dark:text-stone-300" data-lenis-prevent>
                  {selectedSyllabusCourse.syllabus ? (
                     <div className="prose dark:prose-invert max-w-none text-sm whitespace-pre-wrap">
                       {selectedSyllabusCourse.syllabus}
@@ -1634,7 +1485,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                     <X className="w-5 h-5" />
                  </button>
               </div>
-              <div className="p-6 overflow-y-auto flex-1 text-stone-700 dark:text-stone-300 border-b border-stone-200 dark:border-stone-800">
+              <div className="p-6 overflow-y-auto flex-1 text-stone-700 dark:text-stone-300 border-b border-stone-200 dark:border-stone-800" data-lenis-prevent>
                 <p className="mb-4">Please review your selected courses before finalizing. Once finalized, you cannot make changes without contacting the registrar.</p>
                 <div className="space-y-4">
                   {(() => {

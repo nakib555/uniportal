@@ -64,7 +64,7 @@ export function TopNav({ portal }: TopNavProps) {
                          <h3 className="font-bold text-stone-900 dark:text-white">Notifications</h3>
                          <button onClick={() => appStore.markAllTopNotificationsAsRead()} className="text-xs text-[#8c1515] dark:text-[#ef4444] font-medium hover:underline">Mark all as read</button>
                       </div>
-                      <div className="max-h-[400px] overflow-y-auto divide-y divide-stone-100 dark:divide-stone-800">
+                      <div className="max-h-[400px] overflow-y-auto divide-y divide-stone-100 dark:divide-stone-800" data-lenis-prevent>
                          {appStore.topNotifications.map(notif => {
                             const Icon = notif.type === 'alert' ? AlertCircle :
                                          notif.type === 'success' ? CheckCircle2 :

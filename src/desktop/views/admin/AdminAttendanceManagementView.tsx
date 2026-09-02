@@ -28,10 +28,7 @@ export function AdminAttendanceManagementView() {
     { name: 'Week 6', attendance: 91 },
   ];
 
-  const [flaggedStudents, setFlaggedStudents] = useState([
-    { id: '21104104', name: 'Al Ibrahim', course: 'CSE-305', percentage: 65, missed: 4, consecutive: 3 },
-    { id: '21104106', name: 'Fahim Rahman', course: 'MAT-201', percentage: 58, missed: 5, consecutive: 5 },
-  ]);
+  const [flaggedStudents, setFlaggedStudents] = useState<any[]>([]);
 
   const sendWarning = () => {
     if (warningStudent) {
@@ -124,7 +121,7 @@ export function AdminAttendanceManagementView() {
               <AlertTriangle className="w-5 h-5 text-red-500" /> Action Required: Low Attendance
             </h3>
           </div>
-          <div className="flex-1 overflow-y-auto bg-white dark:bg-stone-950 p-4 space-y-3">
+          <div className="flex-1 overflow-y-auto bg-white dark:bg-stone-950 p-4 space-y-3" data-lenis-prevent>
              {flaggedStudents.map((s, i) => (
                 <div key={i} className="p-4 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-900/10 flex flex-col sm:flex-row justify-between gap-4 sm:items-center">
                    <div>

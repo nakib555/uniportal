@@ -65,7 +65,7 @@ export const PaymentPortal: React.FC<PaymentPortalProps> = ({ isOpen, onClose, o
             </div>
 
              {step === 'amount' && (
-               <div className="p-6 overflow-y-auto">
+               <div className="p-6 overflow-y-auto" data-lenis-prevent>
                  <div className="mb-6">
                    <label className="block text-sm font-bold text-stone-700 dark:text-stone-300 mb-2">Amount to Pay (Expected)</label>
                    <div className="relative">

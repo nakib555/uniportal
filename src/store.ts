@@ -93,21 +93,17 @@ export const useAppStore = create<AppState>((set) => ({
 
 
   topNotifications: [
-    { id: 1, type: 'alert', title: 'Tuition Fee Due', desc: 'Fall 2026 tuition fee is due in 3 days.', time: '2 hours ago', color: 'text-amber-500' },
-    { id: 2, type: 'success', title: 'Grade Posted', desc: 'Your final grade for CSE-305 has been posted.', time: '5 hours ago', color: 'text-emerald-500' },
-    { id: 3, type: 'info', title: 'New Course Material', desc: 'Dr. Rahman uploaded "Chapter 4 Notes".', time: '1 day ago', color: 'text-blue-500' },
-    { id: 4, type: 'event', title: 'Robotics Club Meeting', desc: 'Tomorrow at 4:00 PM in Room 301.', time: '1 day ago', color: 'text-indigo-500' },
+    { id: 1, type: 'success', title: 'Tuition Payment Confirmed', desc: 'Summer 2026 tuition fee cleared via Nagad.', time: '2 hours ago', color: 'text-emerald-500' },
+    { id: 2, type: 'info', title: 'Exam Schedule Published', desc: 'Final Exam schedule and Admit Cards are now live.', time: '5 hours ago', color: 'text-indigo-500' },
+    { id: 3, type: 'info', title: 'Class Notice', desc: 'Faculty Mushfika uploaded EEE203 AC Circuits slides.', time: '1 day ago', color: 'text-blue-500' },
+    { id: 4, type: 'event', title: 'IEEE Student Branch', desc: 'Technical seminar on Smart Grids in Room 513.', time: '2 days ago', color: 'text-amber-500' },
   ],
   clearAllTopNotifications: () => set({ topNotifications: [] }),
   removeTopNotification: (id) => set(state => ({ topNotifications: state.topNotifications.filter(n => n.id !== id) })),
   markAllTopNotificationsAsRead: () => set(state => ({ topNotifications: state.topNotifications.map(n => ({ ...n, read: true })) })),
 
   students: [
-    { id: '21104104', name: 'Al Ibrahim', program: 'BSc in CSE', cgpa: 3.82, status: 'Regular' },
-    { id: '21104105', name: 'Sarah Ahmed', program: 'BSc in SWE', cgpa: 3.91, status: 'Regular' },
-    { id: '21104106', name: 'Fahim Rahman', program: 'BSc in CSE', cgpa: 2.85, status: 'Probation' },
-    { id: '21104107', name: 'Nusrat Jahan', program: 'BSc in CIS', cgpa: 3.45, status: 'Regular' },
-    { id: '21104108', name: 'Rafiq Islam', program: 'BSc in CSE', cgpa: 3.12, status: 'Irregular' },
+    { id: '2610329040', name: 'Nakib Hassan Prince', program: 'Electrical & Electronic Engineering', cgpa: 3.11, status: 'Registered' },
   ],
   deleteStudent: (id) => set((state) => ({ students: state.students.filter(s => s.id !== id) })),
   updateStudentStatus: (id, status) => set((state) => ({ 
@@ -115,12 +111,14 @@ export const useAppStore = create<AppState>((set) => ({
   })),
 
   coursesData: [
-    { code: 'CSE-101', title: 'Introduction to Computer Science', credits: 3, section: 'A, B, C', enrolled: 120, status: 'Active' },
-    { code: 'CSE-102', title: 'Programming Language I', credits: 3, section: 'A, B', enrolled: 85, status: 'Active' },
-    { code: 'CSE-201', title: 'Data Structures', credits: 3, section: 'A', enrolled: 45, status: 'Active' },
-    { code: 'CSE-305', title: 'Software Engineering', credits: 3, section: 'A, B', enrolled: 72, status: 'Active' },
-    { code: 'MAT-101', title: 'Differential Calculus', credits: 3, section: 'A, B, C, D', enrolled: 150, status: 'Active' },
-    { code: 'PHY-101', title: 'Physics I', credits: 3, section: 'A, B', enrolled: 90, status: 'Inactive' },
+    { code: 'EEE201', title: 'Electrical Circuits I', credits: 3, section: '5', enrolled: 45, status: 'Active' },
+    { code: 'EEE203', title: 'Electrical Circuits II', credits: 3, section: '5', enrolled: 40, status: 'Active' },
+    { code: 'MAT121', title: 'Pre-Calculus', credits: 3, section: '18', enrolled: 55, status: 'Active' },
+    { code: 'MAT123', title: 'Calculus I', credits: 3, section: '6', enrolled: 50, status: 'Active' },
+    { code: 'ENG099', title: 'Basic English', credits: 3, section: '18', enrolled: 60, status: 'Active' },
+    { code: 'ENG101', title: 'English Reading & Composition', credits: 3, section: '21', enrolled: 60, status: 'Active' },
+    { code: 'PHY107', title: 'General Physics I', credits: 3, section: '6', enrolled: 48, status: 'Active' },
+    { code: 'PHY108', title: 'General Physics I Laboratory', credits: 1, section: '6', enrolled: 48, status: 'Active' },
   ],
   deleteCourse: (code) => set((state) => ({ coursesData: state.coursesData.filter(c => c.code !== code) })),
   toggleCourseStatus: (code) => set((state) => ({ 

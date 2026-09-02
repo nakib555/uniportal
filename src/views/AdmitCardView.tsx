@@ -112,30 +112,43 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
               </div>
             </div>
 
-            {/* Allowed Courses List */}
+            {/* Allowed Courses List with Security Code & Room */}
             <div className="py-6">
-              <h4 className="text-sm font-black text-stone-900 dark:text-white uppercase tracking-wider mb-4">Permitted Courses</h4>
+              <h4 className="text-sm font-black text-stone-900 dark:text-white uppercase tracking-wider mb-4">Exam Schedule & Security Codes</h4>
               <div className="overflow-x-auto rounded-xl border border-stone-200 dark:border-stone-800">
-                <table className="w-full border-collapse text-left text-sm">
+                <table className="w-full border-collapse text-left text-xs whitespace-nowrap">
                   <thead>
                     <tr className="bg-stone-50 dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 font-bold text-stone-700 dark:text-stone-300">
-                      <th className="px-4 py-3">Course Code</th>
-                      <th className="px-4 py-3">Title</th>
-                      <th className="px-4 py-3 text-center">Credits</th>
-                      <th className="px-4 py-3 text-center">Section</th>
+                      <th className="px-3.5 py-3">Security Code</th>
+                      <th className="px-3.5 py-3">Course</th>
+                      <th className="px-3.5 py-3 text-center">Section</th>
+                      <th className="px-3.5 py-3">Day</th>
+                      <th className="px-3.5 py-3">Date</th>
+                      <th className="px-3.5 py-3">Time</th>
+                      <th className="px-3.5 py-3 text-center">Room</th>
+                      <th className="px-3.5 py-3">Faculty</th>
+                      <th className="px-3.5 py-3">Semester</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {registeredCourses.map((c, i) => (
+                    {(portal?.studentData?.exams || []).map((ex, i) => (
                       <tr key={i} className="border-b border-stone-100 dark:border-stone-800/50 hover:bg-stone-50/50 dark:hover:bg-stone-800/30 text-stone-800 dark:text-stone-200">
-                        <td className="px-4 py-3 font-mono font-bold text-stone-900 dark:text-white">{c.code}</td>
-                        <td className="px-4 py-3 font-medium">{c.title}</td>
-                        <td className="px-4 py-3 text-center">{c.credits.toFixed(2)}</td>
-                        <td className="px-4 py-3 text-center font-mono">{c.section}</td>
+                        <td className="px-3.5 py-3 font-mono font-bold text-indigo-600 dark:text-indigo-400">{ex.securityCode || '51693' + (5 + i)}</td>
+                        <td className="px-3.5 py-3 font-mono font-bold text-stone-900 dark:text-white">{ex.courseCode}</td>
+                        <td className="px-3.5 py-3 text-center font-mono">{ex.section}</td>
+                        <td className="px-3.5 py-3">{ex.day}</td>
+                        <td className="px-3.5 py-3 font-medium">{ex.date}</td>
+                        <td className="px-3.5 py-3 text-stone-600 dark:text-stone-400">{ex.time}</td>
+                        <td className="px-3.5 py-3 text-center font-bold text-emerald-600 dark:text-emerald-400">{ex.room}</td>
+                        <td className="px-3.5 py-3 capitalize">{ex.faculty}</td>
+                        <td className="px-3.5 py-3 text-stone-500">{ex.semester || 'Summer-26'}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+              </div>
+              <div className="mt-4 p-3 bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-800 rounded-lg text-xs text-stone-600 dark:text-stone-400">
+                Congratulations and wishing you the best success always. For any query please visit Registrar office / Accounts office / Controller office.
               </div>
             </div>
 

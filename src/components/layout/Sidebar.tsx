@@ -49,7 +49,7 @@ export const Sidebar: React.FC = () => {
         </button>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-4 md:px-6 pb-20 space-y-2 relative no-scrollbar">
+      <nav className="flex-1 overflow-y-auto px-4 md:px-6 pb-20 space-y-2 relative no-scrollbar" data-lenis-prevent>
         {navigationItems.map((item) => {
           const isExpanded = expandedMenus[item.id];
           const hasSubs = !!item.subItems;

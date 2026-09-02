@@ -646,7 +646,7 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
                 </div>
                 <button onClick={() => setSelectedSyllabusCourse(null)} className="p-2 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-full transition-colors">&times;</button>
               </div>
-              <div className="p-6 overflow-y-auto flex-1">
+              <div className="p-6 overflow-y-auto flex-1" data-lenis-prevent>
                 <div className="prose prose-sm dark:prose-invert max-w-none prose-stone">
                    <div dangerouslySetInnerHTML={{ __html: selectedSyllabusCourse.syllabus || 'No syllabus available.' }} />
                 </div>

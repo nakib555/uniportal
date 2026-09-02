@@ -57,7 +57,6 @@ export function AdminCourseManagementView() {
   const handleEditCourse = (e: React.FormEvent) => {
     e.preventDefault();
     if (courseToEdit) {
-      // Typically we'd call an editCourse(code, updates) action here. Let's close for demo.
       setCourseToEdit(null);
     }
   };

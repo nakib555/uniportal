@@ -133,7 +133,7 @@ export function AdminDashboardView() {
                <Badge variant="brand">{store.pendingApprovals.length} Pending</Badge>
             )}
           </div>
-          <ul className="divide-y divide-stone-100 dark:divide-stone-800 flex-1 overflow-y-auto">
+          <ul className="divide-y divide-stone-100 dark:divide-stone-800 flex-1 overflow-y-auto" data-lenis-prevent>
             {store.pendingApprovals.length === 0 ? (
                <li className="p-8 text-center text-stone-500 dark:text-stone-400">
                   <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-full flex items-center justify-center mx-auto mb-3">

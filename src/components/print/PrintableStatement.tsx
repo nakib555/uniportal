@@ -1,7 +1,7 @@
 import React from 'react';
 import { Transaction } from '../../data';
 
-export function PrintableStatement({ student, totalDebit, totalCredit, simulatedDues, transactions }: { student: any; totalDebit: number; totalCredit: number; simulatedDues: number; transactions: Transaction[] }) {
+export function PrintableStatement({ student, totalDebit, totalCredit, currentDues, transactions }: { student: any; totalDebit: number; totalCredit: number; currentDues: number; transactions: Transaction[] }) {
   const displayTransactions = transactions || [];
   return (
     <div className="hidden print:block font-serif text-black bg-white w-full print:p-0 [print-color-adjust:exact] [-webkit-print-color-adjust:exact]">
@@ -20,7 +20,7 @@ export function PrintableStatement({ student, totalDebit, totalCredit, simulated
            <div className="text-right">
               <p><span className="font-bold">Total Billed:</span> Tk {totalDebit.toLocaleString()}</p>
               <p><span className="font-bold">Total Paid:</span> Tk {totalCredit.toLocaleString()}</p>
-              <p><span className="font-bold">Current Dues:</span> Tk {simulatedDues.toLocaleString()}</p>
+              <p><span className="font-bold">Current Dues:</span> Tk {currentDues.toLocaleString()}</p>
            </div>
        </div>
 

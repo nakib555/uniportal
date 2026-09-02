@@ -43,7 +43,7 @@ export function BankSlipsView({ portal }: { portal: ReturnType<typeof usePortalL
       <div className="flex justify-between items-center print:hidden border-b border-stone-200 dark:border-stone-800 pb-4">
         <div>
           <h2 className="text-2xl font-black tracking-tight text-stone-900 dark:text-white">Fees for Bank Slip</h2>
-          <p className="text-sm text-stone-500 mt-1">Select fees to generate bank slips or make simulated online payments.</p>
+          <p className="text-sm text-stone-500 mt-1">Select payable fees to generate official bank deposit slips or proceed with online payments.</p>
         </div>
       </div>
 
@@ -52,7 +52,7 @@ export function BankSlipsView({ portal }: { portal: ReturnType<typeof usePortalL
         <div className="lg:col-span-2 space-y-6">
           <Card className="p-6">
             <h3 className="text-lg font-black text-stone-900 dark:text-white uppercase tracking-wider mb-4">Select Fees</h3>
-            <div className="overflow-x-auto rounded-xl border border-stone-200 dark:border-stone-800 max-h-[500px] overflow-y-auto no-scrollbar">
+            <div className="overflow-x-auto rounded-xl border border-stone-200 dark:border-stone-800 max-h-[500px] overflow-y-auto no-scrollbar" data-lenis-prevent>
               <table className="w-full border-collapse text-left text-sm">
                 <thead>
                   <tr className="bg-stone-50 dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 font-bold text-stone-700 dark:text-stone-300">

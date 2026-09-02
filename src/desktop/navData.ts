@@ -1,4 +1,4 @@
-import { Home, User, BookOpen, Calendar, Wallet, Users, GraduationCap, MapPin, Settings, Server, BarChart3, ClipboardList } from 'lucide-react';
+import { Home, User, BookOpen, Calendar, Wallet, Users, GraduationCap, Settings, BarChart3 } from 'lucide-react';
 import { NavItem } from '../hooks/usePortalLogic';
 
 export const getNavItems = (isAdmin: boolean): NavItem[] => {
@@ -42,11 +42,5 @@ export const getNavItems = (isAdmin: boolean): NavItem[] => {
       { id: 'attendance', label: 'Attendance' },
       { id: 'faculty-evaluation', label: 'Faculty Evaluation' },
     ]},
-    { id: 'campus-life', label: 'Campus Life', icon: MapPin, subItems: [
-      { id: 'library', label: 'Library' },
-      { id: 'clubs', label: 'Clubs & Events' },
-      { id: 'advising', label: 'Advising' },
-    ]},
-    { id: 'teachers', label: 'Related Teachers', icon: Users },
   ];
 };

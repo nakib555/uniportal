@@ -40,7 +40,7 @@ export function ScheduleView({ portal }: { portal: ReturnType<typeof usePortalLo
           className="bg-stone-100 dark:bg-stone-800 border-none text-sm rounded-lg py-2 pl-3 pr-8 focus:ring-2 focus:ring-[#8c1515]/20 cursor-pointer"
         >
           <option value="All">All Courses</option>
-          {REGISTERED_COURSES.map(c => (
+          {(portal.registeredCourses || []).map(c => (
             <option key={c.code} value={c.code}>{c.code}</option>
           ))}
         </select>

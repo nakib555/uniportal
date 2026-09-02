@@ -14,10 +14,10 @@ export function DegreeAuditView({ portal }: { portal?: ReturnType<typeof usePort
   const totalProgress = (totalCompleted / totalRequired) * 100;
 
   const studentInfo = {
-    name: student ? student.name : "Al Ibrahim",
-    id: student ? student.id : "21104104",
-    program: student ? student.program : "BSc in Computer Science & Engineering",
-    cgpa: student ? student.cgpa : 3.82,
+    name: student ? student.name : "Nakib Hassan Prince",
+    id: student ? student.id : "2610329040",
+    program: student ? student.program : "Electrical & Electronic Engineering",
+    cgpa: student ? student.cgpa : 3.11,
     creditsReq: totalRequired,
     creditsComp: totalCompleted
   };

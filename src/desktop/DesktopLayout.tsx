@@ -7,15 +7,13 @@ import { TopNav } from './TopNav';
 import { HomeView } from './views/HomeView';
 import { ProfileView } from './views/ProfileView';
 import { CoursesView } from './views/CoursesView';
+import { CompletedCoursesView } from '../views/CompletedCoursesView';
 import { ScheduleWeeklyView } from './views/ScheduleWeeklyView';
 import { DegreeAuditView } from './views/DegreeAuditView';
 import { GradesView } from './views/GradesView';
 import { ExamsView } from './views/ExamsView';
 import { AttendanceView } from './views/AttendanceView';
 import { FacultyEvalView } from './views/FacultyEvalView';
-import { LibraryView } from './views/LibraryView';
-import { ClubsView } from './views/ClubsView';
-import { AdvisingView } from './views/AdvisingView';
 import { FinancialAidView } from './views/FinancialAidView';
 import { StatementView } from '../views/StatementView';
 import { AdminDashboardView } from './views/admin/AdminDashboardView';
@@ -45,17 +43,14 @@ export function DesktopLayout(portal: ReturnType<typeof usePortalLogic>) {
       case 'statement': return <StatementView />;
       case 'financial-aid': return <FinancialAidView />;
       case 'registered-courses':
-      case 'completed-courses':
       case 'available-courses': return <CoursesView portal={portal} />;
+      case 'completed-courses': return <CompletedCoursesView />;
       case 'class-schedule': return <ScheduleWeeklyView portal={portal} />;
       case 'degree-audit': return <DegreeAuditView />;
       case 'transcript': return <GradesView />;
       case 'exam-routine': return <ExamsView />;
       case 'attendance': return <AttendanceView />;
       case 'faculty-evaluation': return <FacultyEvalView />;
-      case 'library': return <LibraryView />;
-      case 'clubs': return <ClubsView />;
-      case 'advising': return <AdvisingView />;
       default: return <div className="p-8 text-stone-500">View under construction.</div>;
     }
   };
@@ -90,7 +85,7 @@ export function DesktopLayout(portal: ReturnType<typeof usePortalLogic>) {
                     <X className="w-5 h-5" />
                  </button>
               </div>
-              <div className="p-6 overflow-y-auto flex-1 text-stone-700 dark:text-stone-300 border-b border-stone-200 dark:border-stone-800">
+              <div className="p-6 overflow-y-auto flex-1 text-stone-700 dark:text-stone-300 border-b border-stone-200 dark:border-stone-800" data-lenis-prevent>
                 <p className="mb-4">Please review your selected courses before finalizing. Once finalized, you cannot make changes without contacting the registrar.</p>
                 <div className="space-y-4">
                   {(() => {

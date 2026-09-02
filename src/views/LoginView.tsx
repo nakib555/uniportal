@@ -35,12 +35,7 @@ export const LoginView: React.FC = () => {
   
   const hints = loginType === 'student' 
     ? [
-        { id: '2610329040', label: 'Nakib Hassan Prince (EEE)', pass: '2610329040' },
-        { id: '21104104', label: 'Al Ibrahim (CSE)', pass: '21104104' },
-        { id: '21104105', label: 'Sarah Ahmed (CSE)', pass: '21104105' },
-        { id: '21104106', label: 'Fahim Rahman (CSE)', pass: '21104106' },
-        { id: '21104107', label: 'Nusrat Jahan (CSE)', pass: '21104107' },
-        { id: '21104108', label: 'Rafiq Islam (BBA)', pass: '21104108' }
+        { id: '2610329040', label: 'Nakib Hassan Prince (EEE)', pass: '2610329040' }
       ]
     : [{ id: 'admin', label: 'University Administrator', pass: 'admin' }];
 
@@ -138,7 +133,7 @@ export const LoginView: React.FC = () => {
                   required
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value)}
-                  placeholder="e.g. 21104104 or user@pu.edu.bd"
+                  placeholder="e.g. 2610329040 or nakibprince666@gmail.com"
                   className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]"
                 />
               </div>
