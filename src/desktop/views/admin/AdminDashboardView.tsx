@@ -3,7 +3,6 @@ import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
 import { Users, BookOpen, Clock, AlertTriangle, ChevronRight, TrendingUp, Check, X } from 'lucide-react';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { STUDENT_DATA } from '../../../data';
 import { useAppStore } from '../../../store';
 import {
   Dialog,

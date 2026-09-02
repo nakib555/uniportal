@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAppStore } from '../../store';
 import { LogOut, Sun, Moon, Book, FileText, Calendar, Users, DollarSign, BookMarked, Settings, Clock, User } from 'lucide-react';
-import { STUDENT_DATA } from '../../data';
+import { getStudentData } from '../../data';
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -15,10 +15,11 @@ export const Header: React.FC = () => {
     isDarkMode, setIsDarkMode, 
     is24HourFormat, setIs24HourFormat, 
     setIsMobileMenuOpen,
-    profilePic, setProfilePic
+    profilePic, setProfilePic,
+    currentStudentId
   } = useAppStore();
 
-  const student = STUDENT_DATA;
+  const student = getStudentData(currentStudentId).profile;
 
   return (
     <header className="h-20 lg:h-24 sticky top-0 bg-white/80 dark:bg-stone-950/80 backdrop-blur-xl border-b border-stone-200/50 dark:border-stone-800/50 z-20 flex items-center justify-between px-6 lg:px-10 shrink-0">

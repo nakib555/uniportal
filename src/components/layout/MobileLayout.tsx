@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { 
-  STUDENT_DATA, REGISTERED_COURSES, COMPLETED_COURSES, AVAILABLE_COURSES,
+  REGISTERED_COURSES, COMPLETED_COURSES, AVAILABLE_COURSES,
   SCHEDULE_DATA, TRANSACTIONS_DATA, FEES_LIST,
   Course
 } from '../../data';

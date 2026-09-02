@@ -19,13 +19,9 @@ export function AdminEnrollmentApprovalsView() {
   const [requestToActOn, setRequestToActOn] = useState<{ req: any, action: 'Approved' | 'Rejected' } | null>(null);
   const [rejectReason, setRejectReason] = useState('');
 
-  const [pendingRequests, setPendingRequests] = useState([
-    { id: 'REQ-1042', studentId: '2610329040', studentName: 'Nakib Hassan Prince', reason: 'Prerequisite override requested for Advanced Circuit Analysis.', course: 'EEE-301', date: '2 hours ago' },
-  ]);
+  const [pendingRequests, setPendingRequests] = useState<{ id: string; studentId: string; studentName: string; reason?: string; course: string; date: string; status?: string }[]>([]);
 
-  const [resolvedRequests, setResolvedRequests] = useState([
-    { id: 'REQ-1040', studentId: '2610329040', studentName: 'Nakib Hassan Prince', course: 'PHY-108', status: 'Approved', date: '1 day ago' },
-  ]);
+  const [resolvedRequests, setResolvedRequests] = useState<{ id: string; studentId: string; studentName: string; reason?: string; course: string; date: string; status: string; rejectReason?: string }[]>([]);
 
   const confirmAction = () => {
     if (!requestToActOn) return;

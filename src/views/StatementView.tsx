@@ -3,17 +3,17 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { useAppStore } from '../store';
-import { STUDENT_DATA, TRANSACTIONS_DATA } from '../data';
+import { getStudentData, TRANSACTIONS_DATA } from '../data';
 import { usePortalLogic } from '../hooks/usePortalLogic';
 import { AreaChart, Area, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { TrendingDown, TrendingUp, Wallet, AlertCircle, Download, CreditCard, ArrowRight, CheckCircle2, Loader2, X, Lock } from 'lucide-react';
 import { PrintableStatement } from '../components/print/PrintableStatement';
-import { PaymentPortal } from '../components/PaymentPortal'; '../components/print/PrintableStatement';
+import { PaymentPortal } from '../components/PaymentPortal';
 
 export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic> }> = ({ portal }) => {
-  const { isDarkMode } = useAppStore();
+  const { isDarkMode, currentStudentId } = useAppStore();
 
-  const student = portal ? portal.student : STUDENT_DATA;
+  const student = portal ? portal.student : getStudentData(currentStudentId).profile;
   const transactions = portal ? portal.studentData.transactions : TRANSACTIONS_DATA;
 
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);

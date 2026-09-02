@@ -1,3 +1,6 @@
+import eeeCourses from './eee_courses.json';
+import { PuSyncService } from '../services/puSyncService';
+
 export type Major = 'Computer Science & Engineering' | 'Electrical & Electronic Engineering' | 'Business Administration';
 
 export interface Course {
@@ -83,42 +86,25 @@ export interface StudentDetails {
   }[];
 }
 
-import eeeCourses from './eee_courses.json';
-
 // Constant fallback data for non-dynamic or legacy views
 export const STUDENT_DATA: StudentProfile = {
-  id: "2610329040",
-  name: "Nakib Hassan Prince",
+  id: "",
+  name: "Student",
   status: "Registered",
-  admissionSemester: "Spring-26",
+  admissionSemester: "Summer-26",
   currentSemester: "Summer-26",
   program: "Electrical & Electronic Engineering",
   creditsTaken: 0,
-  creditsCompleted: 22,
-  cgpa: 3.11,
+  creditsCompleted: 0,
+  cgpa: 0.00,
   accountBalance: 0.00,
-  email: "nakibprince666@gmail.com",
-  gpaHistory: [
-    { semester: "Spring-26", gpa: 2.92 },
-    { semester: "Summer-26", gpa: 3.24 }
-  ]
+  email: "",
+  gpaHistory: []
 };
 
 export const REGISTERED_COURSES: Course[] = [];
 
-export const COMPLETED_COURSES: Course[] = [
-  // Spring-26 (9 Credits)
-  { code: "EEE201", title: "Electrical Circuits I", section: "5", credits: 3.00, grade: "B-", marks: 74, semester: "Spring-26", faculty: "Mushfika", fee: 7500 },
-  { code: "ENG099", title: "Basic English", section: "18", credits: 3.00, grade: "A-", marks: 87, semester: "Spring-26", faculty: "Harisun", fee: 7500 },
-  { code: "MAT121", title: "Pre-Calculus", section: "18", credits: 3.00, grade: "C+", marks: 68, semester: "Spring-26", faculty: "Ibrahim", fee: 7500 },
-  
-  // Summer-26 (13 Credits)
-  { code: "EEE203", title: "Electrical Circuits II", section: "5", credits: 3.00, grade: "C+", marks: 69, semester: "Summer-26", faculty: "Mushfika", fee: 7500 },
-  { code: "ENG101", title: "English Reading & Composition", section: "21", credits: 3.00, grade: "A+", marks: 92, semester: "Summer-26", faculty: "Harisun", fee: 7500 },
-  { code: "MAT123", title: "Calculus I", section: "6", credits: 3.00, grade: "B-", marks: 73, semester: "Summer-26", faculty: "Ibrahim", fee: 7500 },
-  { code: "PHY107", title: "General Physics I", section: "6", credits: 3.00, grade: "A-", marks: 86, semester: "Summer-26", faculty: "Alif", fee: 7500 },
-  { code: "PHY108", title: "General Physics I Laboratory", section: "6", credits: 1.00, grade: "A+", marks: 95, semester: "Summer-26", faculty: "Alif", fee: 2500 }
-];
+export const COMPLETED_COURSES: Course[] = [];
 
 export const AVAILABLE_COURSES: Course[] = eeeCourses.map((c) => ({
   ...c,
@@ -131,23 +117,7 @@ export const AVAILABLE_COURSES: Course[] = eeeCourses.map((c) => ({
 
 export const SCHEDULE_DATA: ClassSchedule[] = [];
 
-export const TRANSACTIONS_DATA: Transaction[] = [
-  { id: "15", date: "06-08-26", code: "PAY099", description: "API Payment - nagad", debit: 0, credit: 13531, balance: 0 },
-  { id: "14", date: "25-07-26", code: "FEE128", description: "Late Fee, Payment-2, w.e.f Fall 2022", debit: 500, credit: 0, balance: -13531 },
-  { id: "13", date: "06-07-26", code: "PAY099", description: "API Payment - nagad", debit: 0, credit: 10200, balance: -13031 },
-  { id: "12", date: "29-06-26", code: "FEE127", description: "Late Fee, Payment-1, w.e.f Fall 2022", debit: 500, credit: 0, balance: -23231 },
-  { id: "11", date: "13-05-26", code: "PAY099", description: "Cash Payment (Tuition Fee (Received by Bkash, Dated: 05/12/2026))", debit: 0, credit: 19, balance: -22731 },
-  { id: "10", date: "11-05-26", code: "PAY099", description: "API Payment - nagad", debit: 0, credit: 20, balance: -22750 },
-  { id: "9", date: "07-05-26", code: "WAV001", description: "Less 25.00% Tuition Waiver", debit: 0, credit: 8125, balance: -22770 },
-  { id: "8", date: "07-05-26", code: "FEE400", description: "Semester Fee w.e.f 261", debit: 6000, credit: 0, balance: -30895 },
-  { id: "7", date: "07-05-26", code: "PHY108", description: "General Physics I Laboratory", debit: 2500, credit: 0, balance: -24895 },
-  { id: "6", date: "07-05-26", code: "PHY107", description: "General Physics I", debit: 7500, credit: 0, balance: -22395 },
-  { id: "5", date: "07-05-26", code: "MAT123", description: "Calculus I", debit: 7500, credit: 0, balance: -14895 },
-  { id: "4", date: "07-05-26", code: "ENG101", description: "English Reading & Composition", debit: 7500, credit: 0, balance: -7395 },
-  { id: "3", date: "07-05-26", code: "EEE203", description: "Electrical Circuits II", debit: 7500, credit: 0, balance: 105 },
-  { id: "2", date: "05-05-26", code: "PAY099", description: "API Payment - nagad", debit: 0, credit: 105, balance: 7605 },
-  { id: "1", date: "05-05-26", code: "PAY099", description: "API Payment - nagad", debit: 0, credit: 7500, balance: 7500 }
-];
+export const TRANSACTIONS_DATA: Transaction[] = [];
 
 export const TEACHERS_DATA: Instructor[] = [
   { initial: "Harisun", name: "Harisun Azize", email: "harisun.azize@presidency.edu.bd", department: "Department of English", courses: "ENG101-21, ENG099-18" },
@@ -178,32 +148,38 @@ export const FEES_LIST = [
   { code: "PAY000", description: "Others Fee", amount: 0.00 }
 ];
 
-// Preserved predefined students
-export const PREDEFINED_STUDENTS_LIST = [
-  { id: "2610329040", name: "Nakib Hassan Prince", program: "Electrical & Electronic Engineering", status: "Registered", cgpa: 3.11 },
-];
+// Preserved predefined students list - empty by default
+export const PREDEFINED_STUDENTS_LIST: { id: string; name: string; program: string; status: string; cgpa: number }[] = [];
 
 /**
- * Returns student portal data for the student
+ * Returns student portal data dynamically with zero pre-preserved records,
+ * or synchronized records if fetched from Presidency SIMS.
  */
 export function getStudentData(studentId?: string | null): StudentDetails {
+  const currentId = studentId && studentId.trim() ? studentId.trim() : "";
+  
+  // Check if real-time synced student data exists in sync registry
+  const synced = PuSyncService.getSyncedStudent(currentId);
+  if (synced) {
+    return synced;
+  }
+
+  const studentName = currentId ? `Student ${currentId}` : "Student";
+  
   return {
     profile: {
-      id: "2610329040",
-      name: "Nakib Hassan Prince",
+      id: currentId,
+      name: studentName,
       status: "Registered",
-      admissionSemester: "Spring-26",
+      admissionSemester: "Summer-26",
       currentSemester: "Summer-26",
       program: "Electrical & Electronic Engineering",
       creditsTaken: 0,
-      creditsCompleted: 22,
-      cgpa: 3.11,
+      creditsCompleted: 0,
+      cgpa: 0.00,
       accountBalance: 0.00,
-      email: "nakibprince666@gmail.com",
-      gpaHistory: [
-        { semester: "Spring-26", gpa: 2.92 },
-        { semester: "Summer-26", gpa: 3.24 }
-      ]
+      email: currentId ? `${currentId}@student.presidency.edu.bd` : "",
+      gpaHistory: []
     },
     registeredCourses: [...REGISTERED_COURSES],
     completedCourses: [...COMPLETED_COURSES],

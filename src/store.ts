@@ -92,19 +92,12 @@ export const useAppStore = create<AppState>((set) => ({
   resolveApproval: (id) => set((state) => ({ pendingApprovals: state.pendingApprovals.filter(p => p.id !== id) })),
 
 
-  topNotifications: [
-    { id: 1, type: 'success', title: 'Tuition Payment Confirmed', desc: 'Summer 2026 tuition fee cleared via Nagad.', time: '2 hours ago', color: 'text-emerald-500' },
-    { id: 2, type: 'info', title: 'Exam Schedule Published', desc: 'Final Exam schedule and Admit Cards are now live.', time: '5 hours ago', color: 'text-indigo-500' },
-    { id: 3, type: 'info', title: 'Class Notice', desc: 'Faculty Mushfika uploaded EEE203 AC Circuits slides.', time: '1 day ago', color: 'text-blue-500' },
-    { id: 4, type: 'event', title: 'IEEE Student Branch', desc: 'Technical seminar on Smart Grids in Room 513.', time: '2 days ago', color: 'text-amber-500' },
-  ],
+  topNotifications: [],
   clearAllTopNotifications: () => set({ topNotifications: [] }),
   removeTopNotification: (id) => set(state => ({ topNotifications: state.topNotifications.filter(n => n.id !== id) })),
   markAllTopNotificationsAsRead: () => set(state => ({ topNotifications: state.topNotifications.map(n => ({ ...n, read: true })) })),
 
-  students: [
-    { id: '2610329040', name: 'Nakib Hassan Prince', program: 'Electrical & Electronic Engineering', cgpa: 3.11, status: 'Registered' },
-  ],
+  students: [],
   deleteStudent: (id) => set((state) => ({ students: state.students.filter(s => s.id !== id) })),
   updateStudentStatus: (id, status) => set((state) => ({ 
     students: state.students.map(s => s.id === id ? { ...s, status } : s)

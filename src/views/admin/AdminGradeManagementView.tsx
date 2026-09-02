@@ -106,12 +106,9 @@ export function AdminGradeManagementView() {
                    </thead>
                    <tbody className="divide-y divide-stone-100 dark:divide-stone-800 font-medium">
                       <tr>
-                         <td className="py-2.5 px-3 font-mono">2610329040</td>
-                         <td className="py-2.5 px-3 font-bold text-stone-900 dark:text-white">Nakib Hassan Prince</td>
-                         <td className="py-2.5 px-3 text-center font-mono">36</td>
-                         <td className="py-2.5 px-3 text-center font-mono">50</td>
-                         <td className="py-2.5 px-3 text-center font-mono font-bold text-emerald-600 dark:text-emerald-400">86</td>
-                         <td className="py-2.5 px-3 text-center"><Badge variant="default" className="bg-emerald-600">A-</Badge></td>
+                         <td colSpan={6} className="py-8 text-center text-stone-500 dark:text-stone-400">
+                           No student score sheets currently submitted for this section.
+                         </td>
                       </tr>
                    </tbody>
                 </table>

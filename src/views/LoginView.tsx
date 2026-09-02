@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAppStore } from '../store';
 import { Card } from '../components/ui/card';
-import { Loader2, Lock, User, Eye, EyeOff, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { Loader2, Lock, User, Eye, EyeOff, ChevronRight, CheckCircle2, FileCode2, RefreshCw } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -13,14 +13,16 @@ import {
   DialogClose,
 } from '../components/ui/dialog';
 import { Button } from '../components/ui/button';
+import { PuSyncService } from '../services/puSyncService';
 
 export const LoginView: React.FC = () => {
-  const { setIsLoggedIn, setIsAdmin } = useAppStore();
+  const { setIsLoggedIn, setIsAdmin, setRegisteredCourses, setCompletedCourses } = useAppStore();
   const [loginType, setLoginType] = useState<'student' | 'admin'>('student');
   const [studentId, setStudentId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [syncStatus, setSyncStatus] = useState('');
   const [error, setError] = useState('');
   const [showHints, setShowHints] = useState(false);
   
@@ -32,14 +34,17 @@ export const LoginView: React.FC = () => {
   // IT Support state
   const [isSupportOpen, setIsSupportOpen] = useState(false);
 
-  
+  // Manual Raw SIMS HTML Ingestion state
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [importTab, setImportTab] = useState<'profile' | 'completedCourses' | 'registeredCourses' | 'classSchedule' | 'examSchedule' | 'transactions'>('profile');
+  const [pastedHtml, setPastedHtml] = useState('');
+  const [importNotice, setImportNotice] = useState('');
+
   const hints = loginType === 'student' 
-    ? [
-        { id: '2610329040', label: 'Nakib Hassan Prince (EEE)', pass: '2610329040' }
-      ]
+    ? []
     : [{ id: 'admin', label: 'University Administrator', pass: 'admin' }];
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentId || !password) {
       setError('Please enter your credentials.');
@@ -49,43 +54,96 @@ export const LoginView: React.FC = () => {
     setIsLoading(true);
     setError('');
 
-    // Simulate API call and validation
-    setTimeout(() => {
-      setIsLoading(false);
-      const isUserAdmin = loginType === 'admin';
-      
-      // Basic validation
-      if (isUserAdmin) {
+    const isUserAdmin = loginType === 'admin';
+    
+    if (isUserAdmin) {
+      setTimeout(() => {
+        setIsLoading(false);
         if (studentId.toLowerCase() !== 'admin' || password !== 'admin') {
           setError('Invalid admin credentials. Use ID "admin" and Password "admin".');
           return;
         }
         setIsAdmin(true);
-        useAppStore.getState().setCurrentStudentId(null); // Admin view doesn't restrict to one student
+        useAppStore.getState().setCurrentStudentId(null);
         useAppStore.getState().setActiveTab('admin-dashboard');
         setIsLoggedIn(true);
-      } else {
-        const isNumeric = /^\d+$/.test(studentId);
-        const isDemo = studentId === 'class';
-        
-        if (!isNumeric && !isDemo) {
-          setError('Invalid student credentials. Please enter a valid numeric Student ID (e.g., 2610329040).');
-          return;
-        }
+      }, 600);
+      return;
+    }
 
-        // Validate password - accept any password of length >= 4 for numeric IDs for realistic user simulation
-        if (password.length < 4) {
-          setError('Password must be at least 4 characters long.');
-          return;
-        }
+    const cleanId = studentId.trim();
+    const isNumeric = /^\d+$/.test(cleanId);
+    
+    if (!isNumeric) {
+      setError('Invalid student credentials. Please enter a valid numeric Student ID.');
+      setIsLoading(false);
+      return;
+    }
 
-        const loggedId = isDemo ? '2610329040' : studentId;
+    if (password.length < 4) {
+      setError('Password must be at least 4 characters long.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setSyncStatus('Connecting to Presidency University SIMS...');
+      await new Promise(r => setTimeout(r, 400));
+      
+      setSyncStatus('Fetching academic records & schedules...');
+      const syncResult = await PuSyncService.syncWithPresidency(cleanId, password);
+
+      setSyncStatus('Synchronizing courses & financial ledger...');
+      await new Promise(r => setTimeout(r, 300));
+
+      if (syncResult.success && syncResult.studentData) {
+        setRegisteredCourses(syncResult.studentData.registeredCourses);
+        setCompletedCourses(syncResult.studentData.completedCourses);
+        useAppStore.getState().setCurrentStudentId(cleanId);
         setIsAdmin(false);
-        useAppStore.getState().setCurrentStudentId(loggedId);
         useAppStore.getState().setActiveTab('home');
         setIsLoggedIn(true);
+      } else {
+        setError(syncResult.message || 'Unable to synchronize student portal records.');
       }
-    }, 1200);
+    } catch (err: any) {
+      setError(err?.message || 'Authentication error with Presidency SIMS');
+    } finally {
+      setIsLoading(false);
+      setSyncStatus('');
+    }
+  };
+
+  const handleManualImport = () => {
+    if (!studentId.trim()) {
+      setImportNotice('Please enter a Student ID first in the login form.');
+      return;
+    }
+    if (!pastedHtml.trim()) {
+      setImportNotice('Please paste the HTML content from the Presidency SIMS portal page.');
+      return;
+    }
+
+    const inputKeyMap = {
+      profile: 'profileHtml',
+      completedCourses: 'completedCoursesHtml',
+      registeredCourses: 'registeredCoursesHtml',
+      classSchedule: 'classScheduleHtml',
+      examSchedule: 'examScheduleHtml',
+      transactions: 'transactionsHtml'
+    } as const;
+
+    const key = inputKeyMap[importTab];
+    const details = PuSyncService.ingestPastedHtml(studentId.trim(), {
+      [key]: pastedHtml
+    });
+
+    setImportNotice(`Successfully parsed and adjusted ${importTab} for Student ${details.profile.id}!`);
+    setTimeout(() => {
+      setImportNotice('');
+      setIsImportOpen(false);
+      setPastedHtml('');
+    }, 1800);
   };
 
   const handleResetPassword = (e: React.FormEvent) => {
@@ -133,7 +191,7 @@ export const LoginView: React.FC = () => {
                   required
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value)}
-                  placeholder="e.g. 2610329040 or nakibprince666@gmail.com"
+                  placeholder="e.g. Student ID or registered email"
                   className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]"
                 />
               </div>
@@ -272,7 +330,7 @@ export const LoginView: React.FC = () => {
                            onFocus={() => setShowHints(true)}
                            onBlur={() => setTimeout(() => setShowHints(false), 200)}
                            className="w-full bg-stone-50 dark:bg-stone-950/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 pl-10 pr-4 text-stone-900 dark:text-white placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#8c1515]/20 dark:focus:ring-[#ef4444]/20 focus:border-[#8c1515] dark:focus:border-[#ef4444] transition-all font-medium"
-                           placeholder={loginType === 'student' ? "e.g. 2610329040" : "e.g. admin"}
+                           placeholder={loginType === 'student' ? "Enter your Student ID" : "e.g. admin"}
                            autoComplete="off"
                         />
                         <AnimatePresence>
@@ -326,26 +384,49 @@ export const LoginView: React.FC = () => {
                      </div>
                   </div>
 
+                  {syncStatus && (
+                     <div className="flex items-center justify-center gap-2 py-2 px-3 bg-stone-100 dark:bg-stone-900 rounded-lg text-xs font-semibold text-stone-700 dark:text-stone-300 animate-pulse">
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#8c1515] dark:text-[#ef4444]" />
+                        {syncStatus}
+                     </div>
+                  )}
+
                   <div className="pt-2">
                      <button
                         type="submit"
                         disabled={isLoading}
-                        style={{ paddingTop: '12px', paddingBottom: '13px', marginBottom: '-27px' }}
+                        style={{ paddingTop: '12px', paddingBottom: '13px', marginBottom: '-10px' }}
                         className="w-full bg-[#8c1515] dark:bg-[#ef4444] hover:bg-[#731010] dark:hover:bg-[#dc2626] text-white py-3.5 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none shadow-md shadow-[#8c1515]/20 dark:shadow-none"
                      >
                         {isLoading ? (
-                           <Loader2 className="w-5 h-5 animate-spin" />
+                           <>
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                              <span>Syncing Portal Data...</span>
+                           </>
                         ) : (
                            <>
-                              Sign In
+                              Sign In & Sync Portal
                               <ChevronRight className="w-5 h-5" />
                            </>
                         )}
                      </button>
                   </div>
                </form>
+
+               {loginType === 'student' && (
+                  <div className="mt-6 pt-3 text-center">
+                     <button
+                        type="button"
+                        onClick={() => setIsImportOpen(true)}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 transition-colors"
+                     >
+                        <FileCode2 className="w-3.5 h-3.5" />
+                        Import/Paste Raw SIMS HTML
+                     </button>
+                  </div>
+               )}
                
-               <div className="mt-8 pt-6 border-t border-stone-100 dark:border-stone-800 text-center">
+               <div className="mt-6 pt-5 border-t border-stone-100 dark:border-stone-800 text-center">
                   <p className="text-sm text-stone-500 dark:text-stone-400 font-medium">
                      Need help? Contact <button type="button" onClick={() => setIsSupportOpen(true)} className="text-[#8c1515] dark:text-[#ef4444] font-bold hover:underline">IT Support</button>
                   </p>
@@ -353,6 +434,68 @@ export const LoginView: React.FC = () => {
             </Card>
          </div>
       </div>
+
+      {/* Manual SIMS HTML Ingestion Dialog */}
+      <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+         <DialogContent className="max-w-xl">
+            <DialogHeader>
+               <DialogTitle className="flex items-center gap-2">
+                  <FileCode2 className="w-5 h-5 text-[#8c1515] dark:text-[#ef4444]" />
+                  Import Presidency SIMS HTML Data
+               </DialogTitle>
+               <DialogDescription>
+                  Paste the raw HTML source of any SIMS page (from browser view-source or the Python data downloader) to dynamically extract student data into the application.
+               </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2">
+               <div className="flex gap-2 flex-wrap">
+                  {(['profile', 'completedCourses', 'registeredCourses', 'classSchedule', 'examSchedule', 'transactions'] as const).map((tab) => (
+                     <button
+                        key={tab}
+                        type="button"
+                        onClick={() => setImportTab(tab)}
+                        className={`text-xs px-2.5 py-1.5 rounded-lg font-bold capitalize transition-colors ${
+                           importTab === tab 
+                              ? 'bg-[#8c1515] text-white' 
+                              : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200'
+                        }`}
+                     >
+                        {tab.replace(/([A-Z])/g, ' $1')}
+                     </button>
+                  ))}
+               </div>
+
+               <div>
+                  <label className="text-xs font-bold text-stone-600 dark:text-stone-400 mb-1 block">
+                     HTML Content for {importTab.replace(/([A-Z])/g, ' $1')}:
+                  </label>
+                  <textarea
+                     rows={6}
+                     value={pastedHtml}
+                     onChange={(e) => setPastedHtml(e.target.value)}
+                     placeholder="Paste raw HTML table/source here..."
+                     className="w-full text-xs font-mono p-3 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#8c1515]"
+                  />
+               </div>
+
+               {importNotice && (
+                  <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-lg">
+                     {importNotice}
+                  </p>
+               )}
+            </div>
+
+            <DialogFooter>
+               <Button type="button" variant="outline" onClick={() => setIsImportOpen(false)}>
+                  Cancel
+               </Button>
+               <Button type="button" onClick={handleManualImport} className="bg-[#8c1515] hover:bg-[#731010] text-white">
+                  Parse & Ingest HTML
+               </Button>
+            </DialogFooter>
+         </DialogContent>
+      </Dialog>
     </div>
   );
 };

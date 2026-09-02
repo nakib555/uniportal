@@ -45,7 +45,13 @@ export function GradesView({ portal }: { portal?: ReturnType<typeof usePortalLog
           </button>
         </div>
 
-      {semesters.map(semester => (
+      {semesters.length === 0 ? (
+        <div className="p-12 text-center border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-2xl bg-white dark:bg-stone-950">
+          <p className="text-base font-bold text-stone-700 dark:text-stone-300">No Historical Grades Available</p>
+          <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">Completed course records and semester GPA evaluations will appear here upon completion of terms.</p>
+        </div>
+      ) : (
+        semesters.map(semester => (
         <Card key={semester.term} className="overflow-hidden border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-950">
           <div className="p-4 bg-stone-100 dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 flex justify-between items-center">
              <h3 className="font-bold text-stone-900 dark:text-white">{semester.term}</h3>
@@ -72,7 +78,7 @@ export function GradesView({ portal }: { portal?: ReturnType<typeof usePortalLog
              ))}
           </div>
         </Card>
-      ))}
+      )))}
     </div>
     </>
   );
