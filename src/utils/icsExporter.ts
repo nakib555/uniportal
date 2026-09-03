@@ -85,7 +85,7 @@ function formatICSDate(date: Date): string {
   return `${y}${m}${d}T${h}${min}${s}`;
 }
 
-export function exportExamsToICS(exams: Exam[], semesterName: string = 'Summer 2026') {
+export function generateICSString(exams: Exam[], semesterName: string = 'Summer 2026'): string {
   let icsLines: string[] = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -103,7 +103,6 @@ export function exportExamsToICS(exams: Exam[], semesterName: string = 'Summer 2
     let endDate = parseSingleDateTime(ex.date, endStr);
 
     if (!startDate) {
-      // Create a default if parsing failed
       startDate = new Date();
     }
     if (!endDate) {
@@ -133,8 +132,51 @@ export function exportExamsToICS(exams: Exam[], semesterName: string = 'Summer 2
   });
 
   icsLines.push('END:VCALENDAR');
+  return icsLines.join('\r\n');
+}
 
-  const icsString = icsLines.join('\r\n');
+export function openICSInApp(icsString: string) {
+  try {
+    const dataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsString)}`;
+    window.location.href = dataUri;
+  } catch (err) {
+    console.error("Failed to open ICS in calendar app", err);
+  }
+}
+
+export function getGoogleCalendarUrl(ex: Exam, semesterName: string = 'Summer 2026'): string {
+  try {
+    const timeParts = ex.time.split('-');
+    const startStr = timeParts[0] || '09:00 am';
+    const endStr = timeParts[1] || '11:00 am';
+
+    let startDate = parseSingleDateTime(ex.date, startStr) || new Date();
+    let endDate = parseSingleDateTime(ex.date, endStr) || new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+
+    const formatGCalDate = (d: Date) => {
+      const year = d.getUTCFullYear();
+      const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(d.getUTCDate()).padStart(2, '0');
+      const hours = String(d.getUTCHours()).padStart(2, '0');
+      const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+      const seconds = String(d.getUTCSeconds()).padStart(2, '0');
+      return `${year}${month}${day}T${hours}${minutes}${seconds}Z`;
+    };
+
+    const dates = `${formatGCalDate(startDate)}/${formatGCalDate(endDate)}`;
+    const text = `Exam: ${ex.courseCode} - ${ex.title} (Sec ${ex.section})`;
+    const details = `Type: ${ex.type}\nSection: ${ex.section}\nFaculty: ${ex.faculty || 'N/A'}\nSemester: ${ex.semester || semesterName}\n\nGenerated via Presidency University Portal.`;
+    const location = `Room ${ex.room}, ${ex.campus} Campus, Presidency University`;
+
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(text)}&dates=${dates}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}`;
+  } catch (err) {
+    console.error("Failed to build Google Calendar template URL", err);
+    return "https://calendar.google.com/";
+  }
+}
+
+export function exportExamsToICS(exams: Exam[], semesterName: string = 'Summer 2026') {
+  const icsString = generateICSString(exams, semesterName);
   const blob = new Blob([icsString], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   

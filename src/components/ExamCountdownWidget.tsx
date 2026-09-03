@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Calendar, Clock, MapPin, ArrowRight, Hourglass } from 'lucide-react';
+import { Calendar, Clock, MapPin, ArrowRight, Hourglass, CheckCircle2 } from 'lucide-react';
 import { Card, Badge } from './ui';
 import { useAppStore } from '../store';
 
@@ -81,37 +81,34 @@ export function ExamCountdownWidget({ portalExams }: { portalExams?: Exam[] }) {
   const store = useAppStore();
   const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
 
-  const fallbackExams: Exam[] = [
-    { courseCode: 'PHY108', title: 'Physics II Lab', section: '6', type: 'Final Examination', day: 'Monday', date: '17 Aug, 26', time: '03:00 pm - 05:00 pm', room: '410', campus: 'Gulshan', faculty: 'Alif', semester: 'Summer-26' },
-    { courseCode: 'EEE203', title: 'Electrical Circuits', section: '5', type: 'Final Examination', day: 'Saturday', date: '22 Aug, 26', time: '03:00 pm - 05:00 pm', room: '204', campus: 'Gulshan', faculty: 'mushfika', semester: 'Summer-26' },
-    { courseCode: 'MAT123', title: 'Calculus & Analytical Geometry', section: '6', type: 'Final Examination', day: 'Monday', date: '24 Aug, 26', time: '03:00 pm - 05:00 pm', room: '204', campus: 'Gulshan', faculty: 'ibrahim', semester: 'Summer-26' },
-    { courseCode: 'PHY107', title: 'Physics II', section: '6', type: 'Final Examination', day: 'Tuesday', date: '25 Aug, 26', time: '03:00 pm - 05:00 pm', room: '204', campus: 'Gulshan', faculty: 'Alif', semester: 'Summer-26' },
-    { courseCode: 'ENG101', title: 'English Reading & Composition', section: '21', type: 'Final Examination', day: 'Thursday', date: '27 Aug, 26', time: '03:00 pm - 05:00 pm', room: '204', campus: 'Gulshan', faculty: 'Harisun', semester: 'Summer-26' },
-  ];
+  const exams = portalExams || [];
 
-  const exams = portalExams && portalExams.length > 0 ? portalExams : fallbackExams;
+  // If no exams exist in portal data, do not render the widget
+  if (exams.length === 0) {
+    return null;
+  }
 
-  // Find the next upcoming exam
+  // Find the next upcoming exam chronologically
   const nextExamInfo = useMemo(() => {
     const parsed = exams.map(ex => {
-      let targetDate = parseExamDateTime(ex.date, ex.time);
+      const targetDate = parseExamDateTime(ex.date, ex.time);
       if (!targetDate) return null;
-
-      // Dynamic Forward-Shifting for Past Exams (preserves correct weekday)
-      if (targetDate.getTime() < Date.now()) {
-        const msDiff = Date.now() - targetDate.getTime();
-        const weeksToAdd = Math.ceil(msDiff / (7 * 24 * 60 * 60 * 1000));
-        targetDate = new Date(targetDate.getTime() + weeksToAdd * 7 * 24 * 60 * 60 * 1000);
-      }
-
       return { exam: ex, targetDate };
     }).filter(Boolean) as { exam: Exam; targetDate: Date }[];
 
     if (parsed.length === 0) return null;
 
-    // Sort chronologically to get the absolute nearest one
-    parsed.sort((a, b) => a.targetDate.getTime() - b.targetDate.getTime());
-    return parsed[0];
+    // Filter to show only future exams
+    const futureExams = parsed.filter(item => item.targetDate.getTime() > Date.now());
+
+    if (futureExams.length === 0) {
+      // If all are in the past, return null to allow showing the completed state
+      return null;
+    }
+
+    // Sort chronologically to get the absolute nearest future one
+    futureExams.sort((a, b) => a.targetDate.getTime() - b.targetDate.getTime());
+    return futureExams[0];
   }, [exams]);
 
   // Live timer tick
@@ -139,7 +136,35 @@ export function ExamCountdownWidget({ portalExams }: { portalExams?: Exam[] }) {
   }, [nextExamInfo]);
 
   if (!nextExamInfo || !timeLeft) {
-    return null;
+    // Elegant completed/no upcoming exams state
+    return (
+      <Card className="p-6 bg-gradient-to-br from-stone-50 to-white dark:from-stone-900/60 dark:to-stone-950 border-stone-200 dark:border-stone-800 shadow-sm overflow-hidden relative">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="w-4 h-4" />
+              </span>
+              <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+                Examinations Complete
+              </span>
+            </div>
+            <h4 className="text-lg font-extrabold text-stone-900 dark:text-white">
+              All Scheduled Exams Completed
+            </h4>
+            <p className="text-xs text-stone-500 dark:text-stone-400">
+              There are no more upcoming exams on your current calendar.
+            </p>
+          </div>
+          <button
+            onClick={() => store.setActiveTab('exam-routine')}
+            className="self-start sm:self-center px-4 py-2 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 text-xs font-extrabold rounded-lg transition-colors whitespace-nowrap active:scale-95 duration-100"
+          >
+            View Exam Routine
+          </button>
+        </div>
+      </Card>
+    );
   }
 
   const { exam, targetDate } = nextExamInfo;
