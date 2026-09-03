@@ -98,6 +98,17 @@ export const useAppStore = create<AppState>((set) => ({
     }
     if (!v) {
       tempAuthService.clearTempCredentials();
+      set({ 
+        isLoggedIn: false,
+        isAdmin: false,
+        currentStudentId: null,
+        activeTab: 'home',
+        isMobileMenuOpen: false,
+        isSidebarCollapsed: false,
+        isSelectionLocked: false,
+        selectedSyllabusCourse: null
+      });
+      return;
     }
     set({ isLoggedIn: v });
   },

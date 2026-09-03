@@ -5,10 +5,11 @@ import { useAppStore } from './store';
 import { useMediaQuery } from './hooks/useMediaQuery';
 import { Loader2 } from 'lucide-react';
 import { SyncPortalDialog } from './components/SyncPortalDialog';
+import { LoginView } from './views/LoginView';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 const MobileLayout = lazy(() => import('./components/layout/MobileLayout').then(module => ({ default: module.MobileLayout })));
 const DesktopLayout = lazy(() => import('./components/layout/DesktopLayout').then(module => ({ default: module.DesktopLayout })));
-const LoginView = lazy(() => import('./views/LoginView').then(module => ({ default: module.LoginView })));
 
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950">
@@ -16,8 +17,31 @@ const LoadingFallback = () => (
   </div>
 );
 
-export default function App() {
+function AuthenticatedPortal({ isDesktop }: { isDesktop: boolean }) {
   const portalLogic = usePortalLogic();
+
+  // Mobile layout gets wrapping smooth scroll.
+  // Desktop layout has its own height 100vh management.
+  if (isDesktop) {
+    return (
+      <Suspense fallback={<LoadingFallback />}>
+        <DesktopLayout {...portalLogic} />
+        <SyncPortalDialog portal={portalLogic} />
+      </Suspense>
+    );
+  }
+
+  return (
+    <ReactLenis root>
+      <Suspense fallback={<LoadingFallback />}>
+        <MobileLayout {...portalLogic} />
+        <SyncPortalDialog portal={portalLogic} />
+      </Suspense>
+    </ReactLenis>
+  );
+}
+
+export default function App() {
   const { isLoggedIn, isDarkMode } = useAppStore();
   const isDesktop = useMediaQuery('(min-width: 768px)'); // md breakpoint
 
@@ -82,34 +106,14 @@ export default function App() {
     };
   }, [isLoggedIn]);
 
-  if (!isLoggedIn) {
-    return (
-       <ReactLenis root>
-          <Suspense fallback={<LoadingFallback />}>
-             <LoginView />
-          </Suspense>
-       </ReactLenis>
-    );
-  }
-
-  // Mobile layout gets wrapping smooth scroll.
-  // Desktop layout has its own height 100vh management and doesn't use document smooth scrolling directly in the same way, or handles it internally.
-  if (isDesktop) {
-    return (
-      <Suspense fallback={<LoadingFallback />}>
-        <DesktopLayout {...portalLogic} />
-        <SyncPortalDialog portal={portalLogic} />
-      </Suspense>
-    );
-  }
-
   return (
-    <ReactLenis root>
-      <Suspense fallback={<LoadingFallback />}>
-        <MobileLayout {...portalLogic} />
-        <SyncPortalDialog portal={portalLogic} />
-      </Suspense>
-    </ReactLenis>
+    <ErrorBoundary>
+      {!isLoggedIn ? (
+        <LoginView />
+      ) : (
+        <AuthenticatedPortal isDesktop={isDesktop} />
+      )}
+    </ErrorBoundary>
   );
 }
 
