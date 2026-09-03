@@ -482,32 +482,6 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                       </Card>
                     )}
 
-                    <Card className="p-0">
-                      <div className="px-6 py-4 border-b border-stone-100 dark:border-stone-800 flex justify-between items-center bg-stone-50/50 dark:bg-stone-900/50">
-                        <h3 className="font-bold text-stone-900 dark:text-white">Latest Notices</h3>
-                        <Badge variant="brand">View All</Badge>
-                      </div>
-                      <ul className="divide-y divide-stone-100 dark:divide-stone-800">
-                        {[
-                          { title: "Report on Conversion from Tri-Semester to Bi-Semester", date: "Today", important: true },
-                          { title: "ATTENTION! Without Admit Card Students will not be allowed", date: "Yesterday", important: true },
-                          { title: "bKash payment flow chart available now", date: "Mar 12, 2026", important: false },
-                          { title: "Tuition Payment and Advising Summary", date: "Mar 10, 2026", important: false },
-                        ].map((notice, idx) => (
-                          <li key={idx} className="p-4 px-6 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors group cursor-pointer flex gap-4 items-start">
-                            <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${notice.important ? 'bg-[#8c1515] dark:bg-[#ef4444]' : 'bg-stone-300 dark:bg-stone-600'}`} />
-                            <div className="flex-1 min-w-0 pr-4">
-                              <h4 className={`text-sm font-semibold mb-1 leading-snug line-clamp-2 ${notice.important ? 'text-stone-900 dark:text-stone-100 group-hover:text-[#8c1515] dark:group-hover:text-[#ef4444]' : 'text-stone-700 dark:text-stone-300'}`}>
-                                {notice.title}
-                              </h4>
-                              <p className="text-xs text-stone-400 font-medium">{notice.date}</p>
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-stone-300 dark:text-stone-600 group-hover:text-[#8c1515] dark:group-hover:text-[#ef4444] shrink-0 mt-2 transition-transform group-hover:translate-x-1" />
-                          </li>
-                        ))}
-                      </ul>
-                    </Card>
-
                     <Card className="p-0 flex flex-col">
                        <div className="px-6 py-4 border-b border-stone-100 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/50">
                         <h3 className="font-bold text-stone-900 dark:text-white">Quick Actions</h3>

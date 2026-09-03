@@ -38,6 +38,17 @@ export const LoginView: React.FC = () => {
   // Admin/Faculty Coming Soon state
   const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
 
+  const [showAutoLogoutMsg, setShowAutoLogoutMsg] = useState(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const isAuto = localStorage.getItem('pu_auto_logged_out') === 'true';
+      if (isAuto) {
+        localStorage.removeItem('pu_auto_logged_out');
+        return true;
+      }
+    }
+    return false;
+  });
+
   const hints = loginType === 'student' 
     ? []
     : [{ id: 'admin', label: 'University Administrator', pass: 'admin' }];
@@ -296,6 +307,19 @@ export const LoginView: React.FC = () => {
 
                <form onSubmit={handleLogin} className="relative z-10 space-y-5">
                   <AnimatePresence mode="wait">
+                     {showAutoLogoutMsg && (
+                        <motion.div
+                           initial={{ opacity: 0, scale: 0.95 }}
+                           animate={{ opacity: 1, scale: 1 }}
+                           className="bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-400 p-3.5 sm:p-4 rounded-xl text-sm font-semibold border border-amber-100 dark:border-amber-500/20 flex gap-2.5 items-start text-left"
+                        >
+                           <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                           <div>
+                              <p className="font-bold text-amber-900 dark:text-amber-200">Session Expired</p>
+                              <p className="text-[11px] text-amber-700/90 dark:text-amber-400/85 mt-0.5 leading-relaxed">You have been automatically logged out due to 30 minutes of inactivity to protect your account security.</p>
+                           </div>
+                        </motion.div>
+                     )}
                      {error && (
                         <motion.div
                            initial={{ opacity: 0, height: 0, scale: 0.95 }}

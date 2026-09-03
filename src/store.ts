@@ -89,6 +89,7 @@ export const useAppStore = create<AppState>((set) => ({
       localStorage.setItem('pu_is_logged_in', String(v));
       if (!v) {
         localStorage.removeItem('pu_active_student_id');
+        localStorage.removeItem('pu_session_expires_at');
         tempAuthService.clearTempCredentials();
       }
     }

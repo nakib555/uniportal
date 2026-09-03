@@ -26,6 +26,54 @@ export default function App() {
     else document.documentElement.classList.remove('dark');
   }, [isDarkMode]);
 
+  // 30 Minutes Session Timeout with Auto-logout
+  React.useEffect(() => {
+    if (!isLoggedIn) return;
+
+    const SESSION_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
+    const updateSessionExpiration = () => {
+      localStorage.setItem('pu_session_expires_at', String(Date.now() + SESSION_DURATION));
+    };
+
+    const expiresAt = localStorage.getItem('pu_session_expires_at');
+    if (!expiresAt) {
+      updateSessionExpiration();
+    } else if (Date.now() > Number(expiresAt)) {
+      localStorage.setItem('pu_auto_logged_out', 'true');
+      useAppStore.getState().setIsLoggedIn(false);
+      return;
+    }
+
+    let lastWrite = 0;
+    const handleActivity = () => {
+      const now = Date.now();
+      if (now - lastWrite > 5000) {
+        updateSessionExpiration();
+        lastWrite = now;
+      }
+    };
+
+    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+    events.forEach(event => {
+      window.addEventListener(event, handleActivity, { passive: true });
+    });
+
+    const intervalId = setInterval(() => {
+      const currentExpiresAt = localStorage.getItem('pu_session_expires_at');
+      if (currentExpiresAt && Date.now() > Number(currentExpiresAt)) {
+        localStorage.setItem('pu_auto_logged_out', 'true');
+        useAppStore.getState().setIsLoggedIn(false);
+      }
+    }, 5000);
+
+    return () => {
+      events.forEach(event => {
+        window.removeEventListener(event, handleActivity);
+      });
+      clearInterval(intervalId);
+    };
+  }, [isLoggedIn]);
+
   if (!isLoggedIn) {
     return (
        <ReactLenis root>

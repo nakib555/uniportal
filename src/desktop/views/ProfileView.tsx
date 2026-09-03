@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Mail, Phone, MapPin, KeyRound, Edit3, CheckCircle2 } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Mail, Phone, MapPin, KeyRound, Edit3, CheckCircle2, Camera } from 'lucide-react';
 import { Card, Badge } from '../components/ui';
 import { usePortalLogic } from '../../hooks/usePortalLogic';
 import {
@@ -14,9 +14,31 @@ import {
 import { Button } from '../../components/ui/button';
 
 export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLogic> }) {
-  const { student, profilePic } = portal;
+  const { student, profilePic, updateProfilePhoto } = portal;
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUploadTrigger = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          updateProfilePhoto(reader.result);
+          setSuccessMsg('Profile photo updated successfully.');
+          setTimeout(() => setSuccessMsg(''), 4000);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleChangePassword = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,19 +87,36 @@ export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLog
         </DialogContent>
       </Dialog>
 
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileChange} 
+        accept="image/*" 
+        className="hidden" 
+      />
+
       <Card className="overflow-hidden">
-        <div className="h-32 bg-gradient-to-r from-[#8c1515] to-[#b31b1b] relative">
+        <div className="h-32 relative bg-stone-100" style={{ backgroundImage: 'url(/profile_bg_pattern.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
           <div className="absolute -bottom-16 left-8 flex items-end gap-6">
-            <div className="relative w-[98px] h-[110px] rounded-[10px] border-4 border-white dark:border-stone-900 bg-stone-100 dark:bg-stone-800 shadow-md overflow-hidden">
+            <div 
+              onClick={handleUploadTrigger}
+              className="relative w-[98px] h-[110px] rounded-[10px] border-4 border-white dark:border-stone-900 bg-stone-100 dark:bg-stone-800 shadow-md overflow-hidden cursor-pointer group"
+              title="Click to change profile photo"
+            >
               <img 
                 src={profilePic} 
                 alt={student.name}
+                onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${student.name || 'Student'}&backgroundColor=e2e8f0` }}
                 className="w-full h-full object-contain"
               />
+              <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera className="w-5 h-5 text-white mb-1" />
+                <span className="text-[10px] text-white font-semibold">Upload</span>
+              </div>
             </div>
-            <div className="mb-4 text-white drop-shadow-md">
-              <h1 className="text-3xl font-bold">{student.name}</h1>
-              <p className="opacity-90">ID: {student.id}</p>
+            <div className="mb-4 text-stone-900">
+              <h1 className="text-3xl font-bold" style={{ color: '#000000' }}>{student.name}</h1>
+              <p className="opacity-90" style={{ color: '#000000' }}>ID : {student.id}</p>
             </div>
           </div>
         </div>
@@ -88,8 +127,11 @@ export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLog
             <Badge variant="outline">Batch {student.admissionSemester}</Badge>
             <Badge variant="success">{student.status}</Badge>
           </div>
-          <button className="flex items-center gap-2 text-sm font-medium text-stone-600 dark:text-stone-300 hover:text-stone-900 bg-stone-100 dark:bg-stone-800 px-4 py-2 rounded-lg transition-colors">
-            <Edit3 className="w-4 h-4" /> Edit Profile
+          <button 
+            onClick={handleUploadTrigger}
+            className="flex items-center gap-2 text-sm font-medium text-stone-600 dark:text-stone-300 hover:text-stone-900 bg-stone-100 dark:bg-stone-800 px-4 py-2 rounded-lg transition-colors"
+          >
+            <Edit3 className="w-4 h-4" /> Change Photo
           </button>
         </div>
       </Card>

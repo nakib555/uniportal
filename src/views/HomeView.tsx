@@ -162,31 +162,6 @@ export function HomeView({ portal }: { portal: ReturnType<typeof usePortalLogic>
               View Full Audit
             </button>
           </Card>
-
-          <Card className="p-0 border-stone-200 flex flex-col">
-            <div className="px-6 py-4 border-b border-stone-100 dark:border-stone-800 flex justify-between items-center bg-stone-50/50 dark:bg-stone-900/50">
-              <h3 className="font-bold text-stone-900 dark:text-white">Latest Notices</h3>
-              {portal.store.notices.length > 0 && <Badge variant="brand">{portal.store.notices.length} New</Badge>}
-            </div>
-            <ul className="divide-y divide-stone-100 dark:divide-stone-800">
-              {portal.store.notices.length === 0 ? (
-                 <li className="p-6 text-center text-stone-500 text-sm">No new notices.</li>
-              ) : (
-                 portal.store.notices.map((notice) => (
-                   <li key={notice.id} className="p-4 px-6 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors group cursor-pointer flex gap-4 items-start" onClick={() => portal.store.dismissNotice(notice.id)}>
-                     <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${notice.important ? 'bg-[#8c1515] dark:bg-[#ef4444]' : 'bg-stone-300 dark:bg-stone-600'}`} />
-                     <div className="flex-1 min-w-0 pr-4">
-                       <h4 className={`text-sm font-semibold mb-1 leading-snug line-clamp-2 transition-colors ${notice.important ? 'text-stone-900 dark:text-stone-100 group-hover:text-[#8c1515] dark:group-hover:text-[#ef4444]' : 'text-stone-700 dark:text-stone-300 group-hover:text-stone-900 dark:group-hover:text-white'}`}>
-                         {notice.title}
-                       </h4>
-                       <div className="text-[11px] font-bold uppercase tracking-widest text-stone-400">{notice.date}</div>
-                     </div>
-                     <div className="text-xs text-stone-300 dark:text-stone-700 opacity-0 group-hover:opacity-100 transition-opacity mt-1">Dismiss</div>
-                   </li>
-                 ))
-              )}
-            </ul>
-          </Card>
         </div>
       </div>
     </div>

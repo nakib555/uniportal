@@ -366,11 +366,27 @@ export const usePortalLogic = () => {
     setRegisteredCourses(registeredCourses.filter(c => c.code !== courseCode));
   };
 
+  const updateProfilePhoto = (base64: string) => {
+    setProfilePic(base64);
+    if (store.currentStudentId) {
+      const data = PuSyncService.getSyncedStudent(store.currentStudentId);
+      if (data) {
+        data.profile.photo = base64;
+        PuSyncService.setSyncedStudent(store.currentStudentId, data);
+      } else {
+        const fallbackDetails = getStudentData(store.currentStudentId);
+        fallbackDetails.profile.photo = base64;
+        PuSyncService.setSyncedStudent(store.currentStudentId, fallbackDetails);
+      }
+    }
+  };
+
 
   return {
     store,
     is24HourFormat, setIs24HourFormat,
     profilePic, setProfilePic,
+    updateProfilePhoto,
     toggleDarkMode,
     registeredCourses, setRegisteredCourses,
     completedCourses,
