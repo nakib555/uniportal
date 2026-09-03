@@ -1004,9 +1004,27 @@ export function puSyncPlugin() {
   return {
     name: 'pu-sync-api',
     configureServer(server: any) {
+      if (!server.ws) {
+        server.ws = {
+          send() {},
+          close() {},
+          on() {},
+          off() {},
+          listen() {}
+        };
+      }
       server.middlewares.use('/api/pu-sync', handler);
     },
     configurePreviewServer(server: any) {
+      if (!server.ws) {
+        server.ws = {
+          send() {},
+          close() {},
+          on() {},
+          off() {},
+          listen() {}
+        };
+      }
       server.middlewares.use('/api/pu-sync', handler);
     }
   };
