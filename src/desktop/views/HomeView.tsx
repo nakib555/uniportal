@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { BookOpen, Calendar, Clock, GraduationCap, MapPin, TrendingUp, Wallet, Users } from 'lucide-react';
 import { Card, Badge } from '../components/ui';
 import { usePortalLogic } from '../../hooks/usePortalLogic';
+import { ExamCountdownWidget } from '../../components/ExamCountdownWidget';
 
 export function HomeView({ portal }: { portal: ReturnType<typeof usePortalLogic> }) {
   const { student, bankSlipTotal, handleNavClick } = portal;
@@ -30,6 +31,10 @@ export function HomeView({ portal }: { portal: ReturnType<typeof usePortalLogic>
           </motion.div>
         ))}
       </div>
+
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+        <ExamCountdownWidget portalExams={portal.studentData?.exams} />
+      </motion.div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 space-y-6">
