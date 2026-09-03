@@ -20,10 +20,8 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
   const [serverHasRestriction, setServerHasRestriction] = useState<boolean | null>(null);
 
   const existingExams = localExams ?? (portal?.studentData?.exams || []);
-  // An admit card is officially verified if localExams was populated or if exams already contain securityCode
-  const hasOfficialAdmitCardData = Boolean(
-    localExams !== null || existingExams.some(e => Boolean(e.securityCode))
-  );
+  // An admit card is officially verified if localExams was populated
+  const hasOfficialAdmitCardData = Boolean(localExams !== null);
 
   const hasOutstandingBalance = existingExams.length > 0
     ? false
@@ -309,14 +307,7 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
                   <div key={i} className="p-4 border border-stone-200 dark:border-stone-800 rounded-xl bg-stone-50/50 dark:bg-stone-900/50 space-y-3">
                     <div className="flex justify-between items-start">
                       <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-black text-stone-900 dark:text-white text-base">{ex.courseCode}</span>
-                          {ex.securityCode && (
-                            <span className="font-mono text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 px-1.5 py-0.5 rounded">
-                              PIN: {ex.securityCode}
-                            </span>
-                          )}
-                        </div>
+                        <span className="font-mono font-black text-stone-900 dark:text-white text-base">{ex.courseCode}</span>
                         <div className="text-xs text-stone-500 font-medium mt-0.5">Section {ex.section} • {ex.semester || portal?.student?.currentSemester}</div>
                       </div>
                       <div className="text-right">
@@ -351,9 +342,6 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
                   <thead>
                     <tr className="bg-stone-50 dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 font-bold text-stone-700 dark:text-stone-300">
                       <th className="px-4 py-4 text-[13px] sticky left-0 z-10 bg-stone-50/95 dark:bg-stone-900/95 backdrop-blur border-r border-stone-200 dark:border-stone-800 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] dark:shadow-[4px_0_12px_-4px_rgba(0,0,0,0.2)]">Course</th>
-                      {existingExams.some(e => Boolean(e.securityCode)) && (
-                        <th className="px-4 py-4 text-[13px] text-center">Security Code</th>
-                      )}
                       <th className="px-4 py-4 text-[13px] text-center">Section</th>
                       <th className="px-4 py-4 text-[13px]">Day</th>
                       <th className="px-4 py-4 text-[13px]">Date</th>
@@ -367,11 +355,6 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
                     {existingExams.map((ex, i) => (
                       <tr key={i} className="border-b border-stone-100 dark:border-stone-800/50 hover:bg-stone-50/50 dark:hover:bg-stone-800/30 text-stone-800 dark:text-stone-200">
                         <td className="px-4 py-4 text-sm font-mono font-bold text-stone-900 dark:text-white sticky left-0 z-10 bg-white/95 dark:bg-stone-950/95 backdrop-blur border-r border-stone-200 dark:border-stone-800 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] dark:shadow-[4px_0_12px_-4px_rgba(0,0,0,0.2)]">{ex.courseCode}</td>
-                        {existingExams.some(e => Boolean(e.securityCode)) && (
-                          <td className="px-4 py-4 text-sm text-center font-mono font-bold text-amber-700 dark:text-amber-400 bg-amber-50/40 dark:bg-amber-950/20">
-                            {ex.securityCode || '—'}
-                          </td>
-                        )}
                         <td className="px-4 py-4 text-sm text-center font-mono">{ex.section}</td>
                         <td className="px-4 py-4 text-sm">{ex.day}</td>
                         <td className="px-4 py-4 text-sm font-medium">{ex.date}</td>
