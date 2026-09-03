@@ -77,8 +77,8 @@ export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLog
               />
             </div>
             <div className="mb-4 text-white drop-shadow-md">
-              <h1 className="text-3xl font-bold">{student.name}</h1>
-              <p className="opacity-90">{student.id}</p>
+              <h1 className="text-3xl font-bold" style={{ color: '#000000' }}>{student.name}</h1>
+              <p className="opacity-90" style={{ color: '#000000' }}>ID: {student.id}</p>
             </div>
           </div>
         </div>
