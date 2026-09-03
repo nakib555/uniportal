@@ -64,19 +64,13 @@ export const Header: React.FC = () => {
           </div>
           <div className="relative">
             <img 
-               src={profilePic}
+               src={profilePic || `https://api.dicebear.com/7.x/notionists/svg?seed=${student.name}`}
                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  setProfilePic('');
+                  e.currentTarget.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${student.name}`;
                }}
                alt={student.name} 
                className="w-10 h-10 md:w-11 md:h-11 rounded-full object-cover shadow-sm ring-2 ring-stone-100 dark:ring-stone-800"
             />
-            {!profilePic && (
-              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400">
-                <User className="w-5 h-5" />
-              </div>
-            )}
             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-stone-950 rounded-full"></div>
           </div>
         </button>
