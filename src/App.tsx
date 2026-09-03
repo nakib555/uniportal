@@ -4,6 +4,7 @@ import { ReactLenis } from 'lenis/react';
 import { useAppStore } from './store';
 import { useMediaQuery } from './hooks/useMediaQuery';
 import { Loader2 } from 'lucide-react';
+import { SyncPortalDialog } from './components/SyncPortalDialog';
 
 const MobileLayout = lazy(() => import('./components/layout/MobileLayout').then(module => ({ default: module.MobileLayout })));
 const DesktopLayout = lazy(() => import('./components/layout/DesktopLayout').then(module => ({ default: module.DesktopLayout })));
@@ -41,6 +42,7 @@ export default function App() {
     return (
       <Suspense fallback={<LoadingFallback />}>
         <DesktopLayout {...portalLogic} />
+        <SyncPortalDialog portal={portalLogic} />
       </Suspense>
     );
   }
@@ -49,6 +51,7 @@ export default function App() {
     <ReactLenis root>
       <Suspense fallback={<LoadingFallback />}>
         <MobileLayout {...portalLogic} />
+        <SyncPortalDialog portal={portalLogic} />
       </Suspense>
     </ReactLenis>
   );

@@ -509,6 +509,8 @@ export function puSyncPlugin() {
         const admitCardHtml = tabMap.get('Exam Admit Card') || '';
         const examSchedHtml = tabMap.get('Exam Schedule') || '';
         const securityCodeMap: Record<string, string> = {};
+        const exams: StudentDetails['exams'] = [];
+        const seenExams = new Set<string>();
 
         if (admitCardHtml) {
           const $admit = cheerio.load(admitCardHtml);
@@ -521,12 +523,42 @@ export function puSyncPlugin() {
                 securityCodeMap[course] = secCode;
               }
             }
+
+            // Dual parsing: If Admit Card table contains complete schedule fields (10 columns including Security Code)
+            if (tds.length >= 9) {
+              const secCode = cleanText($admit(tds[0]).text());
+              const courseCode = cleanText($admit(tds[1]).text());
+              const section = cleanText($admit(tds[2]).text());
+              const day = cleanText($admit(tds[3]).text());
+              const date = cleanText($admit(tds[4]).text());
+              const start = cleanText($admit(tds[5]).text());
+              const end = cleanText($admit(tds[6]).text());
+              const room = cleanText($admit(tds[7]).text());
+              const faculty = cleanText($admit(tds[8]).text());
+              const semester = tds.length > 9 ? cleanText($admit(tds[9]).text()) : (profile.currentSemester || 'Current');
+
+              if (courseCode && courseCode.toUpperCase() !== 'COURSE' && /^\d+$/.test(secCode)) {
+                seenExams.add(courseCode);
+                exams.push({
+                  securityCode: secCode,
+                  courseCode,
+                  title: courseCode,
+                  section,
+                  type: 'Final Examination',
+                  day,
+                  date,
+                  time: `${start} - ${end}`,
+                  room,
+                  campus: 'Gulshan',
+                  faculty,
+                  semester
+                });
+              }
+            }
           });
         }
 
         const $exam = cheerio.load(examSchedHtml);
-        const exams: StudentDetails['exams'] = [];
-
         $exam('table tr').each((_, tr) => {
           const tds = $exam(tr).find('td');
           if (tds.length >= 8) {
@@ -541,7 +573,7 @@ export function puSyncPlugin() {
             const faculty = tds.length > 8 ? cleanText($exam(tds[8]).text()) : '';
             const semester = tds.length > 9 ? cleanText($exam(tds[9]).text()) : (profile.currentSemester || 'Current');
 
-            if (courseCode && courseCode.toUpperCase() !== 'COURSE' && day) {
+            if (courseCode && courseCode.toUpperCase() !== 'COURSE' && day && !seenExams.has(courseCode)) {
               exams.push({
                 securityCode: securityCodeMap[courseCode] || '',
                 courseCode,

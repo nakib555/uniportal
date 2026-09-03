@@ -3,6 +3,7 @@ import { useAppStore } from '../store';
 import { 
   AVAILABLE_COURSES, FEES_LIST, Course, getStudentData, ClassSchedule 
 } from '../data';
+import { PuSyncService } from '../services/puSyncService';
 
 export type NavItem = {
   id: string;
@@ -54,6 +55,42 @@ export const usePortalLogic = () => {
   const [isConfirmRegistrationOpen, setIsConfirmRegistrationOpen] = useState(false);
   const [pendingCoreqCourse, setPendingCoreqCourse] = useState<{main: Course, coreqs: Course[]} | null>(null);
   const [isCoreqModalOpen, setIsCoreqModalOpen] = useState(false);
+
+  // Portal synchronization states
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [syncSuccess, setSyncSuccess] = useState<boolean>(false);
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+
+  const handleManualSync = async (password: string) => {
+    if (!store.currentStudentId) {
+      setSyncError("No active student ID to synchronize.");
+      return false;
+    }
+    
+    setIsSyncing(true);
+    setSyncError(null);
+    setSyncSuccess(false);
+
+    try {
+      const res = await PuSyncService.syncWithPresidency(store.currentStudentId, password);
+      if (res.success && res.studentData) {
+        setRegisteredCourses(res.studentData.registeredCourses);
+        setCompletedCourses(res.studentData.completedCourses);
+        setSyncSuccess(true);
+        setTimeout(() => setSyncSuccess(false), 3000);
+        return true;
+      } else {
+        setSyncError(res.message || "Failed to synchronize data from Presidency University SIMS.");
+        return false;
+      }
+    } catch (e: any) {
+      setSyncError(e.message || "An unexpected error occurred during portal synchronization.");
+      return false;
+    } finally {
+      setIsSyncing(false);
+    }
+  };
   
   // Available course filtering & sorting
   const [courseSearchQuery, setCourseSearchQuery] = useState("");
@@ -366,6 +403,7 @@ export const usePortalLogic = () => {
     groupedCompletedCourses, filteredAvailableCourses,
     totalDebit, totalCredit, statementChartData,
     handleMenuToggle, handleNavClick, handleSubItemClick,
-    hasCompletedPrerequisites, handleRegister, handleRegisterBundle, confirmCoreqsRegistration, handleDropCourse
+    hasCompletedPrerequisites, handleRegister, handleRegisterBundle, confirmCoreqsRegistration, handleDropCourse,
+    isSyncing, setIsSyncing, syncError, setSyncError, syncSuccess, setSyncSuccess, isSyncModalOpen, setIsSyncModalOpen, handleManualSync
   };
 };

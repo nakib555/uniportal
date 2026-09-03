@@ -4,7 +4,7 @@ import {
   Home, User, BookOpen, Calendar, Wallet, Users, Bell, 
   ChevronRight, ChevronLeft, ChevronDown, CheckCircle2,
   GraduationCap, Clock, MapPin, Menu, AlertCircle, BookMarked, Search, Moon, Info, Sun, Camera,
-  TrendingDown, TrendingUp, FileText, X, Mail, Phone, KeyRound, Edit3, LogOut
+  TrendingDown, TrendingUp, FileText, X, Mail, Phone, KeyRound, Edit3, LogOut, RefreshCw, Loader2
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { 
@@ -107,7 +107,8 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
     handleBankSlipSubmitClick, handleConfirmPayment, filteredSchedule, groupedSchedule,
     groupedCompletedCourses, filteredAvailableCourses, totalDebit, totalCredit, statementChartData,
     handleMenuToggle, handleNavClick, handleSubItemClick,
-    handleRegister, confirmCoreqsRegistration, handleDropCourse, hasCompletedPrerequisites, setSelectedFees, setPendingCoreqCourse
+    handleRegister, confirmCoreqsRegistration, handleDropCourse, hasCompletedPrerequisites, setSelectedFees, setPendingCoreqCourse,
+    isSyncModalOpen, setIsSyncModalOpen, isSyncing
   } = props;
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedSyllabusCourse, setSelectedSyllabusCourse] = useState<Course | null>(null);
@@ -310,6 +311,16 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
               >
                 {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
+
+              {!isAdmin && (
+                <button 
+                  onClick={() => setIsSyncModalOpen(true)}
+                  className={`w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 dark:text-stone-400 relative transition-colors ${isSyncing ? 'text-[#8c1515] dark:text-[#ef4444]' : ''}`}
+                  title="Sync with Presidency University SIMS"
+                >
+                  <RefreshCw className={`w-5 h-5 ${isSyncing ? 'animate-spin' : ''}`} />
+                </button>
+              )}
 
               <div className="relative">
                 <button 

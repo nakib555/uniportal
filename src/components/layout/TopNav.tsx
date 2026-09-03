@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, Search, Sun, Moon, LogOut, CheckCircle2, AlertCircle, Info, Calendar } from 'lucide-react';
+import { Bell, Search, Sun, Moon, LogOut, CheckCircle2, AlertCircle, Info, Calendar, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { usePortalLogic } from '../../hooks/usePortalLogic';
 import { useAppStore } from '../../store';
@@ -38,6 +38,16 @@ export function TopNav({ portal }: TopNavProps) {
           <button onClick={toggleDarkMode} className="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 transition-colors" title="Toggle Dark Mode">
             {store.isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
+
+          {!store.isAdmin && (
+            <button 
+              onClick={() => portal.setIsSyncModalOpen(true)} 
+              className={`p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 transition-colors relative flex items-center justify-center ${portal.isSyncing ? 'text-[#8c1515] dark:text-[#ef4444]' : ''}`} 
+              title="Sync with Presidency University SIMS"
+            >
+              <RefreshCw className={`w-5 h-5 ${portal.isSyncing ? 'animate-spin' : ''}`} />
+            </button>
+          )}
           
           <div className="relative">
             <button 

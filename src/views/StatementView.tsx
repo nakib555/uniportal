@@ -60,13 +60,35 @@ export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic
             <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">Statement of Account</h2>
             <p className="text-stone-500 dark:text-stone-400 mt-1">Overall financial summary and transaction history.</p>
           </div>
-          <button onClick={() => window.print()} className="flex w-fit items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold transition-colors">
-             <Download className="w-4 h-4" /> Download PDF
-          </button>
+          {transactions.length > 0 && (
+            <button onClick={() => window.print()} className="flex w-fit items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold transition-colors">
+               <Download className="w-4 h-4" /> Download PDF
+            </button>
+          )}
         </header>
 
-      {/* Beautiful Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {transactions.length === 0 ? (
+        <div className="flex flex-col items-center justify-center text-center py-20 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-8 shadow-sm">
+          <div className="w-16 h-16 bg-stone-50 dark:bg-stone-800 border border-stone-100 dark:border-stone-700 rounded-2xl flex items-center justify-center mb-6 text-stone-400 dark:text-stone-500">
+            <Wallet className="w-8 h-8 text-[#8c1515] dark:text-[#ef4444]" />
+          </div>
+          <h3 className="text-lg font-black text-stone-900 dark:text-white mb-2">No Statement Found</h3>
+          <p className="text-stone-500 dark:text-stone-400 text-sm max-w-sm leading-relaxed mb-6">
+            We couldn't retrieve any billing statements, payments, or outstanding ledgers for this account. Please trigger a real-time portal synchronization to fetch your academic statement.
+          </p>
+          {portal && (
+            <button 
+              onClick={() => portal.setIsSyncModalOpen(true)}
+              className="flex items-center gap-2 bg-[#8c1515] hover:bg-[#731010] text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg text-sm"
+            >
+              Sync with Portal Now
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* Beautiful Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
          <Card className="p-5 border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex items-center justify-between">
             <div>
                <p className="text-[11px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-1">Total Billed</p>
@@ -282,6 +304,8 @@ export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic
             <li>If you have any queries, please feel free to communicate with the Accounts Office.</li>
          </ol>
       </div>
+      </>
+      )}
 
       <PaymentPortal 
         isOpen={isPaymentModalOpen} 
