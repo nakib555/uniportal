@@ -66,10 +66,19 @@ export default {
       });
     }
 
+    // If assets binding is present, let it handle static assets or SPA index fallback
+    if (env && env.ASSETS && typeof env.ASSETS.fetch === 'function') {
+      const response = await env.ASSETS.fetch(request);
+      if (response.status !== 404) {
+        return response;
+      }
+      if (request.headers.get('accept')?.includes('text/html') || request.method === 'GET') {
+        const indexUrl = new URL('/index.html', request.url);
+        return env.ASSETS.fetch(new Request(indexUrl.toString(), request));
+      }
+    }
+
     // Return a 404 response for other non-asset paths
-    // Cloudflare Workers Assets will serve matched static assets first.
-    // If a request falls through to the worker fetch handler, it's not a static asset,
-    // so we return 404 Not Found.
     return new Response(JSON.stringify({ success: false, error: 'Not found' }), {
       status: 404,
       headers: {

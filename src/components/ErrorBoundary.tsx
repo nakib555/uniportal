@@ -36,6 +36,16 @@ export class ErrorBoundary extends (React.Component as unknown as {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('[ErrorBoundary caught error]:', error, errorInfo);
+    const msg = error?.message || '';
+    if (msg.includes('dynamically imported module') || msg.includes('Failed to fetch dynamically imported module')) {
+      const reloadKey = 'portal_chunk_error_reload';
+      const lastReload = sessionStorage.getItem(reloadKey);
+      const now = Date.now();
+      if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+        sessionStorage.setItem(reloadKey, now.toString());
+        window.location.reload();
+      }
+    }
   }
 
   private handleReset = () => {

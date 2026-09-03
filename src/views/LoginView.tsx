@@ -164,13 +164,16 @@ export const LoginView: React.FC = () => {
           ) : (
             <form onSubmit={handleResetPassword} className="space-y-4 py-4">
               <div className="space-y-2">
-                <label className="text-sm font-semibold">Email or Student ID</label>
+                <label htmlFor="reset-account-input" className="text-sm font-semibold">Email or Student ID</label>
                 <input 
+                  id="reset-account-input"
+                  name="username"
                   type="text"
                   required
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value)}
                   placeholder="e.g. Student ID or registered email"
+                  autoComplete="username"
                   className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]"
                 />
               </div>
@@ -333,12 +336,14 @@ export const LoginView: React.FC = () => {
                   </AnimatePresence>
 
                   <div className="space-y-1.5 focus-within:text-[#8c1515] dark:focus-within:text-[#ef4444] transition-colors">
-                     <label className="text-sm font-bold text-stone-700 dark:text-stone-300 ml-1">{loginType === 'student' ? 'Student ID' : 'Faculty/Admin ID'}</label>
+                     <label htmlFor="student-id-input" className="text-sm font-bold text-stone-700 dark:text-stone-300 ml-1">{loginType === 'student' ? 'Student ID' : 'Faculty/Admin ID'}</label>
                      <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                            <User className="h-5 w-5 text-stone-400" />
                         </div>
                         <input
+                           id="student-id-input"
+                           name="username"
                            type="text"
                            value={studentId}
                            onChange={(e) => { setStudentId(e.target.value); setShowHints(true); }}
@@ -346,7 +351,7 @@ export const LoginView: React.FC = () => {
                            onBlur={() => setTimeout(() => setShowHints(false), 200)}
                            className="w-full bg-stone-50 dark:bg-stone-950/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 pl-10 pr-4 text-stone-900 dark:text-white placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#8c1515]/20 dark:focus:ring-[#ef4444]/20 focus:border-[#8c1515] dark:focus:border-[#ef4444] transition-all font-medium"
                            placeholder={loginType === 'student' ? "Enter your Student ID" : "e.g. admin"}
-                           autoComplete="off"
+                           autoComplete="username"
                         />
                         <AnimatePresence>
                            {showHints && hints.filter(h => h.id.toLowerCase().includes(studentId.toLowerCase()) || h.label.toLowerCase().includes(studentId.toLowerCase())).length > 0 && (
@@ -375,7 +380,7 @@ export const LoginView: React.FC = () => {
 
                   <div className="space-y-1.5 focus-within:text-[#8c1515] dark:focus-within:text-[#ef4444] transition-colors">
                      <div className="flex items-center justify-between ml-1">
-                        <label className="text-sm font-bold text-stone-700 dark:text-stone-300">Password</label>
+                        <label htmlFor="student-password-input" className="text-sm font-bold text-stone-700 dark:text-stone-300">Password</label>
                         <button type="button" onClick={() => setIsForgotOpen(true)} className="text-xs font-bold text-[#8c1515] dark:text-[#ef4444] hover:underline">Forgot password?</button>
                      </div>
                      <div className="relative">
@@ -383,11 +388,14 @@ export const LoginView: React.FC = () => {
                            <Lock className="h-5 w-5 text-stone-400" />
                         </div>
                         <input
+                           id="student-password-input"
+                           name="password"
                            type={showPassword ? "text" : "password"}
                            value={password}
                            onChange={(e) => setPassword(e.target.value)}
                            className="w-full bg-stone-50 dark:bg-stone-950/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 pl-10 pr-12 text-stone-900 dark:text-white placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#8c1515]/20 dark:focus:ring-[#ef4444]/20 focus:border-[#8c1515] dark:focus:border-[#ef4444] transition-all font-medium"
                            placeholder="••••••••"
+                           autoComplete="current-password"
                         />
                         <button
                            type="button"

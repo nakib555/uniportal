@@ -1,21 +1,13 @@
-import React, { Suspense, lazy } from 'react';
+import React from 'react';
 import { usePortalLogic } from './hooks/usePortalLogic';
 import { ReactLenis } from 'lenis/react';
 import { useAppStore } from './store';
 import { useMediaQuery } from './hooks/useMediaQuery';
-import { Loader2 } from 'lucide-react';
 import { SyncPortalDialog } from './components/SyncPortalDialog';
 import { LoginView } from './views/LoginView';
 import { ErrorBoundary } from './components/ErrorBoundary';
-
-const MobileLayout = lazy(() => import('./components/layout/MobileLayout').then(module => ({ default: module.MobileLayout })));
-const DesktopLayout = lazy(() => import('./components/layout/DesktopLayout').then(module => ({ default: module.DesktopLayout })));
-
-const LoadingFallback = () => (
-  <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950">
-    <Loader2 className="w-8 h-8 animate-spin text-[#8c1515] dark:text-[#ef4444]" />
-  </div>
-);
+import { MobileLayout } from './components/layout/MobileLayout';
+import { DesktopLayout } from './components/layout/DesktopLayout';
 
 function AuthenticatedPortal({ isDesktop }: { isDesktop: boolean }) {
   const portalLogic = usePortalLogic();
@@ -24,19 +16,17 @@ function AuthenticatedPortal({ isDesktop }: { isDesktop: boolean }) {
   // Desktop layout has its own height 100vh management.
   if (isDesktop) {
     return (
-      <Suspense fallback={<LoadingFallback />}>
+      <>
         <DesktopLayout {...portalLogic} />
         <SyncPortalDialog portal={portalLogic} />
-      </Suspense>
+      </>
     );
   }
 
   return (
     <ReactLenis root>
-      <Suspense fallback={<LoadingFallback />}>
-        <MobileLayout {...portalLogic} />
-        <SyncPortalDialog portal={portalLogic} />
-      </Suspense>
+      <MobileLayout {...portalLogic} />
+      <SyncPortalDialog portal={portalLogic} />
     </ReactLenis>
   );
 }
