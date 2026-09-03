@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Card, Badge } from '../components/ui';
-import { Calendar, MapPin, Clock, User, Building, Search, FileText, CheckCircle2, LayoutGrid, List } from 'lucide-react';
+import { Calendar, MapPin, Clock, User, Building, Search, FileText, CheckCircle2, LayoutGrid, List, CalendarPlus } from 'lucide-react';
 import { usePortalLogic } from '../hooks/usePortalLogic';
+import { exportExamsToICS } from '../utils/icsExporter';
 
 export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogic> }) {
   const currentSemester = portal?.student?.currentSemester || 'Summer-26';
@@ -41,11 +42,19 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
             Official examination timetable and room allocations for the running semester.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="px-3 py-1 font-bold text-xs bg-stone-100 dark:bg-stone-800 border-stone-300 dark:border-stone-700">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={() => exportExamsToICS(exams, currentSemester)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-all bg-[#8c1515] hover:bg-[#9c1c1c] text-white shadow-sm hover:shadow active:scale-95 duration-150"
+            title="Download standard iCalendar (.ics) file to sync with Google Calendar or Apple Calendar"
+          >
+            <CalendarPlus className="w-3.5 h-3.5" />
+            <span>Export Calendar (.ics)</span>
+          </button>
+          <Badge variant="outline" className="px-3 py-1.5 font-bold text-xs bg-stone-100 dark:bg-stone-800 border-stone-300 dark:border-stone-700">
             {currentSemester}
           </Badge>
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+          <span className="text-xs font-semibold px-2.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
             <CheckCircle2 className="w-3.5 h-3.5" /> Published
           </span>
         </div>

@@ -410,7 +410,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                 <div className="space-y-6 md:space-y-8">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                     <div>
-                      <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-stone-900 dark:text-white">Welcome, {student.name.split(' ')[0]}</h2>
+                      <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-stone-900 dark:text-white">Welcome, {student.name}</h2>
                       <p className="text-stone-500 dark:text-stone-400 mt-1">Here is what's happening with your academics today.</p>
                     </div>
                   </div>
