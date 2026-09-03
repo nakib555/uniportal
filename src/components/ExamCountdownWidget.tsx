@@ -141,6 +141,10 @@ export function ExamCountdownWidget({ portalExams }: { portalExams?: Exam[] }) {
 
   const { exam, targetDate } = nextExamInfo;
 
+  // Determine if exam is within 24 hours (86,400,000 ms)
+  const diffMs = targetDate.getTime() - Date.now();
+  const isWithin24Hours = diffMs > 0 && diffMs <= 24 * 60 * 60 * 1000;
+
   // Format dynamic date display string, e.g. "Monday, Sep 7, 2026"
   const formattedDate = targetDate.toLocaleDateString('en-US', {
     weekday: 'long',
@@ -150,19 +154,42 @@ export function ExamCountdownWidget({ portalExams }: { portalExams?: Exam[] }) {
   });
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-stone-50 to-white dark:from-stone-900/60 dark:to-stone-950 border-stone-200 dark:border-stone-800 shadow-sm overflow-hidden relative">
-      {/* Decorative background element */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-[#8c1515]/5 dark:bg-[#8c1515]/10 rounded-full blur-3xl -mr-8 -mt-8 pointer-events-none" />
+    <Card
+      className={`p-6 bg-gradient-to-br from-stone-50 to-white dark:from-stone-900/60 dark:to-stone-950 overflow-hidden relative transition-all duration-500 ${
+        isWithin24Hours
+          ? 'border-[#8c1515]/40 dark:border-red-500/40 ring-2 ring-[#8c1515]/15 dark:ring-red-500/25 shadow-md'
+          : 'border-stone-200 dark:border-stone-800 shadow-sm'
+      }`}
+    >
+      {/* Decorative ambient background element with soft pulse when within 24h */}
+      <div
+        className={`absolute top-0 right-0 w-36 h-36 rounded-full blur-3xl -mr-8 -mt-8 pointer-events-none transition-all duration-700 ${
+          isWithin24Hours
+            ? 'bg-[#8c1515]/15 dark:bg-red-600/25 animate-[pulse_3s_cubic-bezier(0.4,0,0.6,1)_infinite] motion-reduce:animate-none'
+            : 'bg-[#8c1515]/5 dark:bg-[#8c1515]/10'
+        }`}
+      />
 
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
         <div className="space-y-3.5 max-w-lg">
-          <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-[#8c1515]/10 dark:bg-[#8c1515]/20 text-[#8c1515] dark:text-red-400">
-              <Hourglass className="w-4 h-4 animate-pulse" />
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={`p-1.5 rounded-lg transition-colors ${
+                isWithin24Hours
+                  ? 'bg-[#8c1515]/15 dark:bg-red-500/20 text-[#8c1515] dark:text-red-400 animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite] motion-reduce:animate-none'
+                  : 'bg-[#8c1515]/10 dark:bg-[#8c1515]/20 text-[#8c1515] dark:text-red-400'
+              }`}
+            >
+              <Hourglass className={`w-4 h-4 ${isWithin24Hours ? 'animate-spin motion-reduce:animate-none' : 'animate-pulse'}`} />
             </span>
             <span className="text-xs font-extrabold uppercase tracking-widest text-[#8c1515] dark:text-red-400">
               Next Upcoming Exam
             </span>
+            {isWithin24Hours && (
+              <Badge className="bg-[#8c1515] text-white text-[10px] font-extrabold px-2 py-0.5 border-none shadow-sm animate-[pulse_2.5s_cubic-bezier(0.4,0,0.6,1)_infinite] motion-reduce:animate-none">
+                Within 24 Hours
+              </Badge>
+            )}
             <Badge variant="outline" className="text-[10px] font-bold border-stone-200 dark:border-stone-800 px-2 py-0.5">
               {exam.type}
             </Badge>
@@ -203,8 +230,20 @@ export function ExamCountdownWidget({ portalExams }: { portalExams?: Exam[] }) {
             { label: 'SECS', value: timeLeft.seconds }
           ].map((item, i) => (
             <div key={i} className="text-center">
-              <div className="w-16 sm:w-20 py-2.5 sm:py-3.5 bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-stone-200/80 dark:border-stone-800/80 flex flex-col items-center justify-center min-w-[64px] sm:min-w-[80px]">
-                <span className="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white tabular-nums tracking-tight leading-none">
+              <div
+                className={`w-16 sm:w-20 py-2.5 sm:py-3.5 bg-white dark:bg-stone-900 rounded-2xl shadow-sm border flex flex-col items-center justify-center min-w-[64px] sm:min-w-[80px] transition-colors ${
+                  isWithin24Hours
+                    ? 'border-[#8c1515]/30 dark:border-red-500/30'
+                    : 'border-stone-200/80 dark:border-stone-800/80'
+                }`}
+              >
+                <span
+                  className={`text-2xl sm:text-3xl font-black tabular-nums tracking-tight leading-none ${
+                    isWithin24Hours && item.label !== 'DAYS'
+                      ? 'text-[#8c1515] dark:text-red-400'
+                      : 'text-stone-900 dark:text-white'
+                  }`}
+                >
                   {String(item.value).padStart(2, '0')}
                 </span>
                 <span className="text-[9px] sm:text-[10px] font-extrabold text-stone-400 mt-1.5 tracking-wider uppercase">

@@ -4,6 +4,7 @@ import {
   AVAILABLE_COURSES, FEES_LIST, Course, getStudentData, ClassSchedule 
 } from '../data';
 import { PuSyncService } from '../services/puSyncService';
+import { tempAuthService } from '../services/tempAuthService';
 
 export type NavItem = {
   id: string;
@@ -50,9 +51,22 @@ export const usePortalLogic = () => {
   const [syncSuccess, setSyncSuccess] = useState<boolean>(false);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
 
-  const handleManualSync = async (password: string) => {
+  const handleManualSync = async (password?: string) => {
     if (!store.currentStudentId) {
       setSyncError("No active student ID to synchronize.");
+      return false;
+    }
+
+    // Check temporary saved credentials if password was not provided explicitly
+    let passwordToUse = (password || '').trim();
+    if (!passwordToUse) {
+      const creds = tempAuthService.getTempCredentials(store.currentStudentId);
+      passwordToUse = creds?.password || '';
+    }
+
+    if (!passwordToUse) {
+      setSyncError("Session credentials expired or missing. Please enter your SIMS password to sync.");
+      setIsSyncModalOpen(true);
       return false;
     }
     
@@ -61,12 +75,16 @@ export const usePortalLogic = () => {
     setSyncSuccess(false);
 
     try {
-      const res = await PuSyncService.syncWithPresidency(store.currentStudentId, password);
+      const res = await PuSyncService.syncWithPresidency(store.currentStudentId, passwordToUse);
       if (res.success && res.studentData) {
         setRegisteredCourses(res.studentData.registeredCourses);
         setCompletedCourses(res.studentData.completedCourses);
         if (res.studentData.profile?.photo) {
           setProfilePic(res.studentData.profile.photo);
+        }
+        // Refresh temporary credentials timestamp if manually provided
+        if (password) {
+          tempAuthService.setTempCredentials(store.currentStudentId, password);
         }
         setSyncSuccess(true);
         setTimeout(() => setSyncSuccess(false), 3000);

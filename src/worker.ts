@@ -30,9 +30,9 @@ export default {
 
       try {
         const bodyText = await request.text();
-        const { studentId, password } = JSON.parse(bodyText || '{}');
+        const { studentId, password, skipAdmitCard, admitCardOnly } = JSON.parse(bodyText || '{}');
 
-        const result = await executePresidencySync(studentId, password);
+        const result = await executePresidencySync(studentId, password, { skipAdmitCard, admitCardOnly });
 
         return new Response(JSON.stringify(result), {
           status: result.status,
