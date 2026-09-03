@@ -24,8 +24,8 @@ export const getNavItems = (isAdmin: boolean): NavItem[] => {
     { id: 'home', label: 'Home', icon: Home },
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'accounts', label: 'Accounts', icon: Wallet, subItems: [
+      { id: 'statement', label: 'Accounts Overview' },
       { id: 'bank-slips', label: 'Bank Slips' },
-      { id: 'statement', label: 'Statement of Account' },
       { id: 'financial-aid', label: 'Financial Aid' }
     ]},
     { id: 'courses', label: 'Courses', icon: BookOpen, subItems: [

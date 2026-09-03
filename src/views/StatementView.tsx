@@ -18,36 +18,70 @@ export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic
 
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
-  const { totalDebit, totalCredit, statementChartData } = useMemo(() => {
-    const debit = transactions.reduce((acc, t) => acc + Math.abs(t.debit || 0), 0);
-    const credit = transactions.reduce((acc, t) => acc + Math.abs(t.credit || 0), 0);
+  const statementSummary = useMemo(() => {
+    const lastSemesterBalance = 0;
+    const totalTuitionAndOtherFees = transactions.reduce((acc, t) => acc + Math.abs(t.credit || 0), 0);
+    const totalSemesterWaiver = transactions.filter(t => t.code.startsWith('WAV')).reduce((acc, t) => acc + Math.abs(t.debit || 0), 0);
+    const totalOtherAdjustment = totalSemesterWaiver;
+    const toBePaidInCurrentSemester = totalTuitionAndOtherFees - totalSemesterWaiver;
+    const semesterFee = transactions.filter(t => t.code === 'FEE400' || t.description.toLowerCase().includes('semester fee')).reduce((acc, t) => acc + t.credit, 0);
+    const grossCourseFees = transactions.filter(t => !t.code.startsWith('FEE') && !t.code.startsWith('WAV') && !t.code.startsWith('PAY')).reduce((acc, t) => acc + t.credit, 0);
+    const totalTuitionCourseFees = Math.max(0, grossCourseFees - totalSemesterWaiver);
+    const othersFee = transactions.filter(t => t.code.startsWith('FEE') && t.code !== 'FEE400' && !t.description.toLowerCase().includes('semester fee')).reduce((acc, t) => acc + t.credit, 0);
+    const totalFeesToPay = toBePaidInCurrentSemester + lastSemesterBalance;
+
     const chartData = transactions.map((t, idx) => ({
       name: t.date,
       balance: t.balance,
       index: idx
     })).reverse();
-    return { totalDebit: debit, totalCredit: credit, statementChartData: chartData };
+
+    return {
+      lastSemesterBalance,
+      totalTuitionAndOtherFees,
+      totalSemesterWaiver,
+      totalOtherAdjustment,
+      toBePaidInCurrentSemester,
+      semesterFee,
+      totalTuitionCourseFees,
+      othersFee,
+      totalFeesToPay,
+      chartData
+    };
   }, [transactions]);
 
-  const waiverAmount = useMemo(() => {
-    return transactions.filter(t => t.code === 'WAV001').reduce((acc, t) => acc + t.credit, 0);
-  }, [transactions]);
-
-  const totalFeesToPay = totalDebit - waiverAmount;
-  const [paidAmount, setPaidAmount] = useState(totalCredit - waiverAmount);
+  const [extraPaidOnline, setExtraPaidOnline] = useState(0);
 
   useEffect(() => {
-    setPaidAmount(totalCredit - waiverAmount);
-  }, [student.id, totalCredit, waiverAmount]);
+    setExtraPaidOnline(0);
+  }, [student.id]);
 
-  const currentDues = totalFeesToPay - paidAmount;
+  const effectiveCashPaid = useMemo(() => {
+    const scrapedCashPaid = transactions.filter(t => t.code.startsWith('PAY')).reduce((acc, t) => acc + t.debit, 0);
+    return scrapedCashPaid + extraPaidOnline;
+  }, [transactions, extraPaidOnline]);
+
+  const effectiveDues = Math.max(0, statementSummary.totalFeesToPay - effectiveCashPaid);
+
+  const firstInstalmentAmount = Math.round(statementSummary.lastSemesterBalance + statementSummary.semesterFee + (statementSummary.totalTuitionCourseFees * 0.5) + statementSummary.othersFee);
+  const secondInstalmentAmount = Math.round(statementSummary.totalTuitionCourseFees * 0.3);
+  const thirdInstalmentAmount = Math.round(statementSummary.totalTuitionCourseFees * 0.2);
+
+  const firstInstalmentDues = firstInstalmentAmount - effectiveCashPaid;
+  const secondInstalmentDues = secondInstalmentAmount + Math.min(0, firstInstalmentDues);
+  const thirdInstalmentDues = thirdInstalmentAmount + Math.min(0, secondInstalmentDues);
+
+  const totalDebit = statementSummary.totalTuitionAndOtherFees;
+  const totalCredit = effectiveCashPaid;
+  const statementChartData = statementSummary.chartData;
+  const currentDues = effectiveDues;
 
   const handlePayOnline = () => {
     setIsPaymentModalOpen(true);
   };
   
   const handlePaymentSuccess = (amount) => {
-    setPaidAmount(prev => prev + amount);
+    setExtraPaidOnline(prev => prev + amount);
     setIsPaymentModalOpen(false);
   };
 
@@ -205,47 +239,47 @@ export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic
               <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
                 <tr>
                   <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Last Semester Balance (A)</td>
-                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100 w-32">0 Taka</td>
+                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100 w-32">{statementSummary.lastSemesterBalance.toLocaleString()} Taka</td>
                 </tr>
                 <tr>
                   <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Total Tuition and Other fees</td>
-                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">38,500 Taka</td>
+                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">{statementSummary.totalTuitionAndOtherFees.toLocaleString()} Taka</td>
                 </tr>
                 <tr>
                   <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Total Semester Waiver</td>
-                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">8,125 Taka</td>
+                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">{statementSummary.totalSemesterWaiver.toLocaleString()} Taka</td>
                 </tr>
                 <tr>
                   <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Total Other Adjustment (Including Waiver)</td>
-                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">8,125 Taka</td>
+                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">{statementSummary.totalOtherAdjustment.toLocaleString()} Taka</td>
                 </tr>
                 <tr>
                   <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">To be Paid in Current Semester</td>
-                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">30,375 Taka</td>
+                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">{statementSummary.toBePaidInCurrentSemester.toLocaleString()} Taka</td>
                 </tr>
                 <tr>
                   <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Semester Fee (B)</td>
-                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">6,000 Taka</td>
+                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">{statementSummary.semesterFee.toLocaleString()} Taka</td>
                 </tr>
                 <tr>
                   <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Total Tuition(Course) Fees (C)</td>
-                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">24,375 Taka</td>
+                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">{statementSummary.totalTuitionCourseFees.toLocaleString()} Taka</td>
                 </tr>
                 <tr>
                   <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Others Fee in Current Semester (D)</td>
-                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">0 Taka</td>
+                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">{statementSummary.othersFee.toLocaleString()} Taka</td>
                 </tr>
                 <tr className="bg-stone-50/50 dark:bg-stone-800/30">
                   <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Total Fees To Be Paid (Including Last Semester Balance)</td>
-                  <td className="py-1.5 px-4 font-mono font-bold text-stone-900 dark:text-stone-100">{totalFeesToPay.toLocaleString()} Taka</td>
+                  <td className="py-1.5 px-4 font-mono font-bold text-stone-900 dark:text-stone-100">{statementSummary.totalFeesToPay.toLocaleString()} Taka</td>
                 </tr>
                 <tr>
                   <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Total Cash Paid (Summer-26)</td>
-                  <td className="py-1.5 px-4 font-mono font-medium text-emerald-600 dark:text-emerald-400">{paidAmount.toLocaleString()} Taka</td>
+                  <td className="py-1.5 px-4 font-mono font-medium text-emerald-600 dark:text-emerald-400">{effectiveCashPaid.toLocaleString()} Taka</td>
                 </tr>
                 <tr className="bg-stone-100 dark:bg-stone-800 font-bold border-t-2 border-stone-200 dark:border-stone-700">
                   <td style={{ marginTop: '0px', marginBottom: '0px' }} className="py-2 px-4 text-stone-900 dark:text-stone-100">Total Dues</td>
-                  <td style={{ marginBottom: '0px', paddingBottom: '8px' }} className="py-2 px-4 font-mono text-[#8c1515] dark:text-[#ef4444]">{currentDues > 0 ? currentDues.toLocaleString() : "0"} Taka</td>
+                  <td style={{ marginBottom: '0px', paddingBottom: '8px' }} className="py-2 px-4 font-mono text-[#8c1515] dark:text-[#ef4444]">{effectiveDues > 0 ? effectiveDues.toLocaleString() : "0"} Taka</td>
                 </tr>
               </tbody>
             </table>
@@ -271,25 +305,25 @@ export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic
                </thead>
                <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
                   <tr>
-                     <td className="py-3 px-4 text-left font-medium text-stone-800 dark:text-stone-300">1st Instalment: A+B+C*(30%)+D</td>
+                     <td className="py-3 px-4 text-left font-medium text-stone-800 dark:text-stone-300">1st Instalment: A+B+c*(50%)+D(See Statement Summary)</td>
                      <td className="py-3 px-4 text-stone-600 dark:text-stone-400">Academic Calendar</td>
-                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">18,188 Taka</td>
-                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">7,605 Taka</td>
-                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">10,583 Taka</td>
+                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">{firstInstalmentAmount.toLocaleString()} Taka</td>
+                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">{effectiveCashPaid.toLocaleString()} Taka</td>
+                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">{firstInstalmentDues.toLocaleString()} Taka</td>
                   </tr>
                   <tr>
-                     <td className="py-3 px-4 text-left font-medium text-stone-800 dark:text-stone-300">2nd Instalment: C*(30%)</td>
+                     <td className="py-3 px-4 text-left font-medium text-stone-800 dark:text-stone-300">2nd Instalment: c *(30%)</td>
                      <td className="py-3 px-4 text-stone-600 dark:text-stone-400">Academic Calendar</td>
-                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">7,313 Taka</td>
+                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">{secondInstalmentAmount.toLocaleString()} Taka</td>
                      <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300"></td>
-                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">17,895 Taka</td>
+                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">{secondInstalmentDues.toLocaleString()} Taka</td>
                   </tr>
                   <tr>
-                     <td className="py-3 px-4 text-left font-medium text-stone-800 dark:text-stone-300">3rd Instalment: C*(40%)</td>
+                     <td className="py-3 px-4 text-left font-medium text-stone-800 dark:text-stone-300">3rd Instalment: c *(20%)</td>
                      <td className="py-3 px-4 text-stone-600 dark:text-stone-400">Academic Calendar</td>
-                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">4,875 Taka</td>
+                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">{thirdInstalmentAmount.toLocaleString()} Taka</td>
                      <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300"></td>
-                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">{currentDues > 0 ? currentDues.toLocaleString() : "0"} Taka</td>
+                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">{thirdInstalmentDues.toLocaleString()} Taka</td>
                   </tr>
                </tbody>
              </table>
