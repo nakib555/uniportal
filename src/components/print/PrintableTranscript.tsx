@@ -2,6 +2,15 @@ import React from 'react';
 import { useAppStore } from '../../store';
 import { getStudentData } from '../../data';
 
+const getMarksRange = (grade?: string) => {
+  const scale: Record<string, string> = {
+    'A+': '80-100', 'A': '75-79', 'A-': '70-74',
+    'B+': '65-69', 'B': '60-64', 'B-': '55-59',
+    'C+': '50-54', 'C': '45-49', 'D': '40-44', 'F': '0-39'
+  };
+  return grade && scale[grade] ? scale[grade] : '--';
+};
+
 export function PrintableTranscript({ semesters }: { semesters: any }) {
   const { currentStudentId } = useAppStore();
   const student = getStudentData(currentStudentId).profile;
@@ -35,6 +44,7 @@ export function PrintableTranscript({ semesters }: { semesters: any }) {
                                 <th className="p-2 border-r border-black font-bold text-xs uppercase">Course</th>
                                 <th className="p-2 border-r border-black font-bold text-xs uppercase">Title</th>
                                 <th className="p-2 border-r border-black font-bold text-xs uppercase text-center">Cr</th>
+                                <th className="p-2 border-r border-black font-bold text-xs uppercase text-center">Marks</th>
                                 <th className="p-2 font-bold text-xs uppercase text-center">Grade</th>
                             </tr>
                         </thead>
@@ -44,6 +54,7 @@ export function PrintableTranscript({ semesters }: { semesters: any }) {
                                     <td className="p-2 border-r border-black">{c.code}</td>
                                     <td className="p-2 border-r border-black">{c.title}</td>
                                     <td className="p-2 border-r border-black text-center">{c.credits}</td>
+                                    <td className="p-2 border-r border-black text-center">{c.marks || getMarksRange(c.grade)}</td>
                                     <td className="p-2 text-center font-bold">{c.grade}</td>
                                 </tr>
                             ))}

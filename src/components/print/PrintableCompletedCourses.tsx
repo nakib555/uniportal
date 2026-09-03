@@ -2,6 +2,15 @@ import React from 'react';
 import { useAppStore } from '../../store';
 import { getStudentData } from '../../data';
 
+const getMarksRange = (grade?: string) => {
+  const scale: Record<string, string> = {
+    'A+': '80-100', 'A': '75-79', 'A-': '70-74',
+    'B+': '65-69', 'B': '60-64', 'B-': '55-59',
+    'C+': '50-54', 'C': '45-49', 'D': '40-44', 'F': '0-39'
+  };
+  return grade && scale[grade] ? scale[grade] : '--';
+};
+
 export function PrintableCompletedCourses({ courses }: { courses: any }) {
   const { currentStudentId } = useAppStore();
   const student = getStudentData(currentStudentId).profile;
@@ -32,6 +41,7 @@ export function PrintableCompletedCourses({ courses }: { courses: any }) {
                     <th className="p-2 border-r border-black font-bold text-sm">Course Code</th>
                     <th className="p-2 border-r border-black font-bold text-sm">Course Title</th>
                     <th className="p-2 border-r border-black font-bold text-sm text-center">Cr</th>
+                    <th className="p-2 border-r border-black font-bold text-sm text-center">Marks</th>
                     <th className="p-2 border-r border-black font-bold text-sm text-center">Grade</th>
                     <th className="p-2 font-bold text-sm text-center">Status</th>
                  </tr>
@@ -42,8 +52,11 @@ export function PrintableCompletedCourses({ courses }: { courses: any }) {
                       <td className="p-2 border-r border-black">{course.code}</td>
                       <td className="p-2 border-r border-black">{course.title}</td>
                       <td className="p-2 border-r border-black text-center">{course.credits}</td>
+                      <td className="p-2 border-r border-black text-center">{course.marks || getMarksRange(course.grade)}</td>
                       <td className="p-2 border-r border-black text-center font-bold">{course.grade}</td>
-                      <td className="p-2 text-center text-xs uppercase font-bold text-emerald-700 print:text-emerald-700">Completed</td>
+                      <td className={`p-2 text-center text-xs uppercase font-bold ${course.grade?.toUpperCase() === 'F' ? 'text-red-700 print:text-red-700' : 'text-emerald-700 print:text-emerald-700'}`}>
+                        {course.grade?.toUpperCase() === 'F' ? 'Failed' : 'Completed'}
+                      </td>
                    </tr>
                  ))}
                </tbody>

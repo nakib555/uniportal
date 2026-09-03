@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAppStore } from '../store';
 import { Card } from '../components/ui/card';
-import { Loader2, Lock, User, Eye, EyeOff, ChevronRight, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Loader2, Lock, User, Eye, EyeOff, ChevronRight, CheckCircle2, RefreshCw, Clock } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,7 @@ import {
 } from '../components/ui/dialog';
 import { Button } from '../components/ui/button';
 import { PuSyncService } from '../services/puSyncService';
+import { tempAuthService } from '../services/tempAuthService';
 
 export const LoginView: React.FC = () => {
   const { setIsLoggedIn, setIsAdmin, setRegisteredCourses, setCompletedCourses } = useAppStore();
@@ -33,6 +34,9 @@ export const LoginView: React.FC = () => {
   
   // IT Support state
   const [isSupportOpen, setIsSupportOpen] = useState(false);
+
+  // Admin/Faculty Coming Soon state
+  const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
 
   const hints = loginType === 'student' 
     ? []
@@ -91,6 +95,8 @@ export const LoginView: React.FC = () => {
       await new Promise(r => setTimeout(r, 300));
 
       if (syncResult.success && syncResult.studentData) {
+        // Save temporary credentials for current active session for lazy fetching (Admit card, etc.)
+        tempAuthService.setTempCredentials(cleanId, password);
         setRegisteredCourses(syncResult.studentData.registeredCourses);
         setCompletedCourses(syncResult.studentData.completedCourses);
         useAppStore.getState().setCurrentStudentId(cleanId);
@@ -194,6 +200,27 @@ export const LoginView: React.FC = () => {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={isComingSoonOpen} onOpenChange={setIsComingSoonOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader className="text-center sm:text-left">
+            <div className="mx-auto sm:mx-0 w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-2">
+              <Clock className="w-6 h-6" />
+            </div>
+            <DialogTitle className="text-xl font-black text-stone-900 dark:text-white">
+              Admin & Faculty Portal
+            </DialogTitle>
+            <DialogDescription className="text-stone-600 dark:text-stone-400 text-sm mt-1 leading-relaxed">
+              The Admin & Faculty portal module is currently under active development and will be available soon. Please use the Student login to access student records, grades, class schedules, and accounts.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <DialogClose render={<Button className="w-full sm:w-auto bg-[#8c1515] hover:bg-[#731010] text-white" />}>
+              Got It
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Left side: branding & image (hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-end p-12 bg-[#8c1515] text-white overflow-hidden">
         <div className="absolute inset-0 z-0 opacity-20 dark:opacity-40 select-none pointer-events-none">
@@ -253,10 +280,12 @@ export const LoginView: React.FC = () => {
                   Student
                </button>
                <button 
-                  onClick={() => { setLoginType('admin'); setError(''); }}
-                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${loginType === 'admin' ? 'bg-white dark:bg-stone-700 shadow-sm text-[#8c1515] dark:text-[#ef4444]' : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300'}`}
+                  type="button"
+                  onClick={() => { setIsComingSoonOpen(true); }}
+                  className="flex-1 py-2 text-sm font-bold rounded-lg transition-all text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 flex items-center justify-center gap-1.5"
                >
-                  Admin/Faculty
+                  <span>Admin/Faculty</span>
+                  <span className="text-[10px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 tracking-wider">Soon</span>
                </button>
             </div>
 

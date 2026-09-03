@@ -1,7 +1,7 @@
 import eeeCourses from './eee_courses.json';
 import { PuSyncService } from '../services/puSyncService';
 
-export type Major = 'Computer Science & Engineering' | 'Electrical & Electronic Engineering' | 'Business Administration';
+export type Major = string;
 
 export interface Course {
   code: string;
@@ -60,7 +60,30 @@ export interface StudentProfile {
   cgpa: number;
   accountBalance: number;
   email: string;
+  photo?: string;
   gpaHistory?: { semester: string; gpa: number }[];
+}
+
+export interface StatementSummary {
+  lastSemesterBalance: number;
+  totalTuitionAndFees: number;
+  totalSemesterWaiver: number;
+  totalOtherAdjustment: number;
+  toBePaidCurrentSemester: number;
+  semesterFee: number;
+  totalCourseFees: number;
+  othersFee: number;
+  totalFeesToBePaid: number;
+  totalCashPaid: number;
+  totalDues: number;
+}
+
+export interface InstalmentInfo {
+  no: string;
+  deadline: string;
+  amount: number;
+  cashPaid: number;
+  dues: number;
 }
 
 export interface StudentDetails {
@@ -84,16 +107,19 @@ export interface StudentDetails {
     faculty: string;
     semester?: string;
   }[];
+  bankSlipFees?: { code: string; description: string; amount: number }[];
+  statementSummary?: StatementSummary;
+  instalments?: InstalmentInfo[];
 }
 
 // Constant fallback data for non-dynamic or legacy views
 export const STUDENT_DATA: StudentProfile = {
   id: "",
   name: "Student",
-  status: "Registered",
-  admissionSemester: "Summer-26",
-  currentSemester: "Summer-26",
-  program: "Electrical & Electronic Engineering",
+  status: "",
+  admissionSemester: "",
+  currentSemester: "",
+  program: "",
   creditsTaken: 0,
   creditsCompleted: 0,
   cgpa: 0.00,
@@ -119,12 +145,7 @@ export const SCHEDULE_DATA: ClassSchedule[] = [];
 
 export const TRANSACTIONS_DATA: Transaction[] = [];
 
-export const TEACHERS_DATA: Instructor[] = [
-  { initial: "Harisun", name: "Harisun Azize", email: "harisun.azize@presidency.edu.bd", department: "Department of English", courses: "ENG101-21, ENG099-18" },
-  { initial: "Ibrahim", name: "Md. Ibrahim Khalil", email: "ibrahim.khalil@presidency.edu.bd", department: "Department of Mathematics", courses: "MAT123-6, MAT121-18" },
-  { initial: "Mushfika", name: "Mushfika Ikfat", email: "mushfika.ikfat@presidency.edu.bd", department: "Department of EEE", courses: "EEE203-5, EEE201-5" },
-  { initial: "Alif", name: "Sheikh Md Alif Nur Nahid", email: "alif.nahid@presidency.edu.bd", department: "Department of Physics", courses: "PHY107-6, PHY108-6" },
-];
+export const TEACHERS_DATA: Instructor[] = [];
 
 export const FEES_LIST = [
   { code: "FEE051", description: "ID Card Fee", amount: 100.00 },
@@ -170,10 +191,10 @@ export function getStudentData(studentId?: string | null): StudentDetails {
     profile: {
       id: currentId,
       name: studentName,
-      status: "Registered",
-      admissionSemester: "Summer-26",
-      currentSemester: "Summer-26",
-      program: "Electrical & Electronic Engineering",
+      status: "",
+      admissionSemester: "",
+      currentSemester: "",
+      program: "",
       creditsTaken: 0,
       creditsCompleted: 0,
       cgpa: 0.00,

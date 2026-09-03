@@ -96,7 +96,7 @@ export const RegisteredCoursesView: React.FC = () => {
                <div>
                   <div className="flex justify-between items-start mb-2">
                      <Badge variant="outline" className="font-mono bg-stone-50 dark:bg-stone-950 px-2 py-0.5 text-[10px]">{c.code}</Badge>
-                     <span className="text-xs font-bold text-stone-500 dark:text-stone-400 font-mono text-right shrink-0 ml-2">{c.credits.toFixed(2)} Cr</span>
+                     <span className="text-xs font-bold text-stone-500 dark:text-stone-400 font-mono text-right shrink-0 ml-2">{c.credits.toFixed(2)} Credits</span>
                   </div>
                   <h4 className="font-bold text-stone-900 dark:text-stone-100 text-sm leading-snug line-clamp-2" title={c.title}>{c.title}</h4>
                </div>

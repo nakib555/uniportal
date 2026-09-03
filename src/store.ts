@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Course, REGISTERED_COURSES, COMPLETED_COURSES } from './data';
+import { tempAuthService } from './services/tempAuthService';
 
 interface AppState {
   // Navigation
@@ -88,7 +89,11 @@ export const useAppStore = create<AppState>((set) => ({
       localStorage.setItem('pu_is_logged_in', String(v));
       if (!v) {
         localStorage.removeItem('pu_active_student_id');
+        tempAuthService.clearTempCredentials();
       }
+    }
+    if (!v) {
+      tempAuthService.clearTempCredentials();
     }
     set({ isLoggedIn: v });
   },
@@ -106,20 +111,10 @@ export const useAppStore = create<AppState>((set) => ({
     set({ currentStudentId: v });
   },
 
-  notices: [
-    { id: '1', title: "Report on Conversion from Tri-Semester to Bi-Semester", date: "Today", important: true },
-    { id: '2', title: "ATTENTION! Without Admit Card Students will not be allowed", date: "Yesterday", important: true },
-    { id: '3', title: "bKash payment flow chart available now", date: "Mar 12, 2026", important: false },
-    { id: '4', title: "Tuition Payment and Advising Summary", date: "Mar 10, 2026", important: false }
-  ],
+  notices: [],
   dismissNotice: (id) => set((state) => ({ notices: state.notices.filter(n => n.id !== id) })),
 
-  pendingApprovals: [
-    { id: '1', type: 'Course Enrollment Add/Drop', reqId: 'REQ-1001' },
-    { id: '2', type: 'Course Enrollment Add/Drop', reqId: 'REQ-1002' },
-    { id: '3', type: 'Grade Change Request', reqId: 'REQ-1003' },
-    { id: '4', type: 'Credit Transfer Request', reqId: 'REQ-1004' },
-  ],
+  pendingApprovals: [],
   resolveApproval: (id) => set((state) => ({ pendingApprovals: state.pendingApprovals.filter(p => p.id !== id) })),
 
 
@@ -134,16 +129,7 @@ export const useAppStore = create<AppState>((set) => ({
     students: state.students.map(s => s.id === id ? { ...s, status } : s)
   })),
 
-  coursesData: [
-    { code: 'EEE201', title: 'Electrical Circuits I', credits: 3, section: '5', enrolled: 45, status: 'Active' },
-    { code: 'EEE203', title: 'Electrical Circuits II', credits: 3, section: '5', enrolled: 40, status: 'Active' },
-    { code: 'MAT121', title: 'Pre-Calculus', credits: 3, section: '18', enrolled: 55, status: 'Active' },
-    { code: 'MAT123', title: 'Calculus I', credits: 3, section: '6', enrolled: 50, status: 'Active' },
-    { code: 'ENG099', title: 'Basic English', credits: 3, section: '18', enrolled: 60, status: 'Active' },
-    { code: 'ENG101', title: 'English Reading & Composition', credits: 3, section: '21', enrolled: 60, status: 'Active' },
-    { code: 'PHY107', title: 'General Physics I', credits: 3, section: '6', enrolled: 48, status: 'Active' },
-    { code: 'PHY108', title: 'General Physics I Laboratory', credits: 1, section: '6', enrolled: 48, status: 'Active' },
-  ],
+  coursesData: [],
   deleteCourse: (code) => set((state) => ({ coursesData: state.coursesData.filter(c => c.code !== code) })),
   toggleCourseStatus: (code) => set((state) => ({ 
     coursesData: state.coursesData.map(c => c.code === code ? { ...c, status: c.status === 'Active' ? 'Inactive' : 'Active' } : c)

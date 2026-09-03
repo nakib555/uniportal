@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Camera, Mail, Phone, MapPin, KeyRound, Edit3, CheckCircle2 } from 'lucide-react';
+import { Mail, Phone, MapPin, KeyRound, Edit3, CheckCircle2 } from 'lucide-react';
 import { Card, Badge } from '../components/ui';
 import { usePortalLogic } from '../../hooks/usePortalLogic';
 import {
@@ -14,7 +14,7 @@ import {
 import { Button } from '../../components/ui/button';
 
 export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLogic> }) {
-  const { student, profilePic, handleProfilePicUpload, fileInputRef } = portal;
+  const { student, profilePic } = portal;
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -68,19 +68,12 @@ export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLog
       <Card className="overflow-hidden">
         <div className="h-32 bg-gradient-to-r from-[#8c1515] to-[#b31b1b] relative">
           <div className="absolute -bottom-16 left-8 flex items-end gap-6">
-            <div className="relative group">
+            <div className="relative w-[98px] h-[110px] rounded-[10px] border-4 border-white dark:border-stone-900 bg-stone-100 dark:bg-stone-800 shadow-md overflow-hidden">
               <img 
                 src={profilePic} 
                 alt={student.name}
-                className="w-32 h-32 rounded-2xl border-4 border-white dark:border-stone-900 object-cover bg-stone-100 dark:bg-stone-800 shadow-md"
+                className="w-full h-full object-contain"
               />
-              <button 
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center text-white"
-              >
-                <Camera className="w-8 h-8" />
-              </button>
-              <input type="file" ref={fileInputRef} onChange={handleProfilePicUpload} accept="image/*" className="hidden" />
             </div>
             <div className="mb-4 text-white drop-shadow-md">
               <h1 className="text-3xl font-bold">{student.name}</h1>

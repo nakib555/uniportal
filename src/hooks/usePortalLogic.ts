@@ -23,7 +23,6 @@ export const usePortalLogic = () => {
     completedCourses, setCompletedCourses
   } = store;
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   
   useEffect(() => {
     if (store.isDarkMode) {
@@ -37,17 +36,6 @@ export const usePortalLogic = () => {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
-    }
-  };
-
-  const handleProfilePicUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfilePic(reader.result as string);
-      };
-      reader.readAsDataURL(file);
     }
   };
   
@@ -77,6 +65,9 @@ export const usePortalLogic = () => {
       if (res.success && res.studentData) {
         setRegisteredCourses(res.studentData.registeredCourses);
         setCompletedCourses(res.studentData.completedCourses);
+        if (res.studentData.profile?.photo) {
+          setProfilePic(res.studentData.profile.photo);
+        }
         setSyncSuccess(true);
         setTimeout(() => setSyncSuccess(false), 3000);
         return true;
@@ -114,8 +105,11 @@ export const usePortalLogic = () => {
       const data = getStudentData(store.currentStudentId);
       setRegisteredCourses(data.registeredCourses);
       setCompletedCourses(data.completedCourses);
+      if (data.profile?.photo) {
+        setProfilePic(data.profile.photo);
+      }
     }
-  }, [store.currentStudentId, setRegisteredCourses, setCompletedCourses]);
+  }, [store.currentStudentId, setRegisteredCourses, setCompletedCourses, setProfilePic]);
 
   const student = studentData.profile;
 
@@ -124,9 +118,10 @@ export const usePortalLogic = () => {
   const toggleFee = (code: string) => {
     setSelectedFees(prev => prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code]);
   };
+  const currentAvailableFees = studentData?.bankSlipFees || FEES_LIST;
   const bankSlipTotal = useMemo(() => {
-    return FEES_LIST.filter(f => selectedFees.includes(f.code)).reduce((acc, f) => acc + f.amount, 0);
-  }, [selectedFees]);
+    return currentAvailableFees.filter(f => selectedFees.includes(f.code)).reduce((acc, f) => acc + f.amount, 0);
+  }, [selectedFees, currentAvailableFees]);
 
   const [isBankSlipSuccess, setIsBankSlipSuccess] = useState(false);
   const [isConfirmPaymentOpen, setIsConfirmPaymentOpen] = useState(false);
@@ -376,8 +371,7 @@ export const usePortalLogic = () => {
     store,
     is24HourFormat, setIs24HourFormat,
     profilePic, setProfilePic,
-    fileInputRef,
-    toggleDarkMode, handleProfilePicUpload,
+    toggleDarkMode,
     registeredCourses, setRegisteredCourses,
     completedCourses,
     registerError, setRegisterError,

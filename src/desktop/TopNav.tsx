@@ -10,7 +10,7 @@ interface TopNavProps {
 }
 
 export function TopNav({ portal }: TopNavProps) {
-  const { store, toggleDarkMode, profilePic } = portal;
+  const { store, toggleDarkMode, profilePic, student } = portal;
   const appStore = useAppStore();
   const [showNotifications, setShowNotifications] = useState(false);
   
@@ -104,7 +104,7 @@ export function TopNav({ portal }: TopNavProps) {
              <div className="flex items-center gap-3 rounded-full hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors pr-2 cursor-pointer">
                <img src={profilePic} alt="Profile" className="w-9 h-9 rounded-full object-cover shadow-sm bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700" />
                <div className="hidden sm:block text-left mr-2">
-                 <p className="text-sm font-bold text-stone-700 dark:text-stone-200 leading-tight">{store.isAdmin ? 'Dr. Sarah Connor' : 'Ibrahim'}</p>
+                 <p className="text-sm font-bold text-stone-700 dark:text-stone-200 leading-tight">{store.isAdmin ? 'Dr. Sarah Connor' : (student?.name || 'Student')}</p>
                  <p className="text-xs text-stone-500 dark:text-stone-400 font-medium">{store.isAdmin ? 'Administrator' : 'Student'}</p>
                </div>
              </div>

@@ -176,9 +176,9 @@ export const CourseEnrollmentView: React.FC = () => {
               onChange={e => setCourseCreditFilter(e.target.value)}
             >
               <option value="All">Any Credits</option>
-              <option value="1">1.0 Cr</option>
-              <option value="2">2.0 Cr</option>
-              <option value="3">3.0 Cr</option>
+              <option value="1">1.0 Credits</option>
+              <option value="2">2.0 Credits</option>
+              <option value="3">3.0 Credits</option>
             </select>
           </div>
           <div className="col-span-2 md:col-span-1">
@@ -258,7 +258,7 @@ export const CourseEnrollmentView: React.FC = () => {
                  
                  <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs font-semibold text-stone-500 dark:text-stone-400 mb-6">
                     <span className="flex items-center"><GraduationCap className="w-3.5 h-3.5 mr-1.5 opacity-70" /> Sec {course.section}</span>
-                    <span className="flex items-center"><Clock className="w-3.5 h-3.5 mr-1.5 opacity-70" /> {course.credits.toFixed(1)} Cr</span>
+                    <span className="flex items-center"><Clock className="w-3.5 h-3.5 mr-1.5 opacity-70" /> {course.credits.toFixed(1)} Credits</span>
                     <span className="flex items-center"><User className="w-3.5 h-3.5 mr-1.5 opacity-70" /> {course.faculty.split(' ')[0]}</span>
                  </div>
 

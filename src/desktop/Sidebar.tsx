@@ -28,10 +28,15 @@ export function Sidebar({ portal }: SidebarProps) {
         isSidebarCollapsed ? "justify-center" : "gap-3"
       )}>
         <img 
-          src="https://wsrv.nl/?url=http://www.sims.pu.edu.bd/img/layout/header_logo.png&output=webp" 
-          alt="PU" 
-          className="h-10 w-auto object-contain shrink-0 dark:brightness-200 dark:grayscale" 
+          src="/icon.svg" 
+          alt="UniPortal" 
+          className="h-10 w-10 object-contain rounded-xl shadow-xs shrink-0" 
         />
+        {!isSidebarCollapsed && (
+          <div className="font-black text-lg tracking-tight text-stone-900 dark:text-white leading-none">
+            Sims<span className="text-[#8c1515] dark:text-[#ef4444]">.</span>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto w-full py-4 px-3 flex flex-col gap-1 hide-scrollbar" data-lenis-prevent>

@@ -1,13 +1,78 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Badge } from '../components/ui';
 import { usePortalLogic } from '../hooks/usePortalLogic';
-import { ShieldAlert, Printer, AlertTriangle, FileText, CheckCircle2 } from 'lucide-react';
+import { ShieldAlert, Printer, AlertTriangle, FileQuestion, RefreshCw, CheckCircle2, Loader2 } from 'lucide-react';
+import { PuSyncService } from '../services/puSyncService';
+import { tempAuthService } from '../services/tempAuthService';
+import { AdmitCardSkeleton } from '../components/AdmitCardSkeleton';
 
 export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortalLogic> }) {
   const student = portal ? portal.student : null;
-  const registeredCourses = portal ? portal.registeredCourses : [];
+  const currentStudentId = portal?.store?.currentStudentId || student?.id || '';
   
-  const hasOutstandingBalance = student ? student.accountBalance < 0 : true;
+  // State for lazy on-demand fetch
+  const [isFetching, setIsFetching] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
+  const [manualPassword, setManualPassword] = useState('');
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [localExams, setLocalExams] = useState<any[] | null>(null);
+  const [serverHasRestriction, setServerHasRestriction] = useState<boolean | null>(null);
+
+  const existingExams = localExams ?? (portal?.studentData?.exams || []);
+  const hasOutstandingBalance = existingExams.length > 0
+    ? false
+    : (serverHasRestriction !== null
+        ? serverHasRestriction
+        : (student ? student.accountBalance < 0 : false));
+
+  // Lazy fetch handler using session credentials or manual prompt
+  const performFetch = useCallback(async (customPassword?: string) => {
+    if (!currentStudentId) return;
+
+    // Check temporary session credentials first
+    const creds = tempAuthService.getTempCredentials(currentStudentId);
+    const passwordToUse = (customPassword || creds?.password || '').trim();
+
+    if (!passwordToUse) {
+      // Need user to enter password if session was refreshed or credentials expired
+      setShowPasswordPrompt(true);
+      setHasAttemptedFetch(true);
+      return;
+    }
+
+    setIsFetching(true);
+    setFetchError(null);
+    setShowPasswordPrompt(false);
+
+    try {
+      const result = await PuSyncService.fetchAdmitCardOnly(currentStudentId, passwordToUse);
+      setHasAttemptedFetch(true);
+
+      if (result.success) {
+        setLocalExams(result.exams);
+        setServerHasRestriction(result.hasRestriction);
+        // Also save credentials to session if provided manually
+        if (customPassword) {
+          tempAuthService.setTempCredentials(currentStudentId, customPassword);
+        }
+      } else {
+        setFetchError(result.message || 'Failed to fetch Admit Card.');
+      }
+    } catch (err: any) {
+      setFetchError(err?.message || 'Error communicating with Presidency SIMS.');
+      setHasAttemptedFetch(true);
+    } finally {
+      setIsFetching(false);
+    }
+  }, [currentStudentId]);
+
+  // Trigger lazy fetch on initial mount if admit card hasn't been retrieved yet
+  useEffect(() => {
+    if (currentStudentId && existingExams.length === 0 && !hasAttemptedFetch && !isFetching) {
+      performFetch();
+    }
+  }, [currentStudentId, existingExams.length, hasAttemptedFetch, isFetching, performFetch]);
 
   // Real date format
   const today = new Date();
@@ -16,16 +81,99 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
 
   return (
     <div className="space-y-6">
-      {/* Dynamic Main Title */}
-      <div className="flex justify-between items-center print:hidden border-b border-stone-200 dark:border-stone-800 pb-4">
+      {/* Header bar */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 print:hidden border-b border-stone-200 dark:border-stone-800 pb-4">
         <div>
           <h2 className="text-2xl font-black tracking-tight text-stone-900 dark:text-white">Exam Admit Card</h2>
           <p className="text-sm text-stone-500 mt-1">Download and print your official final examination entry slip.</p>
         </div>
+
+        {/* Action button to re-fetch from SIMS on demand */}
+        {!isFetching && (
+          <button
+            onClick={() => performFetch()}
+            disabled={isFetching}
+            className="flex items-center gap-1.5 text-xs font-bold text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white bg-stone-100 dark:bg-stone-800/60 hover:bg-stone-200 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-700 px-3 py-2 rounded-xl transition-all"
+            title="Refresh Admit Card from Presidency University SIMS"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
+            <span>Re-check SIMS</span>
+          </button>
+        )}
       </div>
 
-      {hasOutstandingBalance ? (
-        /* RESTRICTED FLOW - Match real Presidency SIMS screenshot exactly */
+      {/* 1. GHOST SKELETON + REAL-TIME PROMPT WHILE FETCHING */}
+      {isFetching && (
+        <div className="space-y-6">
+          {/* Informative Status Banner with Radar Pulse */}
+          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-2xl p-4 sm:p-5 max-w-3xl mx-auto shadow-sm">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="relative flex items-center justify-center w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 flex-shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-40" />
+                <Loader2 className="w-5 h-5 animate-spin relative" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-bold text-amber-900 dark:text-amber-200">
+                  Retrieving Examination Clearance & Routine...
+                </h4>
+                <p className="text-xs text-amber-700/90 dark:text-amber-300/80 mt-0.5">
+                  Connecting directly to the Presidency University SIMS exam database for Student ID <strong className="font-mono">{currentStudentId}</strong>.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Realistic Official Ghost Skeleton */}
+          <AdmitCardSkeleton />
+        </div>
+      )}
+
+      {/* 2. PASSWORD PROMPT (if session was cleared / page reloaded without active session password) */}
+      {!isFetching && showPasswordPrompt && (
+        <Card className="p-8 border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 rounded-2xl max-w-xl mx-auto shadow-sm text-center">
+          <div className="w-14 h-14 bg-[#8c1515]/10 dark:bg-red-950/40 text-[#8c1515] dark:text-red-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <FileQuestion className="w-7 h-7" />
+          </div>
+          <h3 className="text-lg font-bold text-stone-900 dark:text-white mb-2">
+            SIMS Authentication Required
+          </h3>
+          <p className="text-sm text-stone-600 dark:text-stone-400 mb-6 max-w-md mx-auto">
+            To query official exam routine and financial clearance from Presidency University SIMS, please provide your portal password for verification.
+          </p>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (manualPassword) performFetch(manualPassword);
+            }}
+            className="space-y-4 max-w-sm mx-auto"
+          >
+            <div className="text-left">
+              <label className="text-xs font-bold text-stone-600 dark:text-stone-300 mb-1 block">
+                SIMS Portal Password
+              </label>
+              <input
+                type="password"
+                required
+                value={manualPassword}
+                onChange={(e) => setManualPassword(e.target.value)}
+                placeholder="Enter your SIMS password"
+                className="w-full px-3.5 py-2.5 bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={!manualPassword || isFetching}
+              className="w-full bg-[#8c1515] hover:bg-[#a11a1a] text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow-md active:scale-95 disabled:opacity-50"
+            >
+              Fetch Examination Routine
+            </button>
+          </form>
+        </Card>
+      )}
+
+      {/* 3. RESTRICTED FLOW - Match real Presidency SIMS screenshot exactly */}
+      {!isFetching && !showPasswordPrompt && hasOutstandingBalance && (
         <div className="space-y-6">
           <Card className="p-8 border-2 border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center rounded-2xl max-w-2xl mx-auto shadow-sm">
             <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-sm">
@@ -59,8 +207,42 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
             </div>
           </div>
         </div>
-      ) : (
-        /* CLEARED FLOW - Render actual print-friendly Admit Card */
+      )}
+
+      {/* 4. NOT FOUND PROMPT (When cleared of financial restriction, but no routine published yet) */}
+      {!isFetching && !showPasswordPrompt && !hasOutstandingBalance && existingExams.length === 0 && (
+        <Card className="p-8 border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 rounded-2xl max-w-2xl mx-auto shadow-sm text-center">
+          <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <FileQuestion className="w-8 h-8" />
+          </div>
+
+          <h3 className="text-xl font-bold text-stone-900 dark:text-white mb-2">
+            No Exam Routine or Admit Card Found
+          </h3>
+          <p className="text-stone-600 dark:text-stone-400 text-sm max-w-md mx-auto mb-6 leading-relaxed">
+            The Office of the Controller of Examinations has not published the official schedule for your registered courses yet, or the final routine is still being finalized.
+          </p>
+
+          <div className="p-4 bg-stone-50 dark:bg-stone-800/40 rounded-xl border border-stone-200 dark:border-stone-800 max-w-md mx-auto mb-6 text-xs text-stone-600 dark:text-stone-300 text-left space-y-1.5">
+            <div className="font-semibold text-stone-800 dark:text-stone-200">Notice for Students:</div>
+            <div>• Admit cards are generally published 7-10 days prior to term finals.</div>
+            <div>• Ensure all semester fee installments are cleared in the Accounts Office.</div>
+            <div>• If your routine was recently published, click below to re-check SIMS.</div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-3">
+            <button
+              onClick={() => performFetch()}
+              className="flex items-center gap-2 font-bold bg-[#8c1515] hover:bg-[#a11a1a] text-white px-5 py-2.5 rounded-xl shadow-md transition-all active:scale-95 text-sm"
+            >
+              <RefreshCw className="w-4 h-4" /> Re-check Presidency SIMS
+            </button>
+          </div>
+        </Card>
+      )}
+
+      {/* 5. CLEARED FLOW - Render actual print-friendly Admit Card */}
+      {!isFetching && !showPasswordPrompt && !hasOutstandingBalance && existingExams.length > 0 && (
         <div className="space-y-6">
           <Card className="p-8 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl max-w-3xl mx-auto shadow-sm print:p-0 print:border-none print:shadow-none">
             {/* Slip Header */}
@@ -112,41 +294,77 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
               </div>
             </div>
 
-            {/* Allowed Courses List with Security Code & Room */}
+            {/* Allowed Courses List with Room */}
             <div className="py-6">
-              <h4 className="text-sm font-black text-stone-900 dark:text-white uppercase tracking-wider mb-4">Exam Schedule & Security Codes</h4>
-              <div className="overflow-x-auto rounded-xl border border-stone-200 dark:border-stone-800">
+              <h4 className="text-sm font-black text-stone-900 dark:text-white uppercase tracking-wider mb-4">Exam Schedule</h4>
+              
+              {/* Mobile View: Cards */}
+              <div className="block lg:hidden space-y-3">
+                {existingExams.map((ex, i) => (
+                  <div key={i} className="p-4 border border-stone-200 dark:border-stone-800 rounded-xl bg-stone-50/50 dark:bg-stone-900/50 space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-mono font-black text-stone-900 dark:text-white text-base">{ex.courseCode}</div>
+                        <div className="text-xs text-stone-500 font-medium mt-0.5">Section {ex.section} • {ex.semester || portal?.student?.currentSemester}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-0.5">Room</div>
+                        <div className="font-bold text-emerald-600 dark:text-emerald-400">{ex.room}</div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 pt-3 border-t border-stone-200 dark:border-stone-800">
+                      <div>
+                        <div className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Date & Day</div>
+                        <div className="text-sm font-bold text-stone-800 dark:text-stone-200">{ex.date}</div>
+                        <div className="text-xs text-stone-500">{ex.day}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Time</div>
+                        <div className="text-sm font-bold text-stone-800 dark:text-stone-200">{ex.time}</div>
+                      </div>
+                    </div>
+                    
+                    <div className="pt-3 border-t border-stone-200 dark:border-stone-800 flex justify-between items-center">
+                       <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Faculty</span>
+                       <span className="text-xs font-medium text-stone-700 dark:text-stone-300 capitalize">{ex.faculty}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop View: Table */}
+              <div className="hidden lg:block overflow-x-auto rounded-xl border border-stone-200 dark:border-stone-800 custom-scrollbar overscroll-x-contain">
                 <table className="w-full border-collapse text-left text-xs whitespace-nowrap">
                   <thead>
                     <tr className="bg-stone-50 dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 font-bold text-stone-700 dark:text-stone-300">
-                      <th className="px-3.5 py-3">Security Code</th>
-                      <th className="px-3.5 py-3">Course</th>
-                      <th className="px-3.5 py-3 text-center">Section</th>
-                      <th className="px-3.5 py-3">Day</th>
-                      <th className="px-3.5 py-3">Date</th>
-                      <th className="px-3.5 py-3">Time</th>
-                      <th className="px-3.5 py-3 text-center">Room</th>
-                      <th className="px-3.5 py-3">Faculty</th>
-                      <th className="px-3.5 py-3">Semester</th>
+                      <th className="px-4 py-4 text-[13px] sticky left-0 z-10 bg-stone-50/95 dark:bg-stone-900/95 backdrop-blur border-r border-stone-200 dark:border-stone-800 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] dark:shadow-[4px_0_12px_-4px_rgba(0,0,0,0.2)]">Course</th>
+                      <th className="px-4 py-4 text-[13px] text-center">Section</th>
+                      <th className="px-4 py-4 text-[13px]">Day</th>
+                      <th className="px-4 py-4 text-[13px]">Date</th>
+                      <th className="px-4 py-4 text-[13px]">Time</th>
+                      <th className="px-4 py-4 text-[13px] text-center">Room</th>
+                      <th className="px-4 py-4 text-[13px]">Faculty</th>
+                      <th className="px-4 py-4 text-[13px]">Semester</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {(portal?.studentData?.exams || []).map((ex, i) => (
+                    {existingExams.map((ex, i) => (
                       <tr key={i} className="border-b border-stone-100 dark:border-stone-800/50 hover:bg-stone-50/50 dark:hover:bg-stone-800/30 text-stone-800 dark:text-stone-200">
-                        <td className="px-3.5 py-3 font-mono font-bold text-indigo-600 dark:text-indigo-400">{ex.securityCode || '51693' + (5 + i)}</td>
-                        <td className="px-3.5 py-3 font-mono font-bold text-stone-900 dark:text-white">{ex.courseCode}</td>
-                        <td className="px-3.5 py-3 text-center font-mono">{ex.section}</td>
-                        <td className="px-3.5 py-3">{ex.day}</td>
-                        <td className="px-3.5 py-3 font-medium">{ex.date}</td>
-                        <td className="px-3.5 py-3 text-stone-600 dark:text-stone-400">{ex.time}</td>
-                        <td className="px-3.5 py-3 text-center font-bold text-emerald-600 dark:text-emerald-400">{ex.room}</td>
-                        <td className="px-3.5 py-3 capitalize">{ex.faculty}</td>
-                        <td className="px-3.5 py-3 text-stone-500">{ex.semester || 'Summer-26'}</td>
+                        <td className="px-4 py-4 text-sm font-mono font-bold text-stone-900 dark:text-white sticky left-0 z-10 bg-white/95 dark:bg-stone-950/95 backdrop-blur border-r border-stone-200 dark:border-stone-800 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] dark:shadow-[4px_0_12px_-4px_rgba(0,0,0,0.2)]">{ex.courseCode}</td>
+                        <td className="px-4 py-4 text-sm text-center font-mono">{ex.section}</td>
+                        <td className="px-4 py-4 text-sm">{ex.day}</td>
+                        <td className="px-4 py-4 text-sm font-medium">{ex.date}</td>
+                        <td className="px-4 py-4 text-sm text-stone-600 dark:text-stone-400">{ex.time}</td>
+                        <td className="px-4 py-4 text-sm text-center font-bold text-emerald-600 dark:text-emerald-400">{ex.room}</td>
+                        <td className="px-4 py-4 text-sm capitalize">{ex.faculty}</td>
+                        <td className="px-4 py-4 text-sm text-stone-500">{ex.semester || portal?.student?.currentSemester || 'Summer-26'}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+              
               <div className="mt-4 p-3 bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-800 rounded-lg text-xs text-stone-600 dark:text-stone-400">
                 Congratulations and wishing you the best success always. For any query please visit Registrar office / Accounts office / Controller office.
               </div>

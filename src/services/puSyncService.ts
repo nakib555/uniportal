@@ -102,10 +102,16 @@ export class PuSyncService {
    * Synchronizes genuine real-time data from Presidency University SIMS using ID and password.
    * Directly follows the authentication and multi-tab crawling formula from ai_studio_code (1).py.
    * Zero dummy or fallback data is substituted.
+   * By default, skips Exam Admit Card to keep initial login fast and defer admit card fetch.
    */
-  public static async syncWithPresidency(studentId: string, password?: string): Promise<PuSyncResult> {
+  public static async syncWithPresidency(
+    studentId: string,
+    password?: string,
+    options?: { skipAdmitCard?: boolean }
+  ): Promise<PuSyncResult> {
     const cleanId = studentId.trim();
     const cleanPass = (password || '').trim();
+    const skipAdmitCard = options?.skipAdmitCard ?? true;
 
     if (!cleanId) {
       return {
@@ -129,7 +135,11 @@ export class PuSyncService {
       const response = await fetch('/api/pu-sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentId: cleanId, password: cleanPass })
+        body: JSON.stringify({
+          studentId: cleanId,
+          password: cleanPass,
+          skipAdmitCard
+        })
       });
 
       const result = await response.json();
@@ -156,6 +166,85 @@ export class PuSyncService {
         studentData: null as any,
         source: 'live_portal',
         message: `Presidency University SIMS network connection error: ${err.message || 'Server unreachable'}`
+      };
+    }
+  }
+
+  /**
+   * On-demand lazy fetch for Exam Admit Card & routine only.
+   * Authenticates with Presidency SIMS and retrieves examination routines & clearance without recrawling all other tabs.
+   * Automatically updates cached student details in sync registry and localStorage.
+   */
+  public static async fetchAdmitCardOnly(
+    studentId: string,
+    password?: string
+  ): Promise<{ success: boolean; exams: StudentDetails['exams']; hasRestriction: boolean; message?: string }> {
+    const cleanId = studentId.trim();
+    const cleanPass = (password || '').trim();
+
+    if (!cleanId || !cleanPass) {
+      return {
+        success: false,
+        exams: [],
+        hasRestriction: false,
+        message: 'Student ID and password are required to fetch Exam Admit Card.'
+      };
+    }
+
+    try {
+      const response = await fetch('/api/pu-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentId: cleanId,
+          password: cleanPass,
+          admitCardOnly: true
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        const exams = result.exams || [];
+        const hasRestriction = Boolean(result.hasRestriction);
+
+        // Update local registry with newly fetched exams and balance restriction if needed
+        const existingStudent = this.getSyncedStudent(cleanId);
+        if (existingStudent) {
+          const updatedStudent: StudentDetails = {
+            ...existingStudent,
+            exams,
+            profile: {
+              ...existingStudent.profile,
+              // If SIMS reported restriction and balance wasn't negative, reflect restriction
+              accountBalance: hasRestriction && existingStudent.profile.accountBalance >= 0
+                ? -1
+                : existingStudent.profile.accountBalance
+            }
+          };
+          this.setSyncedStudent(cleanId, updatedStudent);
+        }
+
+        return {
+          success: true,
+          exams,
+          hasRestriction,
+          message: result.message || 'Exam Admit Card retrieved successfully.'
+        };
+      } else {
+        return {
+          success: false,
+          exams: [],
+          hasRestriction: false,
+          message: result.error || 'Unable to retrieve Exam Admit Card from Presidency SIMS.'
+        };
+      }
+    } catch (err: any) {
+      return {
+        success: false,
+        exams: [],
+        hasRestriction: false,
+        message: `Presidency SIMS connection error: ${err.message || 'Server unreachable'}`
       };
     }
   }

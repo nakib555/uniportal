@@ -6,9 +6,10 @@ import { useAppStore } from '../store';
 import { getStudentData, TRANSACTIONS_DATA } from '../data';
 import { usePortalLogic } from '../hooks/usePortalLogic';
 import { AreaChart, Area, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
-import { TrendingDown, TrendingUp, Wallet, AlertCircle, Download, CreditCard, ArrowRight, CheckCircle2, Loader2, X, Lock } from 'lucide-react';
+import { TrendingDown, TrendingUp, Wallet, AlertCircle, Download, CreditCard, ArrowRight, CheckCircle2, Loader2, X, Lock, Printer } from 'lucide-react';
 import { PrintableStatement } from '../components/print/PrintableStatement';
 import { PaymentPortal } from '../components/PaymentPortal';
+import { exportStatementToPdf } from '../utils/statementPdf';
 
 export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic> }> = ({ portal }) => {
   const { isDarkMode, currentStudentId } = useAppStore();
@@ -17,72 +18,77 @@ export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic
   const transactions = portal ? portal.studentData.transactions : TRANSACTIONS_DATA;
 
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-
-  const statementSummary = useMemo(() => {
-    const lastSemesterBalance = 0;
-    const totalTuitionAndOtherFees = transactions.reduce((acc, t) => acc + Math.abs(t.credit || 0), 0);
-    const totalSemesterWaiver = transactions.filter(t => t.code.startsWith('WAV')).reduce((acc, t) => acc + Math.abs(t.debit || 0), 0);
-    const totalOtherAdjustment = totalSemesterWaiver;
-    const toBePaidInCurrentSemester = totalTuitionAndOtherFees - totalSemesterWaiver;
-    const semesterFee = transactions.filter(t => t.code === 'FEE400' || t.description.toLowerCase().includes('semester fee')).reduce((acc, t) => acc + t.credit, 0);
-    const grossCourseFees = transactions.filter(t => !t.code.startsWith('FEE') && !t.code.startsWith('WAV') && !t.code.startsWith('PAY')).reduce((acc, t) => acc + t.credit, 0);
-    const totalTuitionCourseFees = Math.max(0, grossCourseFees - totalSemesterWaiver);
-    const othersFee = transactions.filter(t => t.code.startsWith('FEE') && t.code !== 'FEE400' && !t.description.toLowerCase().includes('semester fee')).reduce((acc, t) => acc + t.credit, 0);
-    const totalFeesToPay = toBePaidInCurrentSemester + lastSemesterBalance;
-
-    const chartData = transactions.map((t, idx) => ({
-      name: t.date,
-      balance: t.balance,
-      index: idx
-    })).reverse();
-
-    return {
-      lastSemesterBalance,
-      totalTuitionAndOtherFees,
-      totalSemesterWaiver,
-      totalOtherAdjustment,
-      toBePaidInCurrentSemester,
-      semesterFee,
-      totalTuitionCourseFees,
-      othersFee,
-      totalFeesToPay,
-      chartData
-    };
-  }, [transactions]);
-
   const [extraPaidOnline, setExtraPaidOnline] = useState(0);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   useEffect(() => {
     setExtraPaidOnline(0);
   }, [student.id]);
 
-  const effectiveCashPaid = useMemo(() => {
-    const scrapedCashPaid = transactions.filter(t => t.code.startsWith('PAY')).reduce((acc, t) => acc + t.debit, 0);
-    return scrapedCashPaid + extraPaidOnline;
-  }, [transactions, extraPaidOnline]);
+  const portalSummary = portal?.studentData?.statementSummary;
+  const portalInstalments = portal?.studentData?.instalments;
 
-  const effectiveDues = Math.max(0, statementSummary.totalFeesToPay - effectiveCashPaid);
+  const totalDebit = useMemo(() => {
+    if (portalSummary) return portalSummary.toBePaidCurrentSemester;
+    const rawDebit = transactions.reduce((acc, t) => acc + Math.abs(t.debit || 0), 0);
+    const waiverCredit = transactions
+       .filter(t => t.description.toLowerCase().includes('waiver'))
+       .reduce((acc, t) => acc + Math.abs(t.credit || 0), 0);
+    return rawDebit - waiverCredit;
+  }, [transactions, portalSummary]);
 
-  const firstInstalmentAmount = Math.round(statementSummary.lastSemesterBalance + statementSummary.semesterFee + (statementSummary.totalTuitionCourseFees * 0.5) + statementSummary.othersFee);
-  const secondInstalmentAmount = Math.round(statementSummary.totalTuitionCourseFees * 0.3);
-  const thirdInstalmentAmount = Math.round(statementSummary.totalTuitionCourseFees * 0.2);
+  const totalCredit = useMemo(() => {
+    if (portalSummary) return portalSummary.totalCashPaid + extraPaidOnline;
+    const directCredit = transactions
+       .filter(t => !t.description.toLowerCase().includes('waiver'))
+       .reduce((acc, t) => acc + Math.abs(t.credit || 0), 0);
+    return directCredit + extraPaidOnline;
+  }, [transactions, extraPaidOnline, portalSummary]);
 
-  const firstInstalmentDues = firstInstalmentAmount - effectiveCashPaid;
-  const secondInstalmentDues = secondInstalmentAmount + Math.min(0, firstInstalmentDues);
-  const thirdInstalmentDues = thirdInstalmentAmount + Math.min(0, secondInstalmentDues);
+  const currentBalance = useMemo(() => {
+    if (portalSummary) return portalSummary.totalDues;
+    if (transactions.length > 0) {
+      return transactions[transactions.length - 1].balance;
+    }
+    return student.accountBalance || 0;
+  }, [transactions, student.accountBalance, portalSummary]);
 
-  const totalDebit = statementSummary.totalTuitionAndOtherFees;
-  const totalCredit = effectiveCashPaid;
-  const statementChartData = statementSummary.chartData;
-  const currentDues = effectiveDues;
+  const currentDues = useMemo(() => {
+    return Math.max(0, currentBalance - extraPaidOnline);
+  }, [currentBalance, extraPaidOnline]);
+
+  const statementChartData = useMemo(() => {
+    return transactions.map((t, idx) => ({
+      name: t.date,
+      balance: t.balance,
+      index: idx
+    })).reverse();
+  }, [transactions]);
 
   const handlePayOnline = () => {
     setIsPaymentModalOpen(true);
   };
   
-  const handlePaymentSuccess = (amount) => {
+  const handlePaymentSuccess = (amount: number) => {
     setExtraPaidOnline(prev => prev + amount);
     setIsPaymentModalOpen(false);
+  };
+
+  const handleDownloadPdf = () => {
+    try {
+      setIsExportingPdf(true);
+      exportStatementToPdf({
+        student,
+        totalDebit,
+        totalCredit,
+        currentDues,
+        transactions,
+      });
+    } catch (err) {
+      console.error('Failed to export statement PDF:', err);
+    } finally {
+      setTimeout(() => setIsExportingPdf(false), 500);
+    }
   };
 
   return (
@@ -95,9 +101,36 @@ export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic
             <p className="text-stone-500 dark:text-stone-400 mt-1">Overall financial summary and transaction history.</p>
           </div>
           {transactions.length > 0 && (
-            <button onClick={() => window.print()} className="flex w-fit items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold transition-colors">
-               <Download className="w-4 h-4" /> Download PDF
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleDownloadPdf}
+                disabled={isExportingPdf}
+                aria-label="Download Formatted PDF"
+                className="flex items-center gap-2 bg-[#8c1515] hover:bg-[#731010] text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm disabled:opacity-60"
+              >
+                {isExportingPdf ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Generating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    <span>Download PDF</span>
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => window.print()}
+                aria-label="Print Statement"
+                className="flex items-center gap-2 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 px-3.5 py-2 rounded-xl text-sm font-bold transition-colors border border-stone-200 dark:border-stone-700"
+              >
+                <Printer className="w-4 h-4 text-stone-500" />
+                <span>Print</span>
+              </button>
+            </div>
           )}
         </header>
 
@@ -153,7 +186,7 @@ export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic
                   </div>
                   {currentDues > 0 ? (
                      <button onClick={handlePayOnline} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-[#8c1515] dark:bg-stone-900 dark:text-white rounded-lg text-xs font-bold shadow-sm hover:opacity-90 transition-opacity whitespace-nowrap">
-                        <CreditCard className="w-3.5 h-3.5" /> Pay via ekpay
+                        <CreditCard className="w-3.5 h-3.5" /> Pay Now
                      </button>
                   ) : currentDues < 0 ? (
                      <p className="text-xs font-bold text-red-300 mt-1 flex items-center gap-1">
@@ -195,149 +228,214 @@ export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic
          </div>
       </Card>
 
-      <Card className="overflow-hidden">
-        <div className="divide-y divide-stone-100 dark:divide-stone-800 bg-white dark:bg-stone-900">
-           {transactions.map((t, i) => (
-              <div key={i} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:bg-stone-50/50 dark:hover:bg-stone-800/50 transition-colors">
-                 <div className="flex-1">
-                    <div className="flex justify-between sm:justify-start sm:items-center gap-3 mb-2">
-                       <Badge variant="outline" className="font-mono text-[10px] bg-stone-50 dark:bg-stone-950">{t.code}</Badge>
-                       <span className="text-xs text-stone-400 dark:text-stone-500 font-medium">{t.date}</span>
-                    </div>
+      <Card className="overflow-hidden border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-sm">
+        {/* Mobile View: Cards */}
+        <div className="block sm:hidden divide-y divide-stone-100 dark:divide-stone-800">
+          {transactions.map((t, i) => (
+              <div key={i} className="p-4 flex flex-col gap-3 hover:bg-stone-50/50 dark:hover:bg-stone-800/50 transition-colors">
+                 <div className="flex flex-col gap-1.5">
                     <h4 className="font-bold text-stone-900 dark:text-stone-100 text-sm leading-tight">{t.description}</h4>
+                    <div className="flex items-center gap-2 mt-1">
+                      {t.code && <Badge variant="outline" className="font-mono text-[10px] bg-stone-50 dark:bg-stone-900">{t.code}</Badge>}
+                      <span className="text-xs text-stone-400 dark:text-stone-500 font-medium">{t.date}</span>
+                    </div>
                  </div>
-                 <div className="flex items-center justify-between sm:justify-end gap-6 text-sm sm:min-w-[280px]">
-                    <div className="sm:text-right">
-                       <div className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest sm:mb-0.5">Fee</div>
+                 <div className="grid grid-cols-2 gap-4 text-sm border-t border-stone-100 dark:border-stone-800 pt-3 mt-1">
+                    <div>
+                       <div className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-0.5">Fee</div>
                        <div className="font-mono font-medium text-stone-700 dark:text-stone-300">{t.debit ? t.debit.toLocaleString() : '0'}</div>
                     </div>
-                    <div className="text-right sm:border-l sm:border-stone-200 sm:dark:border-stone-700 sm:pl-6">
-                       <div className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest sm:mb-0.5">Paid</div>
+                    <div className="text-right">
+                       <div className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-0.5">Paid</div>
                        <div className="font-mono font-medium text-emerald-600 dark:text-emerald-400">{t.credit ? t.credit.toLocaleString() : '0'}</div>
                     </div>
-                    <div className="hidden sm:block text-right border-l border-stone-200 dark:border-stone-700 pl-6">
-                       <div className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-0.5">Balance</div>
-                       <div className="font-mono font-black text-stone-900 dark:text-stone-100">{t.balance.toLocaleString()}</div>
-                    </div>
                  </div>
-                 <div className="sm:hidden flex justify-between items-center bg-stone-50/50 dark:bg-stone-800/20 px-3 py-2 rounded-lg mt-2">
-                    <span className="text-xs font-bold text-stone-500 uppercase tracking-widest">Balance</span>
-                    <span className="font-mono font-black text-stone-900 dark:text-stone-100 text-sm">{t.balance.toLocaleString()}</span>
+                 <div className="flex justify-between items-center bg-stone-50/50 dark:bg-stone-800/20 px-3 py-2.5 rounded-lg mt-1 border border-stone-100 dark:border-stone-800/50">
+                    <span className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Balance</span>
+                    <span className="font-mono font-black text-stone-900 dark:text-stone-100">{t.balance.toLocaleString()}</span>
                  </div>
               </div>
-           ))}
+          ))}
         </div>
+
+        {/* Desktop View: Table */}
+        <div className="hidden sm:block overflow-x-auto">
+          <table className="w-full text-sm text-left whitespace-nowrap sm:whitespace-normal">
+            <thead className="text-xs text-stone-500 dark:text-stone-400 uppercase bg-stone-50/50 dark:bg-stone-950/50 border-b border-stone-100 dark:border-stone-800">
+              <tr>
+                <th className="px-6 py-4 font-bold tracking-wider">Date</th>
+                <th className="px-6 py-4 font-bold tracking-wider min-w-[250px]">Description</th>
+                <th className="px-6 py-4 font-bold tracking-wider text-right">Fee</th>
+                <th className="px-6 py-4 font-bold tracking-wider text-right">Paid</th>
+                <th className="px-6 py-4 font-bold tracking-wider text-right">Balance</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
+              {transactions.map((t, i) => (
+                <tr key={i} className="hover:bg-stone-50/50 dark:hover:bg-stone-800/50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-stone-500 dark:text-stone-400 font-medium align-top">
+                    {t.date}
+                  </td>
+                  <td className="px-6 py-4 align-top">
+                    <div className="flex flex-col gap-1.5">
+                      <span className="font-bold text-stone-900 dark:text-stone-100 leading-tight">{t.description}</span>
+                      {t.code && (
+                        <Badge variant="outline" className="w-fit font-mono text-[10px] bg-stone-50 dark:bg-stone-900">
+                          {t.code}
+                        </Badge>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-right align-top font-mono font-medium text-stone-700 dark:text-stone-300">
+                    {t.debit ? t.debit.toLocaleString() : '0'}
+                  </td>
+                  <td className="px-6 py-4 text-right align-top font-mono font-medium text-emerald-600 dark:text-emerald-400">
+                    {t.credit ? t.credit.toLocaleString() : '0'}
+                  </td>
+                  <td className="px-6 py-4 text-right align-top font-mono font-black text-stone-900 dark:text-stone-100">
+                    {t.balance.toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {/* Authentic Statement Summary Footer */}
+        {transactions.length > 0 && (
+          <div className="bg-stone-50/70 dark:bg-stone-950/40 p-4 sm:p-5 border-t border-stone-100 dark:border-stone-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="text-xs font-extrabold text-stone-500 dark:text-stone-400 uppercase tracking-wider">
+               Grand Summary
+            </div>
+            <div className="flex items-center justify-between sm:justify-end gap-6 text-sm sm:min-w-[280px]">
+               <div className="sm:text-right">
+                  <div className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-0.5">Total Billed</div>
+                  <div className="font-mono font-bold text-stone-800 dark:text-stone-200">৳{totalDebit.toLocaleString()}</div>
+               </div>
+               <div className="text-right sm:border-l sm:border-stone-200 sm:dark:border-stone-700 sm:pl-6">
+                  <div className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-0.5">Total Paid</div>
+                  <div className="font-mono font-bold text-emerald-600 dark:text-emerald-400">৳{totalCredit.toLocaleString()}</div>
+               </div>
+               <div className="text-right border-l border-stone-200 dark:border-stone-700 pl-6">
+                  <div className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-0.5">Final Dues</div>
+                  <div className="font-mono font-black text-rose-600 dark:text-rose-400">৳{currentBalance.toLocaleString()}</div>
+               </div>
+            </div>
+          </div>
+        )}
       </Card>
 
-      <div className="flex justify-center mt-10">
-        <div className="w-full max-w-2xl">
-          <Card className="overflow-hidden border border-stone-200 dark:border-stone-800 shadow-sm">
-            <div style={{ marginTop: '-16px' }} className="bg-stone-100 dark:bg-stone-900/50 py-2 text-center border-b border-stone-200 dark:border-stone-800">
-              <h4 className="font-bold text-stone-700 dark:text-stone-300 text-sm">Statement Summary (Summer-26)</h4>
-            </div>
-            <table className="w-full text-right text-sm">
-              <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
-                <tr>
-                  <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Last Semester Balance (A)</td>
-                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100 w-32">{statementSummary.lastSemesterBalance.toLocaleString()} Taka</td>
-                </tr>
-                <tr>
-                  <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Total Tuition and Other fees</td>
-                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">{statementSummary.totalTuitionAndOtherFees.toLocaleString()} Taka</td>
-                </tr>
-                <tr>
-                  <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Total Semester Waiver</td>
-                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">{statementSummary.totalSemesterWaiver.toLocaleString()} Taka</td>
-                </tr>
-                <tr>
-                  <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Total Other Adjustment (Including Waiver)</td>
-                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">{statementSummary.totalOtherAdjustment.toLocaleString()} Taka</td>
-                </tr>
-                <tr>
-                  <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">To be Paid in Current Semester</td>
-                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">{statementSummary.toBePaidInCurrentSemester.toLocaleString()} Taka</td>
-                </tr>
-                <tr>
-                  <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Semester Fee (B)</td>
-                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">{statementSummary.semesterFee.toLocaleString()} Taka</td>
-                </tr>
-                <tr>
-                  <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Total Tuition(Course) Fees (C)</td>
-                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">{statementSummary.totalTuitionCourseFees.toLocaleString()} Taka</td>
-                </tr>
-                <tr>
-                  <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Others Fee in Current Semester (D)</td>
-                  <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">{statementSummary.othersFee.toLocaleString()} Taka</td>
-                </tr>
-                <tr className="bg-stone-50/50 dark:bg-stone-800/30">
-                  <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Total Fees To Be Paid (Including Last Semester Balance)</td>
-                  <td className="py-1.5 px-4 font-mono font-bold text-stone-900 dark:text-stone-100">{statementSummary.totalFeesToPay.toLocaleString()} Taka</td>
-                </tr>
-                <tr>
-                  <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Total Cash Paid (Summer-26)</td>
-                  <td className="py-1.5 px-4 font-mono font-medium text-emerald-600 dark:text-emerald-400">{effectiveCashPaid.toLocaleString()} Taka</td>
-                </tr>
-                <tr className="bg-stone-100 dark:bg-stone-800 font-bold border-t-2 border-stone-200 dark:border-stone-700">
-                  <td style={{ marginTop: '0px', marginBottom: '0px' }} className="py-2 px-4 text-stone-900 dark:text-stone-100">Total Dues</td>
-                  <td style={{ marginBottom: '0px', paddingBottom: '8px' }} className="py-2 px-4 font-mono text-[#8c1515] dark:text-[#ef4444]">{effectiveDues > 0 ? effectiveDues.toLocaleString() : "0"} Taka</td>
-                </tr>
-              </tbody>
-            </table>
-          </Card>
+      {/* Authentic Statement Summary & Instalment Cards */}
+      {(portalSummary || portalInstalments) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          {portalSummary && (
+            <Card className="p-6 border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-sm">
+              <h3 className="font-extrabold text-stone-900 dark:text-stone-100 text-sm mb-4 border-b border-stone-100 dark:border-stone-800 pb-3 flex items-center justify-between">
+                <span>Statement Summary (Summer-26)</span>
+                <Badge variant="secondary" className="font-sans text-[10px] uppercase font-black bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300">Official Portal</Badge>
+              </h3>
+              <div className="space-y-3 text-xs">
+                <div className="flex justify-between items-center text-stone-600 dark:text-stone-400">
+                  <span>Last Semester Balance (A)</span>
+                  <span className="font-mono font-bold text-stone-950 dark:text-white">৳{portalSummary.lastSemesterBalance.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center text-stone-600 dark:text-stone-400">
+                  <span>Total Tuition and Other Fees</span>
+                  <span className="font-mono font-bold text-stone-950 dark:text-white">৳{portalSummary.totalTuitionAndFees.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center text-stone-600 dark:text-stone-400">
+                  <span>Total Semester Waiver</span>
+                  <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">-৳{portalSummary.totalSemesterWaiver.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center text-stone-600 dark:text-stone-400">
+                  <span>Total Other Adjustment</span>
+                  <span className="font-mono font-bold text-stone-500">-৳{portalSummary.totalOtherAdjustment.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center font-bold border-t border-stone-100 dark:border-stone-800 pt-2 text-stone-800 dark:text-stone-200">
+                  <span>To be Paid in Current Semester</span>
+                  <span className="font-mono font-extrabold text-stone-950 dark:text-white">৳{portalSummary.toBePaidCurrentSemester.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center text-stone-600 dark:text-stone-400 pl-3 border-l-2 border-stone-200 dark:border-stone-700">
+                  <span>Semester Fee (B)</span>
+                  <span className="font-mono">৳{portalSummary.semesterFee.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center text-stone-600 dark:text-stone-400 pl-3 border-l-2 border-stone-200 dark:border-stone-700">
+                  <span>Total Course Fees (C)</span>
+                  <span className="font-mono">৳{portalSummary.totalCourseFees.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center text-stone-600 dark:text-stone-400 pl-3 border-l-2 border-stone-200 dark:border-stone-700">
+                  <span>Others Fee (D)</span>
+                  <span className="font-mono">৳{portalSummary.othersFee.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center font-bold border-t border-stone-100 dark:border-stone-800 pt-2 text-stone-800 dark:text-stone-200">
+                  <span>Total Fees To be Paid</span>
+                  <span className="font-mono font-extrabold text-stone-950 dark:text-white">৳{portalSummary.totalFeesToBePaid.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center text-stone-600 dark:text-stone-400">
+                  <span>Total Cash Paid (Summer-26)</span>
+                  <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">৳{portalSummary.totalCashPaid.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center font-black border-t border-stone-200 dark:border-stone-700 pt-2.5 text-stone-900 dark:text-white text-sm">
+                  <span>Total Dues</span>
+                  <span className={`font-mono font-black ${portalSummary.totalDues > 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                    ৳{portalSummary.totalDues.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {portalInstalments && portalInstalments.length > 0 && (
+            <Card className="p-6 border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-sm flex flex-col justify-between">
+              <div>
+                <h3 className="font-extrabold text-stone-900 dark:text-stone-100 text-sm mb-4 border-b border-stone-100 dark:border-stone-800 pb-3 flex items-center justify-between">
+                  <span>Instalment Payment Information</span>
+                  <Badge variant="outline" className="font-sans text-[10px] uppercase font-bold border-rose-200 text-[#8c1515] bg-rose-50/30 dark:border-stone-700 dark:text-rose-400">Deadlines</Badge>
+                </h3>
+                <div className="space-y-4">
+                  {portalInstalments.map((inst, index) => (
+                    <div key={index} className="p-3.5 rounded-xl bg-stone-50/70 dark:bg-stone-950/20 border border-stone-100 dark:border-stone-800/60 flex flex-col gap-2.5">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="text-xs font-black text-stone-800 dark:text-stone-200">{inst.no}</div>
+                          <div className="text-[10px] text-stone-400 dark:text-stone-500 font-semibold mt-0.5">{inst.deadline}</div>
+                        </div>
+                        <Badge variant="outline" className={`text-[10px] font-bold px-2 py-0.5 ${
+                          inst.dues > 0 
+                            ? "border-rose-100 text-rose-700 bg-rose-50/20" 
+                            : inst.dues < 0 
+                              ? "border-emerald-100 text-emerald-700 bg-emerald-50/20"
+                              : "border-stone-200 text-stone-500"
+                        }`}>
+                          {inst.dues > 0 ? "Due" : inst.dues < 0 ? "Overpaid" : "Completed"}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-center border-t border-stone-100 dark:border-stone-800/40 pt-2 text-[11px]">
+                        <div>
+                          <div className="text-stone-400 font-bold text-[9px] uppercase tracking-wider mb-0.5">Amount</div>
+                          <div className="font-mono font-bold text-stone-700 dark:text-stone-300">৳{inst.amount.toLocaleString()}</div>
+                        </div>
+                        <div>
+                          <div className="text-stone-400 font-bold text-[9px] uppercase tracking-wider mb-0.5">Cash Paid</div>
+                          <div className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{inst.cashPaid > 0 ? `৳${inst.cashPaid.toLocaleString()}` : "—"}</div>
+                        </div>
+                        <div>
+                          <div className="text-stone-400 font-bold text-[9px] uppercase tracking-wider mb-0.5">Dues</div>
+                          <div className={`font-mono font-black ${inst.dues > 0 ? "text-rose-600 dark:text-rose-400" : inst.dues < 0 ? "text-emerald-600 dark:text-emerald-400" : "text-stone-500"}`}>
+                            {inst.dues !== 0 ? `৳${inst.dues.toLocaleString()}` : "৳0"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="text-[10px] text-stone-400 dark:text-stone-500 mt-4 leading-relaxed bg-stone-50/50 dark:bg-stone-950/10 p-3 rounded-lg border border-stone-100 dark:border-stone-800/40">
+                <strong>Attention:</strong> The calculation of installment amounts is based on values in the Statement Summary. For any queries, please communicate with the Presidency University Accounts Office.
+              </div>
+            </Card>
+          )}
         </div>
-      </div>
-
-      <div className="mt-8">
-        <Card className="overflow-hidden border border-stone-200 dark:border-stone-800 shadow-sm">
-           <div style={{ paddingTop: '8px', marginLeft: '0px', marginBottom: '-17px', marginTop: '-17px' }} className="bg-stone-100 dark:bg-stone-900/50 py-2 text-center border-b border-stone-200 dark:border-stone-800">
-              <h4 className="font-bold text-stone-700 dark:text-stone-300 text-sm">Installment Payment</h4>
-           </div>
-           <div className="overflow-x-auto">
-             <table className="w-full text-center text-sm whitespace-nowrap">
-               <thead className="bg-[#f8f7f5] dark:bg-stone-950 text-stone-600 dark:text-stone-400 border-b border-stone-200 dark:border-stone-800 font-semibold">
-                  <tr>
-                     <th className="py-3 px-4 text-left">No of Instalment</th>
-                     <th className="py-3 px-4">Instalment Deadline</th>
-                     <th className="py-3 px-4">Instalment Amount</th>
-                     <th className="py-3 px-4">Total Cash Paid<br/><span className="text-[10px] font-normal">(Within the<br/>Instalment<br/>Deadline)</span></th>
-                     <th className="py-3 px-4">Instalment Dues</th>
-                  </tr>
-               </thead>
-               <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
-                  <tr>
-                     <td className="py-3 px-4 text-left font-medium text-stone-800 dark:text-stone-300">1st Instalment: A+B+c*(50%)+D(See Statement Summary)</td>
-                     <td className="py-3 px-4 text-stone-600 dark:text-stone-400">Academic Calendar</td>
-                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">{firstInstalmentAmount.toLocaleString()} Taka</td>
-                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">{effectiveCashPaid.toLocaleString()} Taka</td>
-                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">{firstInstalmentDues.toLocaleString()} Taka</td>
-                  </tr>
-                  <tr>
-                     <td className="py-3 px-4 text-left font-medium text-stone-800 dark:text-stone-300">2nd Instalment: c *(30%)</td>
-                     <td className="py-3 px-4 text-stone-600 dark:text-stone-400">Academic Calendar</td>
-                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">{secondInstalmentAmount.toLocaleString()} Taka</td>
-                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300"></td>
-                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">{secondInstalmentDues.toLocaleString()} Taka</td>
-                  </tr>
-                  <tr>
-                     <td className="py-3 px-4 text-left font-medium text-stone-800 dark:text-stone-300">3rd Instalment: c *(20%)</td>
-                     <td className="py-3 px-4 text-stone-600 dark:text-stone-400">Academic Calendar</td>
-                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">{thirdInstalmentAmount.toLocaleString()} Taka</td>
-                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300"></td>
-                     <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">{thirdInstalmentDues.toLocaleString()} Taka</td>
-                  </tr>
-               </tbody>
-             </table>
-           </div>
-        </Card>
-      </div>
-
-      <div className="mt-6 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 p-4 rounded-xl text-sm font-semibold text-[#8c1515] dark:text-[#ef4444]">
-         <h4 className="underline mb-2 font-bold">Attention!</h4>
-         <ol className="list-decimal pl-5 space-y-1 text-stone-800 dark:text-stone-300 font-medium">
-            <li>The calculation of Instalment Amount is based on the value in Statement Summary.</li>
-            <li>If you have any queries, please feel free to communicate with the Accounts Office.</li>
-         </ol>
-      </div>
+      )}
       </>
       )}
 

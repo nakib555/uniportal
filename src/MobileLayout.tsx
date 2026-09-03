@@ -3,46 +3,15 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Home, User, BookOpen, Calendar, Wallet, Users, Bell, 
   ChevronRight, ChevronLeft, ChevronDown, CheckCircle2,
-  GraduationCap, Clock, MapPin, Menu, AlertCircle, BookMarked, Search, Moon, Info, Sun, Camera,
-  TrendingDown, TrendingUp, FileText, X, Mail, Phone, KeyRound, Edit3, LogOut, RefreshCw, Loader2
+  GraduationCap, Clock, MapPin, Menu, AlertCircle, BookMarked, Search, Moon, Sun, Camera,
+  TrendingDown, TrendingUp, FileText, X
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { 
-  REGISTERED_COURSES, COMPLETED_COURSES, AVAILABLE_COURSES,
-  SCHEDULE_DATA, TRANSACTIONS_DATA, FEES_LIST,
+  STUDENT_DATA, REGISTERED_COURSES, COMPLETED_COURSES, AVAILABLE_COURSES,
+  SCHEDULE_DATA, TRANSACTIONS_DATA, TEACHERS_DATA, FEES_LIST,
   Course
-} from '../../data';
-import { getNavItems } from '../../data/navData';
-import { ScheduleWeeklyView } from '../../views/ScheduleWeeklyView';
-import { ScheduleTable } from '../ScheduleTable';
-import { DegreeAuditView } from '../../views/DegreeAuditView';
-import { GradesView } from '../../views/GradesView';
-import { ExamsView } from '../../views/ExamsView';
-import { AttendanceView } from '../../views/AttendanceView';
-import { FacultyEvalView } from '../../views/FacultyEvalView';
-import { FinancialAidView } from '../../views/FinancialAidView';
-import { StatementView } from '../../views/StatementView';
-import { AdmitCardView } from '../../views/AdmitCardView';
-import { PWAInstallButton } from '../pwa/PWAInstallButton';
-import { BankSlipsView } from '../../views/BankSlipsView';
-import { CompletedCoursesView } from '../../views/CompletedCoursesView';
-import { AdminDashboardView } from '../../views/admin/AdminDashboardView';
-import { AdminStudentRecordsView } from '../../views/admin/AdminStudentRecordsView';
-import { AdminCourseManagementView } from '../../views/admin/AdminCourseManagementView';
-import { AdminGradeManagementView } from '../../views/admin/AdminGradeManagementView';
-import { AdminEnrollmentApprovalsView } from '../../views/admin/AdminEnrollmentApprovalsView';
-import { AdminAttendanceManagementView } from '../../views/admin/AdminAttendanceManagementView';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from '../ui/dialog';
-import { Button } from '../ui/button';
-
+} from './data';
 
 type NavItem = {
   id: string;
@@ -50,6 +19,24 @@ type NavItem = {
   icon: React.ElementType;
   subItems?: { id: string; label: string }[];
 };
+
+const navItems: NavItem[] = [
+  { id: 'home', label: 'Home', icon: Home },
+  { id: 'profile', label: 'Profile', icon: User },
+  { id: 'accounts', label: 'Accounts', icon: Wallet, subItems: [
+    { id: 'bank-slips', label: 'Bank Slips' },
+    { id: 'statement', label: 'Statement of Account' }
+  ]},
+  { id: 'courses', label: 'Courses', icon: BookOpen, subItems: [
+    { id: 'registered-courses', label: 'Registered Courses' },
+    { id: 'completed-courses', label: 'Completed Courses' },
+    { id: 'available-courses', label: 'Course Enrollment' }
+  ]},
+  { id: 'schedule', label: 'Schedule', icon: Calendar, subItems: [
+    { id: 'class-schedule', label: 'Class Schedule' }
+  ]},
+  { id: 'teachers', label: 'Related Teachers', icon: Users },
+];
 
 // Simple format time utility
 const formatTime = (timeString: string, is24HourFormat: boolean) => {
@@ -91,9 +78,11 @@ const Badge: React.FC<{ children: React.ReactNode, variant?: "default" | "succes
   );
 };
 
-import { useAppStore } from '../../store';
+import { ReactLenis } from 'lenis/react';
 
-import { usePortalLogic } from '../../hooks/usePortalLogic';
+import { useAppStore } from './store';
+
+import { usePortalLogic } from './hooks/usePortalLogic';
 export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
   const {
     store, is24HourFormat, setIs24HourFormat, profilePic,
@@ -108,44 +97,24 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
     handleBankSlipSubmitClick, handleConfirmPayment, filteredSchedule, groupedSchedule,
     groupedCompletedCourses, filteredAvailableCourses, totalDebit, totalCredit, statementChartData,
     handleMenuToggle, handleNavClick, handleSubItemClick,
-    handleRegister, confirmCoreqsRegistration, handleDropCourse, hasCompletedPrerequisites, setSelectedFees, setPendingCoreqCourse,
-    isSyncModalOpen, setIsSyncModalOpen, isSyncing
+    handleRegister, confirmCoreqsRegistration, handleDropCourse, hasCompletedPrerequisites, setSelectedFees, setPendingCoreqCourse
   } = props;
-  const [showNotifications, setShowNotifications] = useState(false);
   const [selectedSyllabusCourse, setSelectedSyllabusCourse] = useState<Course | null>(null);
-  const [courseToDrop, setCourseToDrop] = useState<string | null>(null);
-  const [isPasswordOpen, setIsPasswordOpen] = useState(false);
-  const [passwordSuccessMsg, setPasswordSuccessMsg] = useState('');
-  const { activeTab, setActiveTab, expandedMenus, isSidebarCollapsed, setIsSidebarCollapsed, isMobileMenuOpen, setIsMobileMenuOpen, isDarkMode, isAdmin } = store;
-
-  const confirmDrop = () => {
-    if (courseToDrop) {
-      handleDropCourse(courseToDrop);
-      setCourseToDrop(null);
-    }
-  };
-
-  const handleChangePassword = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPasswordSuccessMsg('Password has been successfully updated.');
-    setIsPasswordOpen(false);
-    setTimeout(() => setPasswordSuccessMsg(''), 4000);
-  };
-
-  const currentNavItems = getNavItems(isAdmin);
-  const currentTabParent = currentNavItems.find(n => n.id === activeTab || n.subItems?.some(s => s.id === activeTab));
-  const pageTitle = currentNavItems.find(n => n.id === activeTab)?.label || 
-                    currentNavItems.flatMap(n => n.subItems || []).find(s => s.id === activeTab)?.label;
+  const { activeTab, setActiveTab, expandedMenus, isSidebarCollapsed, setIsSidebarCollapsed, isMobileMenuOpen, setIsMobileMenuOpen, isDarkMode } = store;
+  const currentTabParent = navItems.find(n => n.id === activeTab || n.subItems?.some(s => s.id === activeTab));
+  const pageTitle = navItems.find(n => n.id === activeTab)?.label || 
+                    navItems.flatMap(n => n.subItems || []).find(s => s.id === activeTab)?.label;
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] dark:bg-stone-950 font-sans selection:bg-[#8c1515]/20 text-stone-900 dark:text-stone-100 flex flex-col md:flex-row">
+    <ReactLenis root>
+      <div className="min-h-screen bg-[#f9fafb] dark:bg-stone-950 font-sans selection:bg-[#8c1515]/20 text-stone-900 dark:text-stone-100 flex flex-col md:flex-row">
       
       {/* Overlay for mobile */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="cursor-pointer fixed inset-0 bg-stone-900/40 dark:bg-black/60 z-40 md:hidden"
+            className="fixed inset-0 bg-stone-900/40 dark:bg-black/60 z-40 md:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
           />
         )}
@@ -160,13 +129,14 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
         <div className={`p-6 border-b border-stone-100 dark:border-stone-800 flex items-center relative h-20 shrink-0 ${isSidebarCollapsed ? 'justify-center' : 'gap-4'}`}>
           {!isSidebarCollapsed ? (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-3">
-              <img src="/icon.svg" alt="UniPortal" className="h-10 w-10 object-contain rounded-xl shadow-xs shrink-0" />
-              <div className="font-black text-xl tracking-tight text-stone-900 dark:text-white leading-none">
-                Sims<span className="text-[#8c1515] dark:text-[#ef4444]">.</span>
+              <img src="https://wsrv.nl/?url=http://www.sims.pu.edu.bd/img/layout/header_logo.png&output=webp" alt="PU" className="h-10 w-auto object-contain shrink-0 dark:brightness-200 dark:grayscale" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+              <div className="min-w-0">
+                <h1 className="font-bold text-stone-900 dark:text-white leading-none text-lg">Presidency</h1>
+                <p className="text-[10px] uppercase tracking-widest text-[#8c1515] dark:text-[#ef4444] font-bold mt-0.5">University</p>
               </div>
             </motion.div>
           ) : (
-            <img src="/icon.svg" alt="UniPortal" className="h-10 w-10 object-contain rounded-xl shadow-xs shrink-0" />
+            <img src="https://wsrv.nl/?url=http://www.sims.pu.edu.bd/img/layout/header_logo.png&output=webp" alt="PU" className="h-8 w-auto object-contain shrink-0 dark:brightness-200 dark:grayscale" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
           )}
           
           <button 
@@ -177,10 +147,10 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
           </button>
         </div>
         
-        <div className={`flex-1 overflow-y-auto py-6 space-y-1 scrollbar-hide ${isSidebarCollapsed ? 'px-3' : 'px-4'}`} data-lenis-prevent>
+        <div className={`flex-1 overflow-y-auto py-6 space-y-1 scrollbar-hide ${isSidebarCollapsed ? 'px-3' : 'px-4'}`}>
           {!isSidebarCollapsed && <div className="text-[11px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-3 px-3">Menu</div>}
           
-          {currentNavItems.map(item => {
+          {navItems.map(item => {
             const isParentActive = activeTab === item.id || item.subItems?.some(s => s.id === activeTab);
             const isExpanded = expandedMenus[item.id];
 
@@ -206,26 +176,12 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                 </button>
                 
                 {/* Sub Menu */}
-                <AnimatePresence initial={false}>
+                <AnimatePresence>
                   {!isSidebarCollapsed && item.subItems && isExpanded && (
                     <motion.div 
                       initial={{ height: 0, opacity: 0 }}
-                      animate={{ 
-                        height: 'auto', 
-                        opacity: 1,
-                        transition: { 
-                          height: { duration: 0.3, ease: [0.04, 0.62, 0.23, 0.98] },
-                          opacity: { duration: 0.25, delay: 0.05 }
-                        }
-                      }}
-                      exit={{ 
-                        height: 0, 
-                        opacity: 0,
-                        transition: { 
-                          height: { duration: 0.3, ease: [0.04, 0.62, 0.23, 0.98] },
-                          opacity: { duration: 0.2 }
-                        }
-                      }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden"
                     >
                       <div className="pl-11 pr-3 py-1 space-y-0.5 mt-1 relative before:content-[''] before:absolute before:left-6 before:top-2 before:bottom-2 before:w-px before:bg-stone-200 dark:before:bg-stone-700">
@@ -260,17 +216,14 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
             <img src={profilePic} onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${student.name}` }} alt="Profile" className={`rounded-full bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 object-cover ${isSidebarCollapsed ? 'w-10 h-10' : 'w-10 h-10'}`} />
             {!isSidebarCollapsed && (
               <div className="min-w-0">
-                <p className="text-[13px] font-bold text-stone-900 dark:text-stone-100 truncate">{isAdmin ? 'Dr. Sarah Connor' : student.name}</p>
-                <p className="text-[11px] text-stone-500 dark:text-stone-400 font-mono truncate border dark:border-stone-700 bg-white dark:bg-stone-900 px-1.5 rounded w-fit mt-0.5">{isAdmin ? 'Admin' : student.id}</p>
+                <p className="text-[13px] font-bold text-stone-900 dark:text-stone-100 truncate">{student.name.split(' ')[0]}</p>
+                <p className="text-[11px] text-stone-500 dark:text-stone-400 font-mono truncate border dark:border-stone-700 bg-white dark:bg-stone-900 px-1.5 rounded w-fit mt-0.5">{student.id}</p>
               </div>
             )}
           </div>
           {!isSidebarCollapsed && (
-            <button
-               onClick={() => store.setIsLoggedIn(false)}
-               className="w-full flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-wider py-2 mt-2 rounded-lg border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 bg-white dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
-            >
-              Sign Out <LogOut className="w-3.5 h-3.5" />
+            <button className="w-full text-[11px] font-bold uppercase tracking-wider py-2 rounded-lg border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 bg-white dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors">
+              Sign Out
             </button>
           )}
         </div>
@@ -281,7 +234,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
         
         {/* Top Header */}
         <header 
-          className="h-16 border-b border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex items-center justify-between px-4 md:px-8 shrink-0 z-10 sticky top-0 print:hidden"
+          className="h-16 border-b border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex items-center justify-between px-4 md:px-8 shrink-0 z-10 sticky top-0"
         >
            <div className="flex items-center gap-3">
              <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden p-2 -ml-2 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg">
@@ -302,9 +255,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
              <h1 className="sm:hidden font-bold text-stone-900 dark:text-white">{pageTitle}</h1>
            </div>
 
-           <div className="flex items-center gap-2 sm:gap-4">
-              <PWAInstallButton />
-
+           <div className="flex items-center gap-4">
               <div className="hidden lg:flex items-center gap-2 bg-stone-50 dark:bg-stone-800/80 px-3 py-1.5 rounded-lg border border-stone-200 dark:border-stone-700 text-sm">
                 <Calendar className="w-4 h-4 text-stone-400 dark:text-stone-500" />
                 <span className="font-semibold text-stone-700 dark:text-stone-300">{student.currentSemester}</span>
@@ -318,70 +269,10 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                 {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
 
-              {!isAdmin && (
-                <button 
-                  onClick={() => setIsSyncModalOpen(true)}
-                  className={`w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 dark:text-stone-400 relative transition-colors ${isSyncing ? 'text-[#8c1515] dark:text-[#ef4444]' : ''}`}
-                  title="Sync with Presidency University SIMS"
-                >
-                  <RefreshCw className={`w-5 h-5 ${isSyncing ? 'animate-spin' : ''}`} />
-                </button>
-              )}
-
-              <div className="relative">
-                <button 
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className={`w-9 h-9 flex items-center justify-center rounded-full relative transition-colors ${showNotifications ? 'bg-[#8c1515] text-white dark:bg-[#ef4444]' : 'hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 dark:text-stone-400'}`}
-                >
-                  <Bell className="w-5 h-5" />
-                  {!showNotifications && store.topNotifications.some(n => !n.read) && <span className="absolute top-2 right-2 w-2 h-2 bg-[#8c1515] dark:bg-[#ef4444] rounded-full ring-2 ring-white dark:ring-stone-900 border-none inline-block"></span>}
-                </button>
-                
-                <AnimatePresence>
-                   {showNotifications && (
-                     <>
-                       <div className="cursor-pointer fixed inset-0 z-40" onClick={() => setShowNotifications(false)}></div>
-                       <motion.div 
-                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                         transition={{ duration: 0.15 }}
-                         className="absolute top-full right-0 mt-3 w-80 sm:w-96 bg-white dark:bg-stone-900 rounded-2xl shadow-xl shadow-stone-200/50 dark:shadow-black/50 border border-stone-200 dark:border-stone-800 z-50 overflow-hidden"
-                       >
-                          <div className="p-4 border-b border-stone-200 dark:border-stone-800 flex justify-between items-center bg-stone-50/50 dark:bg-stone-900/50">
-                             <h3 className="font-bold text-stone-900 dark:text-white">Notifications</h3>
-                             <button onClick={() => store.markAllTopNotificationsAsRead()} className="text-xs text-[#8c1515] dark:text-[#ef4444] font-medium hover:underline">Mark all as read</button>
-                          </div>
-                          <div className="max-h-[400px] overflow-y-auto divide-y divide-stone-100 dark:divide-stone-800" data-lenis-prevent>
-                             {store.topNotifications.map(notif => {
-                                const Icon = notif.type === 'alert' ? AlertCircle :
-                                             notif.type === 'success' ? CheckCircle2 :
-                                             notif.type === 'info' ? Info : Calendar;
-                                return (
-                                   <div key={notif.id} onClick={() => store.removeTopNotification(notif.id)} className="p-4 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors flex gap-4 cursor-pointer group">
-                                      <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 shrink-0 ${notif.color}`}>
-                                         <Icon className="w-5 h-5" />
-                                      </div>
-                                      <div>
-                                         <h4 className={`font-bold text-sm transition-colors ${notif.read ? 'text-stone-500' : 'text-stone-900 dark:text-white group-hover:text-[#8c1515] dark:group-hover:text-[#ef4444]'}`}>{notif.title}</h4>
-                                         <p className="text-sm text-stone-500 dark:text-stone-400 mt-0.5 line-clamp-2">{notif.desc}</p>
-                                         <span className="text-xs text-stone-400 mt-2 block font-medium">{notif.time}</span>
-                                      </div>
-                                   </div>
-                                )
-                             })}
-                             {store.topNotifications.length === 0 && (
-                               <div className="p-6 text-center text-stone-500 text-sm">No new notifications</div>
-                             )}
-                          </div>
-                          <div className="p-3 bg-stone-50 dark:bg-stone-900/50 border-t border-stone-200 dark:border-stone-800">
-                             <button onClick={() => store.clearAllTopNotifications()} className="w-full py-2 text-sm font-semibold text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors">Clear All</button>
-                          </div>
-                       </motion.div>
-                     </>
-                   )}
-                </AnimatePresence>
-              </div>
+              <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 dark:text-stone-400 relative transition-colors">
+                <Bell className="w-5 h-5" />
+                <span className="absolute top-2 right-2.5 w-1.5 h-1.5 bg-[#8c1515] dark:bg-[#ef4444] rounded-full ring-2 ring-white dark:ring-stone-900"></span>
+              </button>
            </div>
         </header>
 
@@ -397,60 +288,46 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
               className="max-w-6xl mx-auto w-full pb-10"
             >
               
-              {/* === ADMIN TABS === */}
-              {activeTab === 'admin-dashboard' && <AdminDashboardView />}
-              {activeTab === 'student-records' && <AdminStudentRecordsView />}
-              {activeTab === 'course-management' && <AdminCourseManagementView />}
-              {activeTab === 'grade-submissions' && <AdminGradeManagementView />}
-              {activeTab === 'enrollment-approvals' && <AdminEnrollmentApprovalsView />}
-              {activeTab === 'attendance-tracking' && <AdminAttendanceManagementView />}
-
               {/* === HOME TAB === */}
               {activeTab === 'home' && (
                 <div className="space-y-6 md:space-y-8">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                     <div>
-                      <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-stone-900 dark:text-white">Welcome, {student.name.split(' ')[0]}</h2>
+                      <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-stone-900">Welcome back, {student.name.split(' ')[0]}</h2>
                       <p className="text-stone-500 dark:text-stone-400 mt-1">Here is what's happening with your academics today.</p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                    <Card className="p-5 md:p-6 bg-white dark:bg-stone-900 relative group border-stone-200 dark:border-stone-800">
+                    <Card className="p-5 md:p-6 bg-white relative group border-stone-200">
                       <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 flex items-center justify-center mb-4 text-indigo-600 dark:text-indigo-400">
                         <GraduationCap className="w-5 h-5" />
                       </div>
                       <div className="text-stone-500 dark:text-stone-400 text-xs font-bold uppercase tracking-wider mb-1">Current CGPA</div>
                       <div className="text-2xl md:text-3xl font-extrabold text-stone-900 dark:text-white tracking-tight">{student.cgpa.toFixed(2)}</div>
                     </Card>
-                    <Card className="p-5 md:p-6 bg-white dark:bg-stone-900 relative group border-stone-200 dark:border-stone-800">
+                    <Card className="p-5 md:p-6 bg-white relative group border-stone-200">
                       <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center mb-4 text-emerald-600 dark:text-emerald-400">
                         <CheckCircle2 className="w-5 h-5" />
                       </div>
                       <div className="text-stone-500 dark:text-stone-400 text-xs font-bold uppercase tracking-wider mb-1">Credits Earned</div>
                       <div className="text-2xl md:text-3xl font-extrabold text-stone-900 dark:text-white tracking-tight">{student.creditsCompleted} <span className="text-base font-semibold text-stone-400 dark:text-stone-600">/ 140</span></div>
                     </Card>
-                    <Card className="p-5 md:p-6 bg-white dark:bg-stone-900 relative group border-stone-200 dark:border-stone-800">
+                    <Card className="p-5 md:p-6 bg-white relative group border-stone-200">
                       <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 border border-amber-100 dark:border-amber-800 flex items-center justify-center mb-4 text-amber-600 dark:text-amber-400">
                         <BookMarked className="w-5 h-5" />
                       </div>
                       <div className="text-stone-500 dark:text-stone-400 text-xs font-bold uppercase tracking-wider mb-1">Enrolled Courses</div>
                       <div className="text-2xl md:text-3xl font-extrabold text-stone-900 dark:text-white tracking-tight">{registeredCourses.length}</div>
                     </Card>
-                    <Card className="p-5 md:p-6 bg-white dark:bg-stone-900 relative group border-stone-200 dark:border-stone-800">
+                    <Card className="p-5 md:p-6 bg-white relative group border-stone-200">
                       <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800 flex items-center justify-center mb-4 text-[#8c1515] dark:text-[#ef4444]">
                         <Wallet className="w-5 h-5" />
                       </div>
                       <div className="text-stone-500 dark:text-stone-400 text-xs font-bold uppercase tracking-wider mb-1">Balance</div>
                       <div className={`text-2xl md:text-3xl font-extrabold tracking-tight ${student.accountBalance < 0 ? 'text-[#8c1515] dark:text-[#ef4444]' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                        {student.accountBalance > 0 ? '-' : ''}{Math.abs(student.accountBalance).toLocaleString()} <span className="text-base font-semibold opacity-50 tracking-normal">Tk</span>
+                        {Math.abs(student.accountBalance).toLocaleString()} <span className="text-base font-semibold opacity-50 tracking-normal">Tk</span>
                       </div>
-                      {student.accountBalance > 0 && (
-                        <p className="text-xs font-bold text-red-500 mt-2 flex items-start gap-1">
-                          <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> 
-                          <span>Overpaid - Can be refunded</span>
-                        </p>
-                      )}
                     </Card>
                   </div>
 
@@ -463,8 +340,8 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                                <TrendingUp className="w-5 h-5 text-indigo-500" /> Academic Progression
                             </h3>
                          </div>
-                         <div className="p-6 h-64 w-full min-w-0 min-h-[256px]">
-                            <ResponsiveContainer width="100%" height="100%" minHeight={200} minWidth={0} initialDimension={{ width: 320, height: 200 }}>
+                         <div className="p-6 h-64 w-full">
+                            <ResponsiveContainer width="100%" height="100%" minHeight={200} minWidth={0}>
                                <AreaChart data={student.gpaHistory}>
                                   <defs>
                                      <linearGradient id="colorGpa" x1="0" y1="0" x2="0" y2="1">
@@ -517,6 +394,11 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                           <BookOpen className="w-6 h-6 text-indigo-500 mb-3" />
                           <h4 className="font-bold text-sm text-stone-900 dark:text-white mb-1">My Courses</h4>
                           <p className="text-xs text-stone-500 dark:text-stone-400">View enrolled classes</p>
+                        </button>
+                        <button onClick={() => setActiveTab('bank-slips')} className="text-left p-4 rounded-xl border border-stone-200 dark:border-stone-800 hover:border-[#8c1515]/30 dark:hover:border-[#ef4444]/30 hover:bg-[#8c1515]/5 dark:hover:bg-[#ef4444]/5 transition-all group">
+                          <FileText className="w-6 h-6 text-emerald-500 mb-3" />
+                          <h4 className="font-bold text-sm text-stone-900 dark:text-white mb-1">Bank Slips</h4>
+                          <p className="text-xs text-stone-500 dark:text-stone-400">Download for payment</p>
                         </button>
                         <button onClick={() => setActiveTab('class-schedule')} className="text-left p-4 rounded-xl border border-stone-200 dark:border-stone-800 hover:border-[#8c1515]/30 dark:hover:border-[#ef4444]/30 hover:bg-[#8c1515]/5 dark:hover:bg-[#ef4444]/5 transition-all group">
                           <Calendar className="w-6 h-6 text-amber-500 mb-3" />
@@ -574,53 +456,10 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
 
                {/* === PROFILE TAB === */}
               {activeTab === 'profile' && (
-                <div className="space-y-6 max-w-4xl relative">
-                  {passwordSuccessMsg && (
-                    <div className="absolute top-0 right-0 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-lg font-medium text-sm flex items-center shadow-sm border border-emerald-100 dark:border-emerald-800 z-10">
-                      <CheckCircle2 className="w-4 h-4 mr-2" />
-                      {passwordSuccessMsg}
-                    </div>
-                  )}
-
-                  <Dialog open={isPasswordOpen} onOpenChange={setIsPasswordOpen}>
-                    <DialogContent>
-                      <form onSubmit={handleChangePassword}>
-                        <DialogHeader>
-                          <DialogTitle>Change Password</DialogTitle>
-                          <DialogDescription>
-                            Ensure your account is using a long, random password to stay secure.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                          <div className="space-y-2">
-                            <label className="text-sm font-semibold text-stone-900 dark:text-stone-100">Current Password</label>
-                            <input required type="password" placeholder="••••••••" className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]" />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-semibold text-stone-900 dark:text-stone-100">New Password</label>
-                            <input required type="password" placeholder="••••••••" className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]" />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-semibold text-stone-900 dark:text-stone-100">Confirm New Password</label>
-                            <input required type="password" placeholder="••••••••" className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]" />
-                          </div>
-                        </div>
-                        <DialogFooter>
-                          <DialogClose render={<Button type="button" variant="outline" />}>Cancel</DialogClose>
-                          <Button type="submit">Update Password</Button>
-                        </DialogFooter>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-
-                  <header className="mb-6 flex justify-between items-start">
-                    <div>
-                      <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">{pageTitle}</h2>
-                      <p className="text-stone-500 dark:text-stone-400 mt-1">Your academic and personal records.</p>
-                    </div>
-                    <button className="flex items-center gap-2 text-sm font-medium text-stone-600 dark:text-stone-300 hover:text-stone-900 bg-stone-100 dark:bg-stone-800 px-4 py-2 rounded-lg transition-colors">
-                      <Edit3 className="w-4 h-4" /> <span className="hidden sm:inline">Edit Profile</span>
-                    </button>
+                <div className="space-y-6 max-w-4xl">
+                  <header className="mb-6">
+                    <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">{pageTitle}</h2>
+                    <p className="text-stone-500 dark:text-stone-400 mt-1">Your academic and personal records.</p>
                   </header>
                   
                   <Card className="overflow-hidden">
@@ -634,8 +473,8 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                        <div>
                          <h3 className="text-2xl font-extrabold text-stone-900 dark:text-white tracking-tight">{student.name}</h3>
                          <div className="flex gap-2 items-center mt-2">
-                           <Badge variant="outline" className="font-mono bg-stone-50/50 dark:bg-stone-800/50 text-[11px] px-2">ID: {student.id}</Badge>
-                           <Badge variant="success" className="capitalize text-[11px] px-2">{student.status}</Badge>
+                           <Badge variant="outline" className="font-mono bg-stone-50/50 dark:bg-stone-800/50">ID: {student.id}</Badge>
+                           <Badge variant="success" className="capitalize">{student.status}</Badge>
                          </div>
                          
                          <div className="mt-8 space-y-4">
@@ -670,72 +509,12 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                        </div>
                     </div>
                   </Card>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card className="p-6">
-                      <h3 className="font-semibold text-lg mb-6 border-b border-stone-100 dark:border-stone-800 pb-4">Contact Information</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-start gap-4">
-                          <div className="p-2.5 bg-sky-50 dark:bg-sky-900/30 text-sky-600 rounded-lg shrink-0">
-                            <Mail className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-stone-900 dark:text-stone-100">{student.email}</p>
-                            <p className="text-xs text-stone-500">University Email</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-4">
-                          <div className="p-2.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 rounded-lg shrink-0">
-                            <Phone className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-stone-900 dark:text-stone-100">+880 17XXXXXXXX</p>
-                            <p className="text-xs text-stone-500">Mobile Number</p>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-
-                    <Card className="p-6">
-                      <h3 className="font-semibold text-lg mb-6 border-b border-stone-100 dark:border-stone-800 pb-4">Security</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-start gap-4">
-                          <div className="p-2.5 bg-amber-50 dark:bg-amber-900/30 text-amber-600 rounded-lg shrink-0">
-                            <KeyRound className="w-5 h-5" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-stone-900 dark:text-stone-100">Password</p>
-                            <p className="text-xs text-stone-500 mb-2">Last changed 3 months ago</p>
-                            <button onClick={() => setIsPasswordOpen(true)} className="text-xs font-semibold text-[#8c1515] hover:underline">Change Password</button>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  </div>
                 </div>
               )}
 
               {/* === COURSES: REGISTERED === */}
               {activeTab === 'registered-courses' && (
                 <div className="space-y-6">
-                  {courseToDrop && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/50 backdrop-blur-sm">
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white dark:bg-stone-900 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden border border-stone-200 dark:border-stone-800"
-                      >
-                        <div className="p-6">
-                          <h3 className="text-xl font-bold text-stone-900 dark:text-white mb-2">Drop Course</h3>
-                          <p className="text-stone-500 dark:text-stone-400">Are you sure you want to drop this course?</p>
-                        </div>
-                        <div className="p-4 border-t border-stone-100 dark:border-stone-800 flex justify-end gap-3 bg-stone-50 dark:bg-stone-950">
-                          <button onClick={() => setCourseToDrop(null)} className="px-4 py-2 text-stone-600 dark:text-stone-300 font-bold text-sm bg-white dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700 border border-stone-200 dark:border-stone-700 rounded-lg transition-colors">Cancel</button>
-                          <button onClick={confirmDrop} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-lg transition-colors">Drop</button>
-                        </div>
-                      </motion.div>
-                    </div>
-                  )}
                   <header>
                     <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">{pageTitle}</h2>
                     <p className="text-stone-500 dark:text-stone-400 mt-1">Courses you are currently enrolled in for {student.currentSemester}.</p>
@@ -799,7 +578,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                                            </React.Fragment>
                                          ))}
                                        </div>
-                                       <span className="text-xs font-bold text-stone-500 dark:text-stone-400 font-mono text-right shrink-0 mt-0.5">T =&gt; {bundle.totalCredits.toFixed(2)} Credits</span>
+                                       <span className="text-xs font-bold text-stone-500 dark:text-stone-400 font-mono text-right shrink-0 mt-0.5">T =&gt; {bundle.totalCredits.toFixed(2)}Credit</span>
                                     </div>
                                     <h4 className="font-bold text-stone-900 dark:text-stone-100 text-sm leading-snug line-clamp-2">
                                       {titleMain} <span className="text-stone-400 font-normal">x {titleLab}</span>
@@ -812,17 +591,10 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                                        <span className="truncate max-w-[120px]" title={c.faculty}>Prof: <span className="font-bold text-stone-700 dark:text-stone-300">{c.faculty}</span></span>
                                     </div>
                                     <div className="text-[10px] bg-stone-100 dark:bg-stone-800 px-2 py-1 rounded font-bold whitespace-nowrap">
-                                       ({c.credits.toFixed(2)} x {bundle.labs.map((l: any) => l.credits.toFixed(2)).join(' x ')}) Credits
+                                       ({c.credits.toFixed(2)} x {bundle.labs.map((l: any) => l.credits.toFixed(2)).join(' x ')}) Cr
                                     </div>
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); setSelectedSyllabusCourse(c); }}
-                                      className="p-1.5 text-stone-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800"
-                                      title="View Syllabus"
-                                    >
-                                      <FileText className="w-4 h-4" />
-                                    </button>
                                     <button 
-                                      onClick={() => setCourseToDrop(c.code)} 
+                                      onClick={() => handleDropCourse(c.code)} 
                                       disabled={isSelectionLocked} 
                                       className={`px-4 py-1.5 text-xs font-bold rounded-lg border transition-colors shrink-0 ${isSelectionLocked ? 'bg-stone-50 dark:bg-stone-900 text-stone-400 border-stone-200 dark:border-stone-800 cursor-not-allowed' : 'bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50 hover:bg-red-100 dark:hover:bg-red-900/50'}`}
                                     >
@@ -838,7 +610,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                                <div>
                                   <div className="flex justify-between items-start mb-2">
                                      <Badge variant="outline" className="font-mono bg-stone-50 dark:bg-stone-950 px-2 py-0.5 text-[10px]">{c.code}</Badge>
-                                     <span className="text-xs font-bold text-stone-500 dark:text-stone-400 font-mono text-right shrink-0 ml-2">{c.credits.toFixed(2)} Credits</span>
+                                     <span className="text-xs font-bold text-stone-500 dark:text-stone-400 font-mono text-right shrink-0 ml-2">{c.credits.toFixed(2)} Cr</span>
                                   </div>
                                   <h4 className="font-bold text-stone-900 dark:text-stone-100 text-sm leading-snug line-clamp-2" title={c.title}>{c.title}</h4>
                                </div>
@@ -848,22 +620,13 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                                      <span>Sec: <span className="font-bold text-stone-700 dark:text-stone-300">{c.section}</span></span>
                                      <span className="truncate max-w-[120px]" title={c.faculty}>Prof: <span className="font-bold text-stone-700 dark:text-stone-300">{c.faculty}</span></span>
                                   </div>
-                                  <div className="flex gap-2">
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); setSelectedSyllabusCourse(c); }}
-                                      className="p-1.5 text-stone-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800"
-                                      title="View Syllabus"
-                                    >
-                                      <FileText className="w-4 h-4" />
-                                    </button>
-                                    <button 
-                                      onClick={() => setCourseToDrop(c.code)} 
+                                  <button 
+                                    onClick={() => handleDropCourse(c.code)} 
                                     disabled={isSelectionLocked} 
                                     className={`px-4 py-1.5 text-xs font-bold rounded-lg border transition-colors shrink-0 ${isSelectionLocked ? 'bg-stone-50 dark:bg-stone-900 text-stone-400 border-stone-200 dark:border-stone-800 cursor-not-allowed' : 'bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50 hover:bg-red-100 dark:hover:bg-red-900/50'}`}
                                   >
                                     Drop
                                   </button>
-                                  </div>
                                </div>
                             </Card>
                           );
@@ -910,7 +673,107 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
 
                {/* === COURSES: COMPLETED === */}
               {activeTab === 'completed-courses' && (
-                 <CompletedCoursesView />
+                <div className="space-y-6">
+                  <header>
+                    <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">{pageTitle}</h2>
+                    <p className="text-stone-500 dark:text-stone-400 mt-1">List of all courses you have completed so far.</p>
+                  </header>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                     {groupedCompletedCourses.map(([semester, courses]) => (
+                        <div key={semester} className="space-y-4">
+                          <div className="font-bold text-xs uppercase tracking-widest text-[#8c1515] dark:text-[#ef4444] px-1 mb-2">{semester}</div>
+                          <div className="space-y-4">
+                            {(() => {
+                              const bundles: any[] = [];
+                              const processed = new Set<string>();
+
+                              courses.forEach((course) => {
+                                if (processed.has(course.code)) return;
+
+                                const labs = courses.filter((c) => c.corequisites?.includes(course.code));
+
+                                if (course.corequisites?.length && courses.some((c) => course.corequisites?.includes(c.code))) {
+                                  return;
+                                }
+
+                                if (labs.length > 0) {
+                                  bundles.push({
+                                    isBundle: true,
+                                    main: course,
+                                    labs: labs,
+                                    totalCredits: course.credits + labs.reduce((sum: number, l: any) => sum + l.credits, 0),
+                                  });
+                                  processed.add(course.code);
+                                  labs.forEach((l) => processed.add(l.code));
+                                } else {
+                                  bundles.push({ isBundle: false, main: course, labs: [], totalCredits: course.credits });
+                                  processed.add(course.code);
+                                }
+                              });
+
+                              return bundles.map((bundle, i) => {
+                                const c = bundle.main;
+
+                                if (bundle.isBundle) {
+                                  const titleMain = c.title;
+                                  const titleLab = bundle.labs.map((l: any) => l.title.replace(titleMain, '').trim() || 'Laboratory').join(' + ');
+
+                                  return (
+                                    <Card key={'bundle-' + i} className="p-4 bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 flex flex-col hover:shadow-md transition-shadow">
+                                       <div className="flex justify-between items-start mb-2 gap-2">
+                                          <div className="flex flex-wrap items-center">
+                                            <Badge variant="outline" className="font-mono bg-stone-50 dark:bg-stone-950 px-2 py-0.5 text-[10px]">{c.code}</Badge>
+                                            {bundle.labs.map((l: any) => (
+                                              <React.Fragment key={l.code}>
+                                                <span className="font-bold text-stone-400 dark:text-stone-500 mx-1 text-[10px]">x</span>
+                                                <Badge variant="outline" className="font-mono bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 px-2 py-0.5 text-[10px]">{l.code}</Badge>
+                                              </React.Fragment>
+                                            ))}
+                                          </div>
+                                          <div className="flex flex-col gap-1 items-end shrink-0">
+                                            <span className={`font-black tracking-tight px-2.5 py-1 rounded-md text-xs border ${['A+', 'A', 'A-'].includes(c.grade || '') ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50' : 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-900/50'}`}>
+                                              {c.grade}
+                                            </span>
+                                            {bundle.labs.map((l: any) => (
+                                              <span key={l.code} className={`font-black tracking-tight px-2.5 py-0.5 rounded-md text-[10px] border ${['A+', 'A', 'A-'].includes(l.grade || '') ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50' : 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-900/50'}`}>
+                                                {l.grade}
+                                              </span>
+                                            ))}
+                                          </div>
+                                       </div>
+                                       <h4 className="font-bold text-stone-900 dark:text-stone-100 text-sm mb-2 mt-1 leading-snug line-clamp-2">
+                                         {titleMain} <span className="text-stone-400 font-normal">x {titleLab}</span>
+                                       </h4>
+                                       <div className="text-xs font-medium text-stone-500 dark:text-stone-400 mt-auto pt-2 border-t border-stone-100 dark:border-stone-800 flex justify-between items-center">
+                                          <span>Total Credits: <span className="font-bold text-stone-700 dark:text-stone-300 ml-1">{bundle.totalCredits.toFixed(2)}</span></span>
+                                          <span className="text-[10px] font-bold text-stone-400">({c.credits.toFixed(2)} x {bundle.labs.map((l: any) => l.credits.toFixed(2)).join(' x ')})</span>
+                                       </div>
+                                    </Card>
+                                  );
+                                }
+
+                                return (
+                                  <Card key={i} className="p-4 bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 flex flex-col hover:shadow-md transition-shadow">
+                                     <div className="flex justify-between items-start mb-2">
+                                        <Badge variant="outline" className="font-mono bg-stone-50 dark:bg-stone-950">{c.code}</Badge>
+                                        <span className={`font-black tracking-tight px-2.5 py-1 rounded-md text-xs border ${['A+', 'A', 'A-'].includes(c.grade || '') ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50' : 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-900/50'}`}>
+                                          {c.grade}
+                                        </span>
+                                     </div>
+                                     <h4 className="font-bold text-stone-900 dark:text-stone-100 text-sm mb-2 mt-1 leading-snug line-clamp-2" title={c.title}>{c.title}</h4>
+                                     <div className="text-xs font-medium text-stone-500 dark:text-stone-400 mt-auto pt-2 border-t border-stone-100 dark:border-stone-800">
+                                        Credits: <span className="font-bold text-stone-700 dark:text-stone-300 ml-1">{c.credits.toFixed(2)}</span>
+                                     </div>
+                                  </Card>
+                                );
+                              });
+                            })()}
+                          </div>
+                        </div>
+                     ))}
+                  </div>
+                </div>
               )}
 
               {/* === COURSES: AVAILABLE ENROLLMENT === */}
@@ -959,9 +822,9 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                           onChange={e => setCourseCreditFilter(e.target.value)}
                         >
                           <option value="All">Any Credits</option>
-                          <option value="1">1.0 Credits</option>
-                          <option value="2">2.0 Credits</option>
-                          <option value="3">3.0 Credits</option>
+                          <option value="1">1.0 Cr</option>
+                          <option value="2">2.0 Cr</option>
+                          <option value="3">3.0 Cr</option>
                         </select>
                       </div>
                       <div className="col-span-2 md:col-span-1">
@@ -1067,7 +930,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                                       ))}
                                     </div>
                                     <Badge variant="outline" className="shrink-0 bg-stone-100 dark:bg-stone-800/80 font-bold whitespace-nowrap mt-0.5">
-                                      ({course.credits.toFixed(2)} x {bundle.labs.map((l: any) => l.credits.toFixed(2)).join(' x ')}) Credits
+                                      ({course.credits.toFixed(2)} x {bundle.labs.map((l: any) => l.credits.toFixed(2)).join(' x ')}) Cr
                                     </Badge>
                                  </div>
                                  
@@ -1084,7 +947,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                                  
                                  <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs font-semibold text-stone-500 dark:text-stone-400 mb-6">
                                     <span className="flex items-center"><GraduationCap className="w-3.5 h-3.5 mr-1.5 opacity-70" /> Sec {course.section}</span>
-                                    <span className="flex items-center text-stone-700 dark:text-stone-200 font-bold">T =&gt; {bundle.totalCredits.toFixed(2)} Credits</span>
+                                    <span className="flex items-center text-stone-700 dark:text-stone-200 font-bold">T =&gt; {bundle.totalCredits.toFixed(2)}Credit</span>
                                     {allRegistered ? (
                                        <Badge variant="success" className="border-none font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400 ml-auto">Enrolled</Badge>
                                     ) : (
@@ -1164,7 +1027,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                                
                                <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs font-semibold text-stone-500 dark:text-stone-400 mb-6">
                                   <span className="flex items-center"><GraduationCap className="w-3.5 h-3.5 mr-1.5 opacity-70" /> Sec {course.section}</span>
-                                  <span className="flex items-center"><Clock className="w-3.5 h-3.5 mr-1.5 opacity-70" /> {course.credits.toFixed(1)} Credits</span>
+                                  <span className="flex items-center"><Clock className="w-3.5 h-3.5 mr-1.5 opacity-70" /> {course.credits.toFixed(1)} Cr</span>
                                   <span className="flex items-center"><User className="w-3.5 h-3.5 mr-1.5 opacity-70" /> {course.faculty.split(' ')[0]}</span>
                                </div>
 
@@ -1232,18 +1095,315 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
 
               {/* === ACCOUNTS: BANK SLIPS === */}
               {activeTab === 'bank-slips' && (
-                <div className="max-w-5xl"><BankSlipsView portal={props} /></div>
+                <div className="space-y-6">
+                  <header>
+                    <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">{pageTitle}</h2>
+                    <p className="text-stone-500 dark:text-stone-400 mt-1">Select fees for bank slips generation.</p>
+                  </header>
+
+                  <Card className="overflow-hidden">
+                    <div className="divide-y divide-stone-100/70 dark:divide-stone-800 bg-white dark:bg-stone-900">
+                      {FEES_LIST.map((fee, i) => (
+                        <div key={i} className="flex gap-4 p-4 items-center hover:bg-stone-50/50 dark:hover:bg-stone-800/50 transition-colors">
+                           <input type="checkbox" checked={selectedFees.includes(fee.code)} onChange={() => toggleFee(fee.code)} className="w-5 h-5 shrink-0 rounded border-stone-300 dark:border-stone-700 bg-transparent text-[#8c1515] dark:text-[#ef4444] focus:ring-[#8c1515] dark:focus:ring-[#ef4444]" />
+                           <div className="flex-1">
+                              <div className="font-mono text-xs font-bold text-stone-400 dark:text-stone-500 mb-0.5">{fee.code}</div>
+                              <div className="font-bold text-sm text-stone-900 dark:text-stone-100 leading-tight">{fee.description}</div>
+                           </div>
+                           <div className="font-mono text-sm text-stone-900 dark:text-stone-100 shrink-0 font-bold">{fee.amount.toFixed(2)}</div>
+                        </div>
+                      ))}
+                      <div className="p-4 sm:px-6 bg-stone-50/50 dark:bg-stone-900/50 flex justify-between items-center text-sm border-t border-stone-200 dark:border-stone-800">
+                         <span className="font-bold text-stone-500 dark:text-stone-400 uppercase tracking-widest text-[11px]">Total Selected</span>
+                         <span className="font-mono font-black text-xl text-stone-900 dark:text-stone-100">{bankSlipTotal.toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-stone-50 dark:bg-stone-900/50 border-t border-stone-200 dark:border-stone-800 flex gap-3">
+                       <button disabled={selectedFees.length === 0} onClick={handleBankSlipSubmitClick} className={`px-6 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-all ${selectedFees.length > 0 ? "bg-[#8c1515] dark:bg-[#ef4444] hover:bg-[#6b0f0f] dark:hover:bg-[#dc2626] text-white" : "bg-stone-200 dark:bg-stone-800 text-stone-400 cursor-not-allowed"}`}>
+                          Pay Online
+                       </button>
+                       <button onClick={() => setSelectedFees([])} className="bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-900 text-stone-700 dark:text-stone-300 px-6 py-2.5 rounded-lg text-sm font-bold transition-all">Reset</button>
+                       
+                       {isBankSlipSuccess && (
+                         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="ml-auto flex items-center text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-4 py-2 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                           <CheckCircle2 className="w-4 h-4 mr-2" /> Payment simulation completed!
+                         </motion.div>
+                       )}
+                    </div>
+                  </Card>
+
+                  <AnimatePresence>
+                    {isConfirmPaymentOpen && (
+                      <div className="fixed inset-0 z-50 flex items-center justify-center isolate">
+                        <motion.div 
+                          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
+                          className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm"
+                          onClick={() => setIsConfirmPaymentOpen(false)}
+                        />
+                        <motion.div 
+                          initial={{ opacity: 0, scale: 0.95, y: 10 }} 
+                          animate={{ opacity: 1, scale: 1, y: 0 }} 
+                          exit={{ opacity: 0, scale: 0.95, y: 10 }} 
+                          className="relative w-full max-w-sm bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-2xl rounded-2xl p-6 overflow-hidden"
+                        >
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xl font-bold text-stone-900 dark:text-white flex items-center">
+                              <Wallet className="w-5 h-5 mr-2 text-[#8c1515] dark:text-[#ef4444]" />
+                              Confirm Payment
+                            </h3>
+                            <button onClick={() => setIsConfirmPaymentOpen(false)} className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 transition-colors">
+                              <X className="w-5 h-5" />
+                            </button>
+                          </div>
+                          
+                          <p className="text-stone-500 dark:text-stone-400 text-sm mb-6">
+                            You are about to process an online payment for the selected bank slips. Please review the total amount.
+                          </p>
+
+                          <div className="bg-stone-50 dark:bg-stone-950 border border-stone-100 dark:border-stone-800 rounded-xl p-5 text-center mb-6 shadow-inner">
+                            <span className="text-xs font-bold uppercase tracking-widest text-[#8c1515] dark:text-[#ef4444] mb-1 block">Total Amount</span>
+                            <div className="text-3xl font-black font-mono text-stone-900 dark:text-white">
+                              {bankSlipTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              <span className="text-lg font-bold text-stone-400 ml-1">Tk</span>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-3">
+                            <button onClick={() => setIsConfirmPaymentOpen(false)} className="flex-1 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-900 text-stone-700 dark:text-stone-300 py-2.5 rounded-lg text-sm font-bold transition-all">
+                              Cancel
+                            </button>
+                            <button onClick={handleConfirmPayment} className="flex-1 bg-[#8c1515] dark:bg-[#ef4444] hover:bg-[#6b0f0f] dark:hover:bg-[#dc2626] text-white py-2.5 rounded-lg text-sm font-bold shadow-sm transition-all shadow-[#8c1515]/20 dark:shadow-[#ef4444]/20">
+                              Proceed to Pay
+                            </button>
+                          </div>
+                        </motion.div>
+                      </div>
+                    )}
+                  </AnimatePresence>
+                </div>
               )}
 
               {/* === ACCOUNTS: STATEMENT === */}
               {activeTab === 'statement' && (
-                 <div className="max-w-5xl"><StatementView portal={props} /></div>
+                <div className="space-y-6 max-w-5xl">
+                   <div className="flex flex-col md:flex-row justify-between md:items-end gap-4 mb-2">
+                     <header>
+                       <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">{pageTitle}</h2>
+                       <p className="text-stone-500 dark:text-stone-400 mt-1">Detailed transaction history for {student.currentSemester}.</p>
+                     </header>
+                   </div>
+
+                   {/* Beautiful Metrics */}
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card className="p-5 border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex items-center justify-between">
+                         <div>
+                            <p className="text-[11px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-1">Total Billed</p>
+                            <div className="text-2xl font-black text-stone-900 dark:text-white">{totalDebit.toLocaleString()} <span className="text-sm font-bold opacity-60">Tk</span></div>
+                         </div>
+                         <div className="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/30 flex items-center justify-center">
+                            <TrendingDown className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+                         </div>
+                      </Card>
+                      <Card className="p-5 border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex items-center justify-between">
+                         <div>
+                            <p className="text-[11px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-1">Total Paid</p>
+                            <div className="text-2xl font-black text-stone-900 dark:text-white">{totalCredit.toLocaleString()} <span className="text-sm font-bold opacity-60">Tk</span></div>
+                         </div>
+                         <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center">
+                            <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                         </div>
+                      </Card>
+                      <div className="rounded-xl p-5 shadow-lg border border-[#6b0f0f] dark:border-stone-700 bg-[#8c1515] dark:bg-stone-800 flex items-center justify-between text-white">
+                         <div>
+                            <p className="text-[11px] font-bold uppercase tracking-widest text-[#ffcfcf] dark:text-stone-400 mb-1">Current Dues</p>
+                            <div className="text-2xl font-black">{Math.abs(student.accountBalance).toLocaleString()} <span className="text-sm font-bold opacity-80">Tk</span></div>
+                         </div>
+                         <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
+                            <Wallet className="w-5 h-5 text-white" />
+                         </div>
+                      </div>
+                   </div>
+
+                   {/* Balance History Chart */}
+                   <Card className="p-6 overflow-hidden bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800">
+                      <h3 className="font-extrabold text-stone-900 dark:text-stone-100 mb-6 flex items-center gap-2">
+                         <TrendingDown className="w-4 h-4 text-stone-400" />
+                         Balance History
+                      </h3>
+                      <div className="h-48 w-full">
+                         <ResponsiveContainer width="100%" height="100%" minHeight={150} minWidth={0}>
+                           <AreaChart data={statementChartData}>
+                             <defs>
+                               <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
+                                 <stop offset="5%" stopColor={isDarkMode ? '#ef4444' : '#8c1515'} stopOpacity={0.3}/>
+                                 <stop offset="95%" stopColor={isDarkMode ? '#ef4444' : '#8c1515'} stopOpacity={0}/>
+                               </linearGradient>
+                             </defs>
+                             <XAxis dataKey="name" fontSize={10} tickLine={false} axisLine={false} tickMargin={8} stroke="#888" />
+                             <RechartsTooltip 
+                               contentStyle={{ backgroundColor: isDarkMode ? '#1c1917' : '#fff', color: isDarkMode ? '#fff' : '#000', borderRadius: '12px', border: isDarkMode ? '1px solid #292524' : '1px solid #f5f5f4', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }} 
+                               formatter={(value: number) => [`${value} Tk`, 'Balance']}
+                             />
+                             <Area type="step" dataKey="balance" stroke={isDarkMode ? '#ef4444' : '#8c1515'} strokeWidth={3} fillOpacity={1} fill="url(#colorBalance)" />
+                           </AreaChart>
+                         </ResponsiveContainer>
+                      </div>
+                   </Card>
+
+                   <Card className="overflow-hidden">
+                     <div className="divide-y divide-stone-100 dark:divide-stone-800 bg-white dark:bg-stone-900">
+                        {TRANSACTIONS_DATA.map((t, i) => (
+                           <div key={i} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:bg-stone-50/50 dark:hover:bg-stone-800/50 transition-colors">
+                              <div className="flex-1">
+                                 <div className="flex justify-between sm:justify-start sm:items-center gap-3 mb-2">
+                                    <Badge variant="outline" className="font-mono text-[10px] bg-stone-50 dark:bg-stone-950">{t.code}</Badge>
+                                    <span className="text-xs text-stone-400 dark:text-stone-500 font-medium">{t.date}</span>
+                                 </div>
+                                 <h4 className="font-bold text-stone-900 dark:text-stone-100 text-sm leading-tight">{t.description}</h4>
+                              </div>
+                              <div className="flex items-center justify-between sm:justify-end gap-6 text-sm sm:min-w-[280px]">
+                                 <div className="sm:text-right">
+                                    <div className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest sm:mb-0.5">Fee</div>
+                                    <div className="font-mono font-medium text-stone-700 dark:text-stone-300">{t.debit ? t.debit.toLocaleString() : '0'}</div>
+                                 </div>
+                                 <div className="text-right sm:border-l sm:border-stone-200 sm:dark:border-stone-700 sm:pl-6">
+                                    <div className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest sm:mb-0.5">Paid</div>
+                                    <div className="font-mono font-medium text-emerald-600 dark:text-emerald-400">{t.credit ? t.credit.toLocaleString() : '0'}</div>
+                                 </div>
+                                 <div className="hidden sm:block text-right border-l border-stone-200 dark:border-stone-700 pl-6">
+                                    <div className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-0.5">Balance</div>
+                                    <div className="font-mono font-black text-stone-900 dark:text-stone-100">{t.balance.toLocaleString()}</div>
+                                 </div>
+                              </div>
+                              <div className="sm:hidden flex justify-between items-center bg-stone-50/50 dark:bg-stone-800/20 px-3 py-2 rounded-lg mt-2">
+                                 <span className="text-xs font-bold text-stone-500 uppercase tracking-widest">Balance</span>
+                                 <span className="font-mono font-black text-stone-900 dark:text-stone-100 text-sm">{t.balance.toLocaleString()}</span>
+                              </div>
+                           </div>
+                        ))}
+                     </div>
+                   </Card>
+
+                   <div className="flex justify-center mt-10">
+                     <div className="w-full max-w-2xl">
+                       <Card className="overflow-hidden border border-stone-200 dark:border-stone-800 shadow-sm">
+                         <div className="bg-stone-100 dark:bg-stone-900/50 py-2 text-center border-b border-stone-200 dark:border-stone-800">
+                           <h4 className="font-bold text-stone-700 dark:text-stone-300 text-sm">Statement Summary (Summer-26)</h4>
+                         </div>
+                         <table className="w-full text-right text-sm">
+                           <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
+                             <tr>
+                               <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Last Semester Balance (A)</td>
+                               <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100 w-32">0 Taka</td>
+                             </tr>
+                             <tr>
+                               <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Total Tuition and Other fees</td>
+                               <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">38,500 Taka</td>
+                             </tr>
+                             <tr>
+                               <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Total Semester Waiver</td>
+                               <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">8,125 Taka</td>
+                             </tr>
+                             <tr>
+                               <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Total Other Adjustment (Including Waiver)</td>
+                               <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">8,125 Taka</td>
+                             </tr>
+                             <tr>
+                               <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">To be Paid in Current Semester</td>
+                               <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">30,375 Taka</td>
+                             </tr>
+                             <tr>
+                               <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Semester Fee (B)</td>
+                               <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">6,000 Taka</td>
+                             </tr>
+                             <tr>
+                               <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Total Tuition(Course) Fees (C)</td>
+                               <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">24,375 Taka</td>
+                             </tr>
+                             <tr>
+                               <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Others Fee in Current Semester (D)</td>
+                               <td className="py-1.5 px-4 font-mono font-medium text-stone-900 dark:text-stone-100">0 Taka</td>
+                             </tr>
+                             <tr className="bg-stone-50/50 dark:bg-stone-800/30">
+                               <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Total Fees To Be Paid (Including Last Semester Balance)</td>
+                               <td className="py-1.5 px-4 font-mono font-bold text-stone-900 dark:text-stone-100">30,375 Taka</td>
+                             </tr>
+                             <tr>
+                               <td className="py-1.5 px-4 text-stone-600 dark:text-stone-400">Total Cash Paid (Summer-26)</td>
+                               <td className="py-1.5 px-4 font-mono font-medium text-emerald-600 dark:text-emerald-400">7,605 Taka</td>
+                             </tr>
+                             <tr className="bg-stone-100 dark:bg-stone-800 font-bold border-t-2 border-stone-200 dark:border-stone-700">
+                               <td className="py-2 px-4 text-stone-900 dark:text-stone-100">Total Dues</td>
+                               <td className="py-2 px-4 font-mono text-[#8c1515] dark:text-[#ef4444]">22,770 Taka</td>
+                             </tr>
+                           </tbody>
+                         </table>
+                       </Card>
+                     </div>
+                   </div>
+
+                   <div className="mt-8">
+                     <Card className="overflow-hidden border border-stone-200 dark:border-stone-800 shadow-sm">
+                        <div className="bg-stone-100 dark:bg-stone-900/50 py-2 text-center border-b border-stone-200 dark:border-stone-800">
+                           <h4 className="font-bold text-stone-700 dark:text-stone-300 text-sm">Installment Payment</h4>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-center text-sm whitespace-nowrap">
+                            <thead className="bg-[#f8f7f5] dark:bg-stone-950 text-stone-600 dark:text-stone-400 border-b border-stone-200 dark:border-stone-800 font-semibold">
+                               <tr>
+                                  <th className="py-3 px-4 text-left">No of Instalment</th>
+                                  <th className="py-3 px-4">Instalment Deadline</th>
+                                  <th className="py-3 px-4">Instalment Amount</th>
+                                  <th className="py-3 px-4">Total Cash Paid<br/><span className="text-[10px] font-normal">(Within the<br/>Instalment<br/>Deadline)</span></th>
+                                  <th className="py-3 px-4">Instalment Dues</th>
+                               </tr>
+                            </thead>
+                            <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
+                               <tr>
+                                  <td className="py-3 px-4 text-left font-medium text-stone-800 dark:text-stone-300">1st Instalment: A+B+C*(30%)+D</td>
+                                  <td className="py-3 px-4 text-stone-600 dark:text-stone-400">Academic Calendar</td>
+                                  <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">18,188 Taka</td>
+                                  <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">7,605 Taka</td>
+                                  <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">10,583 Taka</td>
+                               </tr>
+                               <tr>
+                                  <td className="py-3 px-4 text-left font-medium text-stone-800 dark:text-stone-300">2nd Instalment: C*(30%)</td>
+                                  <td className="py-3 px-4 text-stone-600 dark:text-stone-400">Academic Calendar</td>
+                                  <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">7,313 Taka</td>
+                                  <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300"></td>
+                                  <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">17,895 Taka</td>
+                               </tr>
+                               <tr>
+                                  <td className="py-3 px-4 text-left font-medium text-stone-800 dark:text-stone-300">3rd Instalment: C*(40%)</td>
+                                  <td className="py-3 px-4 text-stone-600 dark:text-stone-400">Academic Calendar</td>
+                                  <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">4,875 Taka</td>
+                                  <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300"></td>
+                                  <td className="py-3 px-4 font-mono text-stone-800 dark:text-stone-300">22,770 Taka</td>
+                               </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                     </Card>
+                   </div>
+
+                   <div className="mt-6 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 p-4 rounded-xl text-sm font-semibold text-[#8c1515] dark:text-[#ef4444]">
+                      <h4 className="underline mb-2 font-bold">Attention!</h4>
+                      <ol className="list-decimal pl-5 space-y-1 text-stone-800 dark:text-stone-300 font-medium">
+                         <li>The calculation of Instalment Amount is based on the value in Statement Summary.</li>
+                         <li>If you have any queries, please feel free to communicate with the Accounts Office.</li>
+                      </ol>
+                   </div>
+                </div>
               )}
 
               {/* === SCHEDULE: CLASS === */}
               {activeTab === 'class-schedule' && (
                 <div className="space-y-6">
                   <div className="flex flex-col md:flex-row justify-between md:items-end gap-4">
+                     <header>
+                       <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">{pageTitle}</h2>
+                       <p className="text-stone-500 dark:text-stone-400 mt-1">View your class schedule for the running semester.</p>
+                     </header>
                      <div className="flex items-center gap-3">
                        <button 
                           onClick={() => setIs24HourFormat(!is24HourFormat)}
@@ -1318,43 +1478,35 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                                {classes.map((s, i) => (
                                   <div key={i} className="relative pl-8 group">
                                      {/* Timeline dot */}
-                                     {s.courseCode !== '-' && (
-                                       <div className="absolute left-[11px] top-6 w-[10px] h-[10px] rounded-full bg-stone-300 dark:bg-stone-600 ring-4 ring-[#f9fafb] dark:ring-stone-950 group-hover:bg-[#8c1515] dark:group-hover:bg-[#ef4444] transition-colors z-10" />
-                                     )}
+                                     <div className="absolute left-[11px] top-6 w-[10px] h-[10px] rounded-full bg-stone-300 dark:bg-stone-600 ring-4 ring-[#f9fafb] dark:ring-stone-950 group-hover:bg-[#8c1515] dark:group-hover:bg-[#ef4444] transition-colors" />
                                      
-                                     <Card className={`p-4 sm:p-5 border-transparent ${s.courseCode !== '-' ? 'group-hover:border-[#8c1515]/30 dark:group-hover:border-[#ef4444]/30 hover:shadow-lg hover:shadow-[#8c1515]/5' : 'opacity-70'} transition-all overflow-hidden relative border border-stone-200/50 dark:border-stone-800/80`}>
+                                     <Card className="p-4 sm:p-5 border-transparent group-hover:border-[#8c1515]/30 dark:group-hover:border-[#ef4444]/30 hover:shadow-lg hover:shadow-[#8c1515]/5 transition-all overflow-hidden relative border border-stone-200/50 dark:border-stone-800/80">
                                         {/* Accent line on the left of the card */}
-                                        {s.courseCode !== '-' && (
-                                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#8c1515] dark:bg-[#ef4444] opacity-0 group-hover:opacity-100 transition-opacity" />
-                                        )}
+                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#8c1515] dark:bg-[#ef4444] opacity-0 group-hover:opacity-100 transition-opacity" />
                                         
                                         <div className="flex items-center justify-between text-sm mb-3">
                                            <div className="font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5 text-xs sm:text-sm">
                                               <Clock className="w-3.5 h-3.5 text-stone-400" />
-                                              {s.start !== '-' ? formatTime(s.start, is24HourFormat) : '-'} <span className="text-stone-400 font-medium px-0.5">-</span> <span className="text-stone-500 font-medium">{s.end !== '-' ? formatTime(s.end, is24HourFormat) : '-'}</span>
+                                              {formatTime(s.start, is24HourFormat)} <span className="text-stone-400 font-medium px-0.5">-</span> <span className="text-stone-500 font-medium">{formatTime(s.end, is24HourFormat)}</span>
                                            </div>
                                         </div>
                                         
-                                        <h4 className={`font-bold text-base sm:text-lg ${s.courseCode !== '-' ? 'text-[#8c1515] dark:text-[#ef4444]' : 'text-stone-500'} mb-1 leading-tight`}>{s.courseCode}</h4>
+                                        <h4 className="font-bold text-base sm:text-lg text-[#8c1515] dark:text-[#ef4444] mb-1 leading-tight">{s.courseCode}</h4>
                                         <p className="text-xs sm:text-sm font-medium text-stone-700 dark:text-stone-300 mb-4 line-clamp-2">{s.title}</p>
                                         
-                                        {s.courseCode !== '-' && (
-                                          <div className="flex flex-col gap-2 pt-3 border-t border-stone-100 dark:border-stone-800/80">
-                                             <div className="flex items-center gap-3">
-                                                <span className="flex items-center gap-1.5 text-xs font-medium text-stone-600 dark:text-stone-400">
-                                                   <MapPin className="w-3.5 h-3.5 text-stone-400" /> Room {s.room || '-'}
-                                                </span>
-                                                <span className="flex items-center gap-1.5 text-xs font-medium text-stone-600 dark:text-stone-400">
-                                                   <Users className="w-3.5 h-3.5 text-stone-400" /> {s.faculty || "TBA"}
-                                                </span>
-                                             </div>
-                                             {s.campus && (
-                                               <div className="flex items-center gap-1.5 text-xs font-medium text-stone-500 dark:text-stone-500">
-                                                  Campus {s.campus}
-                                               </div>
-                                             )}
-                                          </div>
-                                        )}
+                                        <div className="flex flex-col gap-2 pt-3 border-t border-stone-100 dark:border-stone-800/80">
+                                           <div className="flex items-center gap-3">
+                                              <span className="flex items-center gap-1.5 text-xs font-medium text-stone-600 dark:text-stone-400">
+                                                 <MapPin className="w-3.5 h-3.5 text-stone-400" /> Room {s.room}
+                                              </span>
+                                              <span className="flex items-center gap-1.5 text-xs font-medium text-stone-600 dark:text-stone-400">
+                                                 <Users className="w-3.5 h-3.5 text-stone-400" /> {s.faculty || "TBA"}
+                                              </span>
+                                           </div>
+                                           <div className="flex items-center gap-1.5 text-xs font-medium text-stone-500 dark:text-stone-500">
+                                              Campus {s.campus}
+                                           </div>
+                                        </div>
                                      </Card>
                                   </div>
                                ))}
@@ -1366,16 +1518,47 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                 </div>
               )}
 
-              {/* === ACADEMICS TAB === */}
-              {activeTab === 'degree-audit' && <DegreeAuditView portal={props} />}
-              {activeTab === 'transcript' && <GradesView portal={props} />}
-              {activeTab === 'exam-routine' && <ExamsView portal={props} />}
-              {activeTab === 'exam-admit-card' && <AdmitCardView portal={props} />}
-              {activeTab === 'attendance' && <AttendanceView />}
-              {activeTab === 'faculty-evaluation' && <FacultyEvalView />}
+              {/* === TEACHERS === */}
+              {activeTab === 'teachers' && (
+                <div className="space-y-6">
+                  <header>
+                    <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">{pageTitle}</h2>
+                    <p className="text-stone-500 dark:text-stone-400 mt-1">Related teachers information for the running semester.</p>
+                  </header>
 
-              {/* === FINANCIAL AID === */}
-              {activeTab === 'financial-aid' && <FinancialAidView />}
+                  <Card className="overflow-hidden">
+                     <div className="divide-y divide-stone-100 dark:divide-stone-800 bg-white dark:bg-stone-900">
+                        {TEACHERS_DATA.map((t, i) => (
+                           <div key={i} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:bg-stone-50/50 dark:hover:bg-stone-800/50 transition-colors">
+                              <div className="flex-1 flex items-start gap-4">
+                                 <div className="hidden sm:flex w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-800 items-center justify-center text-xs font-bold text-stone-500 dark:text-stone-400 shrink-0">
+                                    {i+1}
+                                 </div>
+                                 <div className="flex-1">
+                                    <div className="flex sm:flex-col sm:items-start justify-between items-center gap-2 mb-2 sm:mb-1">
+                                       <div className="font-bold text-stone-900 dark:text-white text-base leading-tight">
+                                          {t.name}
+                                          <span className="inline-block sm:hidden text-xs text-stone-500 dark:text-stone-400 font-normal ml-2">({t.name.split(' ')[0]})</span>
+                                       </div>
+                                       <Badge variant="outline" className="font-bold text-[#8c1515] dark:text-[#ef4444] border-[#8c1515]/20 dark:border-[#ef4444]/20 bg-[#8c1515]/5 dark:bg-[#ef4444]/10 shrink-0">
+                                          {t.department}
+                                       </Badge>
+                                    </div>
+                                    <div className="hidden sm:block text-xs text-stone-500 dark:text-stone-400 uppercase tracking-widest font-bold">
+                                       Initial: {t.name.split(' ')[0]}
+                                    </div>
+                                 </div>
+                              </div>
+                              <div className="sm:max-w-xs w-full bg-stone-50 dark:bg-stone-800/30 p-2 sm:p-3 rounded-lg border border-stone-100 dark:border-stone-800/50 text-sm flex items-center gap-3">
+                                 <span className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest shrink-0">Courses</span>
+                                 <span className="font-mono font-medium text-stone-700 dark:text-stone-300 truncate">{t.courses}</span>
+                              </div>
+                           </div>
+                        ))}
+                     </div>
+                  </Card>
+                </div>
+              )}
 
             </motion.div>
           </AnimatePresence>
@@ -1456,7 +1639,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                     <X className="w-5 h-5" />
                  </button>
               </div>
-              <div className="p-6 overflow-y-auto flex-1 text-stone-700 dark:text-stone-300" data-lenis-prevent>
+              <div className="p-6 overflow-y-auto flex-1 text-stone-700 dark:text-stone-300">
                  {selectedSyllabusCourse.syllabus ? (
                     <div className="prose dark:prose-invert max-w-none text-sm whitespace-pre-wrap">
                       {selectedSyllabusCourse.syllabus}
@@ -1492,7 +1675,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                     <X className="w-5 h-5" />
                  </button>
               </div>
-              <div className="p-6 overflow-y-auto flex-1 text-stone-700 dark:text-stone-300 border-b border-stone-200 dark:border-stone-800" data-lenis-prevent>
+              <div className="p-6 overflow-y-auto flex-1 text-stone-700 dark:text-stone-300 border-b border-stone-200 dark:border-stone-800">
                 <p className="mb-4">Please review your selected courses before finalizing. Once finalized, you cannot make changes without contacting the registrar.</p>
                 <div className="space-y-4">
                   {(() => {
@@ -1548,7 +1731,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                                 </div>
                               </div>
                               <div className="font-bold whitespace-nowrap text-right">
-                                <div>T =&gt; {bundle.totalCredits.toFixed(2)} Credits</div>
+                                <div>T =&gt; {bundle.totalCredits.toFixed(2)} Cr</div>
                                 <div className="text-[10px] text-stone-500 font-normal">({course.credits.toFixed(2)} x {bundle.labs.map((l: any) => l.credits.toFixed(2)).join(' x ')})</div>
                               </div>
                             </div>
@@ -1568,7 +1751,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                               <div className="font-bold text-stone-900 dark:text-white">{course.code}</div>
                               <div className="text-sm font-medium">{course.title}</div>
                             </div>
-                            <div className="font-bold">{course.credits.toFixed(2)} Credits</div>
+                            <div className="font-bold">{course.credits.toFixed(2)} Cr</div>
                           </div>
                           {((course.prerequisites && course.prerequisites.length > 0) || (course.corequisites && course.corequisites.length > 0)) && (
                             <div className="mt-3 pt-3 border-t border-stone-200 dark:border-stone-800 text-xs text-stone-500 flex flex-col gap-1.5">
@@ -1609,5 +1792,6 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
       </AnimatePresence>
 
     </div>
+    </ReactLenis>
   );
 }

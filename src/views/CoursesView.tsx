@@ -160,7 +160,7 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
                           ))}
                         </div>
                         <Badge variant="outline" className="shrink-0 bg-stone-100 dark:bg-stone-800 font-bold whitespace-nowrap ml-2">
-                          ({course.credits.toFixed(2)} x {bundle.labs.map((l: any) => l.credits.toFixed(2)).join(' x ')}) Cr
+                          ({course.credits.toFixed(2)} x {bundle.labs.map((l: any) => l.credits.toFixed(2)).join(' x ')}) Credits
                         </Badge>
                       </div>
                       <div className="flex justify-between items-start mb-2 gap-2">
@@ -170,7 +170,7 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
                            </h3>
                         </div>
                         <div className="text-xs font-bold text-stone-500 whitespace-nowrap mt-1">
-                           T =&gt; {bundle.totalCredits.toFixed(2)}Credit
+                           T =&gt; {bundle.totalCredits.toFixed(2)} Credits
                         </div>
                       </div>
                       <p className="text-sm text-stone-500">{course.faculty}</p>
@@ -191,7 +191,7 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
                         disabled={isSelectionLocked}
                         className="flex-1 py-2 flex items-center justify-center gap-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <AlertCircle className="w-4 h-4" /> Drop {bundle.totalCredits.toFixed(2)} Cr Bundle
+                        <AlertCircle className="w-4 h-4" /> Drop {bundle.totalCredits.toFixed(2)} Credits Bundle
                       </button>
                     </div>
                   </Card>
@@ -203,7 +203,7 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
                   <div className="p-5 flex-1 relative">
                     <div className="flex justify-between items-start mb-3">
                       <Badge variant="brand">{course.code}</Badge>
-                      <Badge variant="outline">{course.credits.toFixed(2)} Cr.</Badge>
+                      <Badge variant="outline">{course.credits.toFixed(2)} Credits</Badge>
                     </div>
                     <h3 className="font-bold text-lg text-stone-900 dark:text-stone-100 leading-tight mb-2 pr-8">{course.title}</h3>
                     <p className="text-sm text-stone-500">{course.faculty}</p>
@@ -329,15 +329,15 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
                                 {titleMain} <span className="text-stone-400 font-normal">x {titleLab}</span>
                               </td>
                               <td className="px-6 py-4 text-stone-500 whitespace-nowrap">
-                                T =&gt; {bundle.totalCredits.toFixed(2)}Credit
+                                T =&gt; {bundle.totalCredits.toFixed(2)} Credits
                               </td>
                               <td className="px-6 py-4 text-right">
                                 <div className="flex flex-col items-end gap-1">
-                                  <span className={`inline-flex font-bold ${['A', 'A-', 'B+'].includes(course.grade || '') ? 'text-emerald-600' : 'text-stone-700 dark:text-stone-300'}`}>
+                                  <span className={`inline-flex font-bold ${course.grade?.toUpperCase() === 'F' ? 'text-red-600' : ['A', 'A-', 'B+'].includes(course.grade || '') ? 'text-emerald-600' : 'text-stone-700 dark:text-stone-300'}`}>
                                     {course.grade}
                                   </span>
                                   {bundle.labs.map((l: any) => (
-                                    <span key={l.code} className={`text-xs inline-flex font-bold ${['A', 'A-', 'B+'].includes(l.grade || '') ? 'text-emerald-600' : 'text-stone-700 dark:text-stone-300'}`}>
+                                    <span key={l.code} className={`text-xs inline-flex font-bold ${l.grade?.toUpperCase() === 'F' ? 'text-red-600' : ['A', 'A-', 'B+'].includes(l.grade || '') ? 'text-emerald-600' : 'text-stone-700 dark:text-stone-300'}`}>
                                       {l.grade}
                                     </span>
                                   ))}
@@ -353,7 +353,7 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
                             <td className="px-6 py-4 text-stone-800 dark:text-stone-300 font-medium">{course.title}</td>
                             <td className="px-6 py-4 text-stone-500">{course.credits.toFixed(2)}</td>
                             <td className="px-6 py-4 text-right">
-                              <span className={`inline-flex font-bold ${['A', 'A-', 'B+'].includes(course.grade || '') ? 'text-emerald-600' : 'text-stone-700 dark:text-stone-300'}`}>
+                              <span className={`inline-flex font-bold ${course.grade?.toUpperCase() === 'F' ? 'text-red-600' : ['A', 'A-', 'B+'].includes(course.grade || '') ? 'text-emerald-600' : 'text-stone-700 dark:text-stone-300'}`}>
                                 {course.grade}
                               </span>
                             </td>
@@ -489,7 +489,7 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
                         ))}
                       </div>
                       <Badge variant="outline" className="shrink-0 bg-stone-100 dark:bg-stone-800 font-bold whitespace-nowrap ml-2">
-                        ({course.credits.toFixed(2)} x {bundle.labs.map((l: any) => l.credits.toFixed(2)).join(' x ')}) Cr
+                        ({course.credits.toFixed(2)} x {bundle.labs.map((l: any) => l.credits.toFixed(2)).join(' x ')}) Credits
                       </Badge>
                     </div>
                     <div className="flex justify-between items-start mb-4 gap-2">
@@ -499,7 +499,7 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
                          </h3>
                       </div>
                       <div className="text-xs font-bold text-stone-500 whitespace-nowrap mt-1">
-                         T =&gt; {bundle.totalCredits.toFixed(2)}Credit
+                         T =&gt; {bundle.totalCredits.toFixed(2)} Credits
                       </div>
                     </div>
                     <div className="mt-auto space-y-2">
@@ -535,7 +535,7 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
                               : 'bg-[#8c1515] dark:bg-[#ef4444] hover:bg-[#731010] dark:hover:bg-[#dc2626] text-white shadow-sm'
                       }`}
                     >
-                      {allRegistered ? 'Enrolled' : someRegistered ? 'Enroll Missing' : <><Plus className="w-4 h-4" /> Enroll {bundle.totalCredits.toFixed(2)} Cr</>}
+                      {allRegistered ? 'Enrolled' : someRegistered ? 'Enroll Missing' : <><Plus className="w-4 h-4" /> Enroll {bundle.totalCredits.toFixed(2)} Credits</>}
                     </button>
                   </div>
                 </Card>
@@ -551,7 +551,7 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
                 <div className="p-5 flex-1 relative flex flex-col">
                   <div className="flex justify-between items-start mb-3">
                     <Badge variant="brand">{course.code}</Badge>
-                    <Badge variant="outline">{course.credits.toFixed(2)} Cr.</Badge>
+                    <Badge variant="outline">{course.credits.toFixed(2)} Credits</Badge>
                   </div>
                   <h3 className="font-bold text-lg text-stone-900 dark:text-stone-100 leading-tight mb-2 pr-8">{course.title}</h3>
                   <div className="mt-auto pt-4 space-y-2">

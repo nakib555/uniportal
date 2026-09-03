@@ -33,7 +33,7 @@ export function ScheduleWeeklyView({ portal }: { portal: ReturnType<typeof usePo
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center p-6 bg-stone-50 border-b border-stone-200 dark:bg-stone-900 dark:border-stone-800 gap-4">
          <div>
            <h2 className="text-xl font-bold dark:text-white flex items-center gap-2">Class Schedule</h2>
-           <p className="text-sm text-stone-500 dark:text-stone-400">Summer-26 Semester</p>
+           <p className="text-sm text-stone-500 dark:text-stone-400">{portal.student.currentSemester || 'Summer-26'} Semester</p>
          </div>
          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
             <select 

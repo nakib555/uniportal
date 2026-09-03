@@ -31,7 +31,8 @@ export function BankSlipsView({ portal }: { portal: ReturnType<typeof usePortalL
   const timeStr = today.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
   // Selected fee details helper
-  const selectedFeeDetails = FEES_LIST.filter(f => selectedFees.includes(f.code));
+  const availableFees = portal?.studentData?.bankSlipFees || FEES_LIST;
+  const selectedFeeDetails = availableFees.filter(f => selectedFees.includes(f.code));
 
   const handlePrint = () => {
     window.print();
@@ -63,7 +64,7 @@ export function BankSlipsView({ portal }: { portal: ReturnType<typeof usePortalL
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
-                  {FEES_LIST.map((fee) => {
+                  {availableFees.map((fee) => {
                     const isSelected = selectedFees.includes(fee.code);
                     return (
                       <tr

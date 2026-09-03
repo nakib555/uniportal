@@ -34,7 +34,8 @@ export const getNavItems = (isAdmin: boolean): NavItem[] => {
       { id: 'available-courses', label: 'Course Enrollment' }
     ]},
     { id: 'schedule', label: 'Schedule', icon: Calendar, subItems: [
-      { id: 'class-schedule', label: 'Class Schedule' }
+      { id: 'class-schedule', label: 'Class Schedule' },
+      { id: 'exam-admit-card', label: 'Exam Admit Card' }
     ]},
     { id: 'academics', label: 'Academics', icon: GraduationCap, subItems: [
       { id: 'degree-audit', label: 'Degree Audit' },

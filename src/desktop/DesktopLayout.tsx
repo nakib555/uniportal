@@ -16,6 +16,7 @@ import { AttendanceView } from './views/AttendanceView';
 import { FacultyEvalView } from './views/FacultyEvalView';
 import { FinancialAidView } from './views/FinancialAidView';
 import { StatementView } from '../views/StatementView';
+import { AdmitCardView } from '../views/AdmitCardView';
 import { AdminDashboardView } from './views/admin/AdminDashboardView';
 import { AdminStudentRecordsView } from './views/admin/AdminStudentRecordsView';
 import { AdminCourseManagementView } from './views/admin/AdminCourseManagementView';
@@ -40,7 +41,7 @@ export function DesktopLayout(portal: ReturnType<typeof usePortalLogic>) {
       case 'enrollment-approvals': return <AdminEnrollmentApprovalsView />;
       case 'attendance-tracking': return <AdminAttendanceManagementView />;
       case 'profile': return <ProfileView portal={portal} />;
-      case 'statement': return <StatementView />;
+      case 'statement': return <StatementView portal={portal} />;
       case 'financial-aid': return <FinancialAidView />;
       case 'registered-courses':
       case 'available-courses': return <CoursesView portal={portal} />;
@@ -49,6 +50,7 @@ export function DesktopLayout(portal: ReturnType<typeof usePortalLogic>) {
       case 'degree-audit': return <DegreeAuditView />;
       case 'transcript': return <GradesView />;
       case 'exam-routine': return <ExamsView />;
+      case 'exam-admit-card': return <AdmitCardView portal={portal} />;
       case 'attendance': return <AttendanceView />;
       case 'faculty-evaluation': return <FacultyEvalView />;
       default: return <div className="p-8 text-stone-500">View under construction.</div>;

@@ -33,9 +33,7 @@ export const Sidebar: React.FC = () => {
     <div className="flex flex-col h-full overflow-hidden">
       <div className="p-6 md:px-8 mt-2 md:mt-4 shrink-0 flex items-center justify-between">
         <div className={clsx("flex items-center gap-3", isSidebarCollapsed && "md:hidden")}>
-          <div className="w-10 h-10 bg-[#8c1515] dark:bg-[#ef4444] rounded-xl flex items-center justify-center shadow-lg shadow-[#8c1515]/20 shrink-0">
-             <GraduationCap className="w-6 h-6 text-white" />
-          </div>
+          <img src="/icon.svg" alt="UniPortal" className="w-10 h-10 rounded-xl shadow-md shrink-0" />
           <div className="font-black text-xl tracking-tight text-stone-900 dark:text-white leading-none">
              Sims<span className="text-[#8c1515] dark:text-[#ef4444]">.</span>
           </div>

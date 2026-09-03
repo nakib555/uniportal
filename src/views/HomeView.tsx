@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { BookOpen, Calendar, Clock, GraduationCap, MapPin, TrendingUp, Wallet, Users } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { Card, Badge } from '../components/ui';
 import { usePortalLogic } from '../hooks/usePortalLogic';
 
@@ -68,8 +69,54 @@ export function HomeView({ portal }: { portal: ReturnType<typeof usePortalLogic>
               ))}
             </div>
           </Card>
-        </div>
 
+          <Card className="p-6">
+            <h3 className="font-semibold text-lg mb-6 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-[#8c1515]" /> GPA Trend
+            </h3>
+            {student.gpaHistory && student.gpaHistory.length > 0 ? (
+              <div className="h-[250px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={student.gpaHistory} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
+                    <XAxis 
+                      dataKey="semester" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 12, fill: '#78716c' }} 
+                      dy={10} 
+                    />
+                    <YAxis 
+                      domain={[0, 4.0]} 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 12, fill: '#78716c' }} 
+                      dx={-10} 
+                      tickFormatter={(val) => val.toFixed(2)}
+                    />
+                    <RechartsTooltip 
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
+                      cursor={{ stroke: '#8c1515', strokeWidth: 1, strokeDasharray: '5 5' }}
+                      formatter={(value) => [Number(value).toFixed(2), 'GPA']}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="gpa" 
+                      stroke="#8c1515" 
+                      strokeWidth={3} 
+                      dot={{ r: 4, fill: '#8c1515', strokeWidth: 2, stroke: '#fff' }} 
+                      activeDot={{ r: 6, fill: '#8c1515', strokeWidth: 0 }} 
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-[250px] w-full flex items-center justify-center bg-stone-50 dark:bg-stone-900/50 rounded-xl border border-dashed border-stone-200 dark:border-stone-800">
+                <p className="text-stone-500 text-sm">No GPA history available yet.</p>
+              </div>
+            )}
+          </Card>
+        </div>
         <div className="space-y-6">
           <Card className="p-6">
             <h3 className="font-semibold text-lg mb-6 flex items-center gap-2">
@@ -145,3 +192,4 @@ export function HomeView({ portal }: { portal: ReturnType<typeof usePortalLogic>
     </div>
   );
 }
+

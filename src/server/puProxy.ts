@@ -17,7 +17,6 @@ const STRUCTURE = [
   { tabName: 'Courses Overview', url: `${SIMS_BASE}/students/courses` },
   { tabName: 'Registered Courses', url: `${SIMS_BASE}/students/registeredCourses` },
   { tabName: 'Completed Courses', url: `${SIMS_BASE}/students/completedCourses` },
-  { tabName: 'Schedule Overview', url: `${SIMS_BASE}/students/schedule` },
   { tabName: 'Class Schedule', url: `${SIMS_BASE}/students/classSchedule` },
   { tabName: 'Exam Schedule', url: `${SIMS_BASE}/students/examSchedule` },
   { tabName: 'Exam Admit Card', url: `${SIMS_BASE}/students/examAdmitCard` },
@@ -124,15 +123,26 @@ const GRADE_POINTS: Record<string, number> = {
   'W': 0.0
 };
 
+export interface SyncOptions {
+  skipAdmitCard?: boolean;
+  admitCardOnly?: boolean;
+}
+
 export interface SyncResult {
   success: boolean;
   status: number;
   studentData?: StudentDetails;
   error?: string;
   message?: string;
+  hasRestriction?: boolean;
+  exams?: StudentDetails['exams'];
 }
 
-export async function executePresidencySync(studentId: string, password: string): Promise<SyncResult> {
+export async function executePresidencySync(
+  studentId: string,
+  password: string,
+  options: SyncOptions = {}
+): Promise<SyncResult> {
   const cleanId = (studentId || '').trim();
   const cleanPass = (password || '').trim();
 
@@ -242,13 +252,24 @@ export async function executePresidencySync(studentId: string, password: string)
       return { success: false, status: 401, error: errorMsg };
     }
 
-    // 4. Authenticated successfully: Fetch all tabs concurrently with session cookie
+    // 4. Authenticated successfully: Filter target tabs based on request options
+    let targetStructure = STRUCTURE;
+    if (options.admitCardOnly) {
+      targetStructure = STRUCTURE.filter(
+        item => item.tabName === 'Exam Admit Card' || item.tabName === 'Exam Schedule' || item.tabName === 'Profile'
+      );
+    } else if (options.skipAdmitCard) {
+      targetStructure = STRUCTURE.filter(
+        item => item.tabName !== 'Exam Admit Card'
+      );
+    }
+
     const tabFetchHeaders = {
       ...commonHeaders,
       'Referer': `${SIMS_BASE}/students`
     };
 
-    const tabPromises = STRUCTURE.map(async (item) => {
+    const tabPromises = targetStructure.map(async (item) => {
       try {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 15000);
@@ -269,6 +290,40 @@ export async function executePresidencySync(studentId: string, password: string)
       tabMap.set(tr.tabName, tr.html);
     }
 
+    // Fetch student photo while authenticated
+    let photoDataBase64 = '';
+    try {
+      const photoUrl = `${SIMS_BASE}/students/studentPhoto`;
+      const photoHeaders: Record<string, string> = {
+        ...commonHeaders,
+        'Referer': `${SIMS_BASE}/students/profile`
+      };
+      const cookieHeader = cookieJar.getCookieHeader();
+      if (cookieHeader) {
+        photoHeaders['Cookie'] = cookieHeader;
+      }
+      const photoController = new AbortController();
+      const photoTimer = setTimeout(() => photoController.abort(), 10000);
+      const photoRes = await fetch(photoUrl, {
+        headers: photoHeaders,
+        signal: photoController.signal
+      });
+      clearTimeout(photoTimer);
+      if (photoRes.ok) {
+        const contentType = photoRes.headers.get('content-type') || '';
+        if (contentType.toLowerCase().includes('image') || contentType.toLowerCase().includes('octet-stream') || photoRes.headers.get('content-length')) {
+          const arrayBuffer = await photoRes.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          if (buffer.length > 100) {
+            const mime = contentType.toLowerCase().includes('image') ? contentType : 'image/jpeg';
+            photoDataBase64 = `data:${mime};base64,${buffer.toString('base64')}`;
+          }
+        }
+      }
+    } catch (photoErr) {
+      console.warn('[puProxy] Failed to fetch student photo:', photoErr);
+    }
+
     // 5. Terminate session cleanly
     try {
       requestWithRedirects(LOGOUT_URL, { headers: tabFetchHeaders }, cookieJar).catch(() => {});
@@ -281,15 +336,16 @@ export async function executePresidencySync(studentId: string, password: string)
     const profile: StudentProfile = {
       id: cleanId,
       name: '',
-      status: 'Registered',
+      status: '',
       admissionSemester: '',
       currentSemester: '',
-      program: 'Electrical & Electronic Engineering',
+      program: '',
       creditsTaken: 0,
       creditsCompleted: 0,
       cgpa: 0.0,
       accountBalance: 0.0,
       email: `${cleanId}@student.presidency.edu.bd`,
+      photo: photoDataBase64 || undefined,
       gpaHistory: []
     };
 
@@ -310,10 +366,7 @@ export async function executePresidencySync(studentId: string, password: string)
         } else if (key.includes('current semester')) {
           profile.currentSemester = val;
         } else if (key.includes('program')) {
-          let p: Major = 'Electrical & Electronic Engineering';
-          if (val.toLowerCase().includes('computer')) p = 'Computer Science & Engineering';
-          else if (val.toLowerCase().includes('business')) p = 'Business Administration';
-          profile.program = p;
+          profile.program = val;
         } else if (key.includes('credits taken')) {
           const num = parseFloat(val.replace(/[^\d.]/g, ''));
           if (!isNaN(num)) profile.creditsTaken = num;
@@ -554,10 +607,13 @@ export async function executePresidencySync(studentId: string, password: string)
         const semester = tds.length > 9 ? cleanText($exam(tds[9]).text()) : (profile.currentSemester || 'Current');
 
         if (courseCode && courseCode.toUpperCase() !== 'COURSE' && day && !seenExams.has(courseCode)) {
+          const matchedCourse = registeredCourses.find(c => c.code.toLowerCase() === courseCode.toLowerCase());
+          const fullTitle = matchedCourse?.title || courseCode;
+
           exams.push({
             securityCode: securityCodeMap[courseCode] || '',
             courseCode,
-            title: courseCode,
+            title: fullTitle,
             section,
             type: 'Final Examination',
             day,
@@ -593,8 +649,8 @@ export async function executePresidencySync(studentId: string, password: string)
     let semIdx = 2;
     let codeIdx = 3;
     let descIdx = 4;
-    let debitIdx = 5;
-    let creditIdx = 6;
+    let debitIdx = 6; // Default to column 6 for Credit (Fees) (Debit/Charges in our app)
+    let creditIdx = 5; // Default to column 5 for Debit (Paid) (Credit/Payments in our app)
     let balanceIdx = 7;
 
     let ledgerTable: any = null;
@@ -608,18 +664,6 @@ export async function executePresidencySync(studentId: string, password: string)
         headers.some(h => h.includes('debit') || h.includes('credit') || h.includes('balance') || h.includes('unpaid') || h.includes('paid'))
       ) {
         ledgerTable = table;
-        
-        // Map the indices dynamically!
-        headers.forEach((h, idx) => {
-          if (h === 'no.' || h === 'no' || h.includes('serial') || h.includes('sl')) noIdx = idx;
-          else if (h.includes('date')) dateIdx = idx;
-          else if (h.includes('sem')) semIdx = idx;
-          else if (h.includes('code')) codeIdx = idx;
-          else if (h.includes('desc')) descIdx = idx;
-          else if (h.includes('debit') || h.includes('paid')) debitIdx = idx;
-          else if (h.includes('credit') || h.includes('fee')) creditIdx = idx;
-          else if (h.includes('balance') || h.includes('unpaid')) balanceIdx = idx;
-        });
       }
     });
 
@@ -633,6 +677,40 @@ export async function executePresidencySync(studentId: string, password: string)
     }
 
     const targetTable = ledgerTable ? $trans(ledgerTable) : $trans('table').first();
+    
+    // Dynamically parse headers from the actual target table to determine column mappings robustly
+    const targetHeaders: string[] = [];
+    targetTable.find('tr').first().find('th, td').each((_, cell) => {
+      targetHeaders.push(cleanText($trans(cell).text()).toLowerCase());
+    });
+
+    targetHeaders.forEach((h, idx) => {
+      const cleanH = h.trim();
+      if (cleanH === 'no.' || cleanH === 'no' || cleanH.includes('serial') || cleanH.includes('sl')) {
+        noIdx = idx;
+      } else if (cleanH.includes('date')) {
+        dateIdx = idx;
+      } else if (cleanH.includes('sem')) {
+        semIdx = idx;
+      } else if (cleanH.includes('code')) {
+        codeIdx = idx;
+      } else if (cleanH.includes('desc')) {
+        descIdx = idx;
+      } else if (cleanH.includes('unpaid') || cleanH.includes('balance')) {
+        balanceIdx = idx;
+      } else if (cleanH.includes('debit (paid)') || (cleanH.includes('debit') && cleanH.includes('paid'))) {
+        // Debit (Paid) column of university portal is the payments/credit column in our app
+        creditIdx = idx;
+      } else if (cleanH.includes('credit (fees)') || cleanH.includes('credit (fee)') || (cleanH.includes('credit') && cleanH.includes('fee')) || cleanH.includes('credit  (fees)')) {
+        // Credit (Fees) column of university portal is the charges/debit column in our app
+        debitIdx = idx;
+      } else if (cleanH === 'debit') {
+        debitIdx = idx;
+      } else if (cleanH === 'credit') {
+        creditIdx = idx;
+      }
+    });
+
     const minLength = Math.max(noIdx, dateIdx, semIdx, codeIdx, descIdx, debitIdx, creditIdx, balanceIdx) + 1;
 
     targetTable.find('tr').each((_, tr) => {
@@ -664,6 +742,90 @@ export async function executePresidencySync(studentId: string, password: string)
       }
     });
 
+    // Parse Statement Summary Table
+    let statementSummary: any = undefined;
+    $trans('table').each((_, table) => {
+      const text = $trans(table).text();
+      if (text.includes('Statement Summary') && !statementSummary) {
+        const summary: any = {
+          lastSemesterBalance: 0,
+          totalTuitionAndFees: 0,
+          totalSemesterWaiver: 0,
+          totalOtherAdjustment: 0,
+          toBePaidCurrentSemester: 0,
+          semesterFee: 0,
+          totalCourseFees: 0,
+          othersFee: 0,
+          totalFeesToBePaid: 0,
+          totalCashPaid: 0,
+          totalDues: 0
+        };
+
+        $trans(table).find('tr').each((_, tr) => {
+          const tds = $trans(tr).find('td');
+          if (tds.length >= 2) {
+            const label = cleanText($trans(tds[0]).text()).toLowerCase();
+            const val = parseFloat(cleanText($trans(tds[1]).text()).replace(/,/g, '')) || 0;
+
+            if (label.includes('last semester balance')) {
+              summary.lastSemesterBalance = val;
+            } else if (label.includes('total tuition and other fees')) {
+              summary.totalTuitionAndFees = val;
+            } else if (label.includes('total semester waiver')) {
+              summary.totalSemesterWaiver = val;
+            } else if (label.includes('total other adjustment')) {
+              summary.totalOtherAdjustment = val;
+            } else if (label.includes('to be paid in current semester')) {
+              summary.toBePaidCurrentSemester = val;
+            } else if (label.includes('semester fee')) {
+              summary.semesterFee = val;
+            } else if (label.includes('total tuition(course) fees') || label.includes('total tuition')) {
+              summary.totalCourseFees = val;
+            } else if (label.includes('others fee')) {
+              summary.othersFee = val;
+            } else if (label.includes('total fees to be paid')) {
+              summary.totalFeesToBePaid = val;
+            } else if (label.includes('total cash paid')) {
+              summary.totalCashPaid = val;
+            } else if (label.includes('total dues')) {
+              summary.totalDues = val;
+            }
+          }
+        });
+        statementSummary = summary;
+      }
+    });
+
+    // Parse Instalment Payment Table
+    const instalments: any[] = [];
+    $trans('table').each((_, table) => {
+      const text = $trans(table).text();
+      if (text.includes('Instalment Payment') && text.includes('Instalment Deadline')) {
+        $trans(table).find('tr').each((_, tr) => {
+          const tds = $trans(tr).find('td');
+          if (tds.length >= 7) {
+            const label = cleanText($trans(tds[0]).text());
+            const deadline = cleanText($trans(tds[1]).text());
+            const amount = parseFloat(cleanText($trans(tds[2]).text()).replace(/,/g, '')) || 0;
+            const cashPaid = parseFloat(cleanText($trans(tds[4]).text()).replace(/,/g, '')) || 0;
+            const dues = parseFloat(cleanText($trans(tds[6]).text()).replace(/,/g, '')) || 0;
+
+            if (label && (label.includes('1st') || label.includes('2nd') || label.includes('3rd') || label.includes('Instalment'))) {
+              if (!instalments.some(inst => inst.no === label)) {
+                instalments.push({
+                  no: label,
+                  deadline,
+                  amount,
+                  cashPaid,
+                  dues
+                });
+              }
+            }
+          }
+        });
+      }
+    });
+
     // (g) Related Teachers Parsing
     const teachHtml = tabMap.get('Related Teachers') || '';
     const $teach = cheerio.load(teachHtml);
@@ -690,6 +852,78 @@ export async function executePresidencySync(studentId: string, password: string)
       }
     });
 
+    // (h) Bank Slips Parsing
+    const bankHtml = tabMap.get('Bank Slips') || '';
+    const $bank = cheerio.load(bankHtml);
+    const bankSlipFees: { code: string; description: string; amount: number }[] = [];
+
+    // The HTML has form#bankSlipSubmitForm table tr with:
+    // <td class="serial_number"><input type="checkbox" name="data[check_list][]" value="FEE051^ID Card Fee^100.00"/></td>
+    // <td class="txt">FEE051</td>
+    // <td class="txt">ID Card Fee</td>
+    // <td class="amount">100.00</td>
+    $bank('form#bankSlipSubmitForm table tr, table tr').each((_, tr) => {
+      const row = $bank(tr);
+      const chk = row.find('input[type="checkbox"]');
+      const val = chk.val() as string | undefined;
+      
+      if (val && val.includes('^')) {
+        const parts = val.split('^');
+        if (parts.length >= 3) {
+          const code = cleanText(parts[0]);
+          const desc = cleanText(parts[1]);
+          const amt = parseFloat(cleanText(parts[2]).replace(/,/g, '')) || 0;
+          if (code) {
+            bankSlipFees.push({
+              code,
+              description: desc,
+              amount: amt
+            });
+            return;
+          }
+        }
+      }
+
+      // Fallback row parsing by columns
+      const tds = row.find('td');
+      if (tds.length >= 4) {
+        const codeText = cleanText($bank(tds[1]).text());
+        const descText = cleanText($bank(tds[2]).text());
+        const amtText = cleanText($bank(tds[3]).text()).replace(/,/g, '');
+        if (codeText && (codeText.startsWith('FEE') || codeText.startsWith('PAY'))) {
+          bankSlipFees.push({
+            code: codeText,
+            description: descText,
+            amount: parseFloat(amtText) || 0
+          });
+        }
+      }
+    });
+
+    // Sync account balance with the statement summary's actual totalDues to guarantee no 1 Tk or sync discrepancies
+    if (statementSummary) {
+      profile.accountBalance = statementSummary.totalDues;
+    }
+
+    // Special handling for admitCardOnly: If the user only requested admit card data
+    const isRestricted = (exams.length === 0) && (
+      (admitCardHtml && (
+        admitCardHtml.toLowerCase().includes('restriction') ||
+        admitCardHtml.toLowerCase().includes('accounts office') ||
+        admitCardHtml.toLowerCase().includes('access restricted')
+      )) || profile.accountBalance < 0
+    );
+
+    if (options.admitCardOnly) {
+      return {
+        success: true,
+        status: 200,
+        hasRestriction: Boolean(isRestricted),
+        exams,
+        message: 'Exam admit card data fetched successfully'
+      };
+    }
+
     // Recalculate credits if not found on profile table
     if (!profile.creditsTaken && registeredCourses.length > 0) {
       profile.creditsTaken = registeredCourses.reduce((sum, c) => sum + c.credits, 0);
@@ -705,7 +939,10 @@ export async function executePresidencySync(studentId: string, password: string)
       schedule,
       transactions,
       teachers,
-      exams
+      exams,
+      statementSummary,
+      bankSlipFees,
+      instalments
     };
 
     return {
@@ -744,9 +981,9 @@ export function puSyncPlugin() {
 
     req.on('end', async () => {
       try {
-        const { studentId, password } = JSON.parse(body || '{}');
-        console.log(`[pu-sync-plugin] Executing sync for Student ID: ${studentId}`);
-        const result = await executePresidencySync(studentId, password);
+        const { studentId, password, skipAdmitCard, admitCardOnly } = JSON.parse(body || '{}');
+        console.log(`[pu-sync-plugin] Executing sync for Student ID: ${studentId} (skipAdmitCard: ${skipAdmitCard}, admitCardOnly: ${admitCardOnly})`);
+        const result = await executePresidencySync(studentId, password, { skipAdmitCard, admitCardOnly });
         
         console.log(`[pu-sync-plugin] Sync completed with status: ${result.status}, success: ${result.success}`);
         res.statusCode = result.status;

@@ -155,7 +155,7 @@ export function DegreeAuditView({ portal }: { portal?: ReturnType<typeof usePort
                     <h4 className="text-sm font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500 mb-4">{path.title} Sequence</h4>
                     <div className="flex items-center">
                        {path.courses.map((course, idx) => (
-                         <React.Fragment key={course.code}>
+                         <React.Fragment key={`${path.id}-${course.code}-${idx}`}>
                             <div className="relative group">
                                <div className={`w-28 py-3 rounded-xl border-2 flex flex-col items-center justify-center transition-all cursor-pointer hover:-translate-y-1 ${
                                  course.status === 'completed' ? 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-500 text-emerald-700 dark:text-emerald-400 shadow-sm shadow-emerald-500/20' :
