@@ -67,13 +67,44 @@ interface AppState {
   addCourse: (course: any) => void;
 }
 
+const getInitialStudentId = (): string | null => {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    return localStorage.getItem('pu_active_student_id');
+  }
+  return null;
+};
+
+const getInitialIsLoggedIn = (): boolean => {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    return localStorage.getItem('pu_is_logged_in') === 'true';
+  }
+  return false;
+};
+
 export const useAppStore = create<AppState>((set) => ({
-  isLoggedIn: false,
-  setIsLoggedIn: (v) => set({ isLoggedIn: v }),
+  isLoggedIn: getInitialIsLoggedIn(),
+  setIsLoggedIn: (v) => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('pu_is_logged_in', String(v));
+      if (!v) {
+        localStorage.removeItem('pu_active_student_id');
+      }
+    }
+    set({ isLoggedIn: v });
+  },
   isAdmin: false,
   setIsAdmin: (v) => set({ isAdmin: v }),
-  currentStudentId: null,
-  setCurrentStudentId: (v) => set({ currentStudentId: v }),
+  currentStudentId: getInitialStudentId(),
+  setCurrentStudentId: (v) => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      if (v) {
+        localStorage.setItem('pu_active_student_id', v);
+      } else {
+        localStorage.removeItem('pu_active_student_id');
+      }
+    }
+    set({ currentStudentId: v });
+  },
 
   notices: [
     { id: '1', title: "Report on Conversion from Tri-Semester to Bi-Semester", date: "Today", important: true },

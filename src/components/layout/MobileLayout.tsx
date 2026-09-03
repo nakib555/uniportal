@@ -446,8 +446,8 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                                <TrendingUp className="w-5 h-5 text-indigo-500" /> Academic Progression
                             </h3>
                          </div>
-                         <div className="p-6 h-64 w-full">
-                            <ResponsiveContainer width="100%" height="100%" minHeight={200} minWidth={0}>
+                         <div className="p-6 h-64 w-full min-w-0 min-h-[256px]">
+                            <ResponsiveContainer width="100%" height="100%" minHeight={200} minWidth={0} initialDimension={{ width: 320, height: 200 }}>
                                <AreaChart data={student.gpaHistory}>
                                   <defs>
                                      <linearGradient id="colorGpa" x1="0" y1="0" x2="0" y2="1">

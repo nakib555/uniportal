@@ -119,8 +119,8 @@ export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic
             <TrendingDown className="w-4 h-4 text-stone-400" />
             Balance History
          </h3>
-         <div className="h-48 w-full">
-            <ResponsiveContainer width="100%" height="100%" minHeight={150} minWidth={0}>
+         <div className="h-48 w-full min-w-0 min-h-[192px]">
+            <ResponsiveContainer width="100%" height="100%" minHeight={150} minWidth={0} initialDimension={{ width: 320, height: 180 }}>
               <AreaChart data={statementChartData}>
                 <defs>
                   <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">

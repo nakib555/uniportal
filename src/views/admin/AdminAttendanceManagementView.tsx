@@ -98,8 +98,8 @@ export function AdminAttendanceManagementView() {
           <div className="px-6 py-4 border-b border-stone-100 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/50">
             <h3 className="font-bold text-stone-900 dark:text-white">Overall Trend</h3>
           </div>
-          <div className="h-64 px-4 pt-4 w-full bg-white dark:bg-stone-950">
-            <ResponsiveContainer width="100%" height="100%" minHeight={150} minWidth={0}>
+          <div className="h-64 px-4 pt-4 w-full min-w-0 min-h-[256px] bg-white dark:bg-stone-950">
+            <ResponsiveContainer width="100%" height="100%" minHeight={150} minWidth={0} initialDimension={{ width: 400, height: 250 }}>
               <AreaChart data={chartData}>
                 <defs>
                    <linearGradient id="colorAttd" x1="0" y1="0" x2="0" y2="1">
