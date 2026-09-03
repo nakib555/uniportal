@@ -87,7 +87,10 @@ export const useAppStore = create<AppState>((set) => ({
   setIsLoggedIn: (v) => {
     if (typeof window !== 'undefined' && window.localStorage) {
       localStorage.setItem('pu_is_logged_in', String(v));
-      if (!v) {
+      if (v) {
+        // Start absolute 30-minute session timestamp (1800000 ms)
+        localStorage.setItem('pu_session_expires_at', String(Date.now() + 30 * 60 * 1000));
+      } else {
         localStorage.removeItem('pu_active_student_id');
         localStorage.removeItem('pu_session_expires_at');
         tempAuthService.clearTempCredentials();

@@ -316,7 +316,7 @@ export const LoginView: React.FC = () => {
                            <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                            <div>
                               <p className="font-bold text-amber-900 dark:text-amber-200">Session Expired</p>
-                              <p className="text-[11px] text-amber-700/90 dark:text-amber-400/85 mt-0.5 leading-relaxed">You have been automatically logged out due to 30 minutes of inactivity to protect your account security.</p>
+                              <p className="text-[11px] text-amber-700/90 dark:text-amber-400/85 mt-0.5 leading-relaxed">You have been automatically logged out after 30 minutes of session duration to protect your account security.</p>
                            </div>
                         </motion.div>
                      )}
