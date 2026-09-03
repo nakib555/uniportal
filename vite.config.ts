@@ -23,6 +23,33 @@ export default defineConfig(({mode}) => {
       }
     },
     plugins: [
+      {
+        name: 'mock-ws-fallback',
+        configureServer(server) {
+          const s = server as any;
+          if (!s.ws) {
+            s.ws = {
+              send() {},
+              close() { return Promise.resolve(); },
+              on() { return s.ws; },
+              off() { return s.ws; },
+              listen() {}
+            };
+          }
+        },
+        configurePreviewServer(server) {
+          const s = server as any;
+          if (!s.ws) {
+            s.ws = {
+              send() {},
+              close() { return Promise.resolve(); },
+              on() { return s.ws; },
+              off() { return s.ws; },
+              listen() {}
+            };
+          }
+        }
+      },
       react(),
       tailwindcss(),
       puSyncPlugin(),
