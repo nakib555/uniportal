@@ -725,7 +725,12 @@ export async function executePresidencySync(studentId: string, password: string)
 
 export function puSyncPlugin() {
   const handler = async (req: Connect.IncomingMessage, res: http.ServerResponse) => {
+    // Detailed console logging for debugging pu-sync requests
+    console.log(`[pu-sync-plugin] Incoming request: ${req.method} ${req.url}`);
+    console.log('[pu-sync-plugin] Request Headers:', JSON.stringify(req.headers, null, 2));
+
     if (req.method !== 'POST') {
+      console.warn(`[pu-sync-plugin] Rejected non-POST request: ${req.method}`);
       res.statusCode = 405;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ success: false, error: 'Method not allowed' }));
@@ -740,12 +745,15 @@ export function puSyncPlugin() {
     req.on('end', async () => {
       try {
         const { studentId, password } = JSON.parse(body || '{}');
+        console.log(`[pu-sync-plugin] Executing sync for Student ID: ${studentId}`);
         const result = await executePresidencySync(studentId, password);
         
+        console.log(`[pu-sync-plugin] Sync completed with status: ${result.status}, success: ${result.success}`);
         res.statusCode = result.status;
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify(result));
       } catch (err: any) {
+        console.error('[pu-sync-plugin] Error processing request:', err);
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify({
