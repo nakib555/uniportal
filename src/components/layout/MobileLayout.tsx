@@ -24,6 +24,7 @@ import { FinancialAidView } from '../../views/FinancialAidView';
 import { StatementView } from '../../views/StatementView';
 import { AdmitCardView } from '../../views/AdmitCardView';
 import { PWAInstallButton } from '../pwa/PWAInstallButton';
+import { ExamCountdownWidget } from '../ExamCountdownWidget';
 import { BankSlipsView } from '../../views/BankSlipsView';
 import { CompletedCoursesView } from '../../views/CompletedCoursesView';
 import { AdminDashboardView } from '../../views/admin/AdminDashboardView';
@@ -103,7 +104,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
     courseSearchQuery, setCourseSearchQuery, courseDeptFilter, setCourseDeptFilter,
     courseCreditFilter, setCourseCreditFilter, coursePrereqFilter, setCoursePrereqFilter,
     courseSortBy, setCourseSortBy, scheduleCourseFilter, setScheduleCourseFilter,
-    scheduleDayFilter, setScheduleDayFilter, student, selectedFees, toggleFee,
+    scheduleDayFilter, setScheduleDayFilter, student, studentData, selectedFees, toggleFee,
     bankSlipTotal, isBankSlipSuccess, isConfirmPaymentOpen, setIsConfirmPaymentOpen,
     handleBankSlipSubmitClick, handleConfirmPayment, filteredSchedule, groupedSchedule,
     groupedCompletedCourses, filteredAvailableCourses, totalDebit, totalCredit, statementChartData,
@@ -414,6 +415,10 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                       <p className="text-stone-500 dark:text-stone-400 mt-1">Here is what's happening with your academics today.</p>
                     </div>
                   </div>
+
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                    <ExamCountdownWidget portalExams={studentData?.exams} />
+                  </motion.div>
 
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                     <Card className="p-5 md:p-6 bg-white dark:bg-stone-900 relative group border-stone-200 dark:border-stone-800">
