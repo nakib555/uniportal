@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Calendar, Clock, MapPin, ArrowRight, Hourglass, CheckCircle2 } from 'lucide-react';
+import { Calendar, Clock, MapPin, ArrowRight, Hourglass } from 'lucide-react';
 import { Card, Badge } from './ui';
 import { useAppStore } from '../store';
 
@@ -136,35 +136,7 @@ export function ExamCountdownWidget({ portalExams }: { portalExams?: Exam[] }) {
   }, [nextExamInfo]);
 
   if (!nextExamInfo || !timeLeft) {
-    // Elegant completed/no upcoming exams state
-    return (
-      <Card className="p-6 bg-gradient-to-br from-stone-50 to-white dark:from-stone-900/60 dark:to-stone-950 border-stone-200 dark:border-stone-800 shadow-sm overflow-hidden relative">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
-                <CheckCircle2 className="w-4 h-4" />
-              </span>
-              <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
-                Examinations Complete
-              </span>
-            </div>
-            <h4 className="text-lg font-extrabold text-stone-900 dark:text-white">
-              All Scheduled Exams Completed
-            </h4>
-            <p className="text-xs text-stone-500 dark:text-stone-400">
-              There are no more upcoming exams on your current calendar.
-            </p>
-          </div>
-          <button
-            onClick={() => store.setActiveTab('exam-routine')}
-            className="self-start sm:self-center px-4 py-2 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 text-xs font-extrabold rounded-lg transition-colors whitespace-nowrap active:scale-95 duration-100"
-          >
-            View Exam Routine
-          </button>
-        </div>
-      </Card>
-    );
+    return null;
   }
 
   const { exam, targetDate } = nextExamInfo;
