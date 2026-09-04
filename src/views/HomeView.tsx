@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { BookOpen, Calendar, Clock, GraduationCap, MapPin, TrendingUp, Wallet, Users, Compass, Layers, Award, ArrowRight, BarChart3 } from 'lucide-react';
+import { BookOpen, Calendar, Clock, GraduationCap, MapPin, TrendingUp, Wallet, Users, Compass, Layers, Award, ArrowRight } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { Card, Badge } from '../components/ui';
 import { usePortalLogic } from '../hooks/usePortalLogic';
@@ -177,20 +177,13 @@ export function HomeView({ portal }: { portal: ReturnType<typeof usePortalLogic>
               </div>
             </div>
             
-            <div className="mt-6 grid grid-cols-2 gap-3">
+            <div className="mt-6">
               <button 
                 onClick={() => portal.store.setActiveTab('degree-audit')}
                 className="w-full py-2.5 text-xs font-bold text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-900 rounded-lg transition-all flex items-center justify-center gap-1.5 group"
               >
                 <Compass className="w-4 h-4 transition-transform group-hover:rotate-45" />
                 <span>View Audit</span>
-              </button>
-              <button 
-                onClick={() => portal.store.setActiveTab('class-distribution')}
-                className="w-full py-2.5 text-xs font-bold text-white bg-[#8c1515] dark:bg-[#ef4444] hover:opacity-90 rounded-lg transition-all flex items-center justify-center gap-1.5 group shadow-sm"
-              >
-                <BarChart3 className="w-4 h-4 transition-transform group-hover:scale-110" />
-                <span>Class Metrics</span>
               </button>
             </div>
           </Card>

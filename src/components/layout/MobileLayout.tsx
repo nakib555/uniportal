@@ -500,7 +500,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                        <div className="px-6 py-4 border-b border-stone-100 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/50">
                         <h3 className="font-bold text-stone-900 dark:text-white">Quick Actions</h3>
                       </div>
-                      <div className="p-6 grid grid-cols-2 gap-4">
+                      <div className="p-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <button onClick={() => setActiveTab('registered-courses')} className="text-left p-4 rounded-xl border border-stone-200 dark:border-stone-800 hover:border-[#8c1515]/30 dark:hover:border-[#ef4444]/30 hover:bg-[#8c1515]/5 dark:hover:bg-[#ef4444]/5 transition-all group">
                           <BookOpen className="w-6 h-6 text-indigo-500 mb-3" />
                           <h4 className="font-bold text-sm text-stone-900 dark:text-white mb-1">My Courses</h4>
@@ -515,11 +515,6 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                           <User className="w-6 h-6 text-sky-500 mb-3" />
                           <h4 className="font-bold text-sm text-stone-900 dark:text-white mb-1">Profile info</h4>
                           <p className="text-xs text-stone-500 dark:text-stone-400">View academic status</p>
-                        </button>
-                        <button onClick={() => setActiveTab('class-distribution')} className="text-left p-4 rounded-xl border border-stone-200 dark:border-stone-800 hover:border-[#8c1515]/30 dark:hover:border-[#ef4444]/30 hover:bg-[#8c1515]/5 dark:hover:bg-[#ef4444]/5 transition-all group">
-                          <BarChart3 className="w-6 h-6 text-[#8c1515] dark:text-[#ef4444] mb-3" />
-                          <h4 className="font-bold text-sm text-stone-900 dark:text-white mb-1">Class Metrics</h4>
-                          <p className="text-xs text-stone-500 dark:text-stone-400">Trimester sessions chart</p>
                         </button>
                       </div>
 
