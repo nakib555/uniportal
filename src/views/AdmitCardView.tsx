@@ -247,149 +247,117 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
       {/* 5. CLEARED FLOW - Render actual print-friendly Admit Card */}
       {!isFetching && !showPasswordPrompt && !hasOutstandingBalance && existingExams.length > 0 && (
         <div className="space-y-6">
-          <Card className="p-8 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl max-w-3xl mx-auto shadow-sm print:p-0 print:border-none print:shadow-none">
+          <Card className="p-4 sm:p-8 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl max-w-3xl mx-auto shadow-sm print:p-0 print:border-none print:shadow-none">
             {/* Slip Header */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 pb-6 border-b border-stone-200 dark:border-stone-800">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-row justify-between items-center gap-2 sm:gap-4 pb-4 sm:pb-6 border-b border-stone-200 dark:border-stone-800">
+              <div className="flex items-center gap-2.5 sm:gap-4">
                 <img 
                   src="https://wsrv.nl/?url=http://sims.presidency.edu.bd/img/layout/header_logo.png&output=webp" 
                   alt="Presidency University" 
-                  className="h-12 w-auto object-contain dark:brightness-200" 
+                  className="h-10 sm:h-12 w-auto object-contain dark:brightness-200 shrink-0" 
                   referrerPolicy="no-referrer"
                 />
                 <div>
-                  <h1 className="text-lg font-black tracking-tight text-stone-900 dark:text-white uppercase">Presidency University</h1>
-                  <p className="text-xs font-bold text-stone-500 uppercase tracking-widest">Office of the Controller of Examinations</p>
+                  <h1 className="text-sm sm:text-lg font-black tracking-tight text-stone-900 dark:text-white uppercase leading-tight">Presidency University</h1>
+                  <p className="text-[10px] sm:text-xs font-bold text-stone-500 uppercase tracking-widest leading-tight">Office of the Controller of Examinations</p>
                 </div>
               </div>
-              <div className="text-right">
-                <Badge variant="outline" className="text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800 font-bold uppercase tracking-wider text-xs px-3 py-1">
+              <div className="text-right shrink-0">
+                <Badge variant="outline" className="text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800 font-bold uppercase tracking-wider text-[10px] sm:text-xs px-2.5 sm:px-3 py-0.5 sm:py-1">
                   Cleared to Sit
                 </Badge>
               </div>
             </div>
 
-            {/* Slip Meta */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6 border-b border-stone-100 dark:border-stone-800/50 text-sm">
+            {/* Slip Meta - 2 Column Document Layout on all screens */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 py-4 sm:py-6 border-b border-stone-100 dark:border-stone-800/50 text-xs sm:text-sm">
               <div className="space-y-2">
-                <div className="flex justify-between border-b border-stone-50 pb-1 dark:border-stone-800/30">
+                <div className="flex flex-col sm:flex-row sm:justify-between border-b border-stone-50 pb-1 dark:border-stone-800/30">
                   <span className="text-stone-500 font-medium">Student Name:</span>
-                  <span className="font-bold text-stone-800 dark:text-stone-200">{student?.name}</span>
+                  <span className="font-bold text-stone-800 dark:text-stone-200 truncate">{student?.name}</span>
                 </div>
-                <div className="flex justify-between border-b border-stone-50 pb-1 dark:border-stone-800/30">
+                <div className="flex flex-col sm:flex-row sm:justify-between border-b border-stone-50 pb-1 dark:border-stone-800/30">
                   <span className="text-stone-500 font-medium">Student ID:</span>
                   <span className="font-mono font-bold text-stone-800 dark:text-stone-200">{student?.id}</span>
                 </div>
-                <div className="flex justify-between border-b border-stone-50 pb-1 dark:border-stone-800/30">
+                <div className="flex flex-col sm:flex-row sm:justify-between border-b border-stone-50 pb-1 dark:border-stone-800/30">
                   <span className="text-stone-500 font-medium">Status:</span>
                   <span className="font-bold text-stone-800 dark:text-stone-200">{student?.status}</span>
                 </div>
               </div>
               <div className="space-y-2">
-                <div className="flex justify-between border-b border-stone-50 pb-1 dark:border-stone-800/30">
+                <div className="flex flex-col sm:flex-row sm:justify-between border-b border-stone-50 pb-1 dark:border-stone-800/30">
                   <span className="text-stone-500 font-medium">Program:</span>
-                  <span className="font-bold text-stone-800 dark:text-stone-200">{student?.program}</span>
+                  <span className="font-bold text-stone-800 dark:text-stone-200 truncate">{student?.program}</span>
                 </div>
-                <div className="flex justify-between border-b border-stone-50 pb-1 dark:border-stone-800/30">
+                <div className="flex flex-col sm:flex-row sm:justify-between border-b border-stone-50 pb-1 dark:border-stone-800/30">
                   <span className="text-stone-500 font-medium">Current Semester:</span>
                   <span className="font-bold text-stone-800 dark:text-stone-200">{student?.currentSemester}</span>
                 </div>
               </div>
             </div>
 
-            {/* Allowed Courses List with Room */}
-            <div className="py-6">
-              <h4 className="text-sm font-black text-stone-900 dark:text-white uppercase tracking-wider mb-4">Exam Schedule</h4>
-              
-              {/* Mobile View: Cards */}
-              <div className="block lg:hidden space-y-3">
-                {existingExams.map((ex, i) => (
-                  <div key={i} className="p-4 border border-stone-200 dark:border-stone-800 rounded-xl bg-stone-50/50 dark:bg-stone-900/50 space-y-3">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <span className="font-mono font-black text-stone-900 dark:text-white text-base">{ex.courseCode}</span>
-                        <div className="text-xs text-stone-500 font-medium mt-0.5">Section {ex.section} • {ex.semester || portal?.student?.currentSemester}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-0.5">Room</div>
-                        <div className="font-bold text-emerald-600 dark:text-emerald-400">{ex.room}</div>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-3 pt-3 border-t border-stone-200 dark:border-stone-800">
-                      <div>
-                        <div className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Date & Day</div>
-                        <div className="text-sm font-bold text-stone-800 dark:text-stone-200">{ex.date}</div>
-                        <div className="text-xs text-stone-500">{ex.day}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Time</div>
-                        <div className="text-sm font-bold text-stone-800 dark:text-stone-200">{ex.time}</div>
-                      </div>
-                    </div>
-                    
-                    <div className="pt-3 border-t border-stone-200 dark:border-stone-800 flex justify-between items-center">
-                       <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Faculty</span>
-                       <span className="text-xs font-medium text-stone-700 dark:text-stone-300 capitalize">{ex.faculty}</span>
-                    </div>
-                  </div>
-                ))}
+            {/* Allowed Courses List with Room - Unified Table View for Mobile and Desktop */}
+            <div className="py-4 sm:py-6">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <h4 className="text-xs sm:text-sm font-black text-stone-900 dark:text-white uppercase tracking-wider">Exam Schedule</h4>
+                <span className="text-[10px] text-stone-400 dark:text-stone-500 font-medium sm:hidden">Swipe horizontally to view full table →</span>
               </div>
-
-              {/* Desktop View: Table */}
-              <div className="hidden lg:block overflow-x-auto rounded-xl border border-stone-200 dark:border-stone-800 custom-scrollbar overscroll-x-contain">
-                <table className="w-full border-collapse text-left text-xs whitespace-nowrap">
+              
+              {/* Universal Examination Routine Table */}
+              <div className="overflow-x-auto rounded-xl border border-stone-200 dark:border-stone-800 custom-scrollbar overscroll-x-contain">
+                <table className="w-full min-w-[640px] border-collapse text-left text-xs whitespace-nowrap">
                   <thead>
                     <tr className="bg-stone-50 dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 font-bold text-stone-700 dark:text-stone-300">
-                      <th className="px-4 py-4 text-[13px] sticky left-0 z-10 bg-stone-50/95 dark:bg-stone-900/95 backdrop-blur border-r border-stone-200 dark:border-stone-800 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] dark:shadow-[4px_0_12px_-4px_rgba(0,0,0,0.2)]">Course</th>
-                      <th className="px-4 py-4 text-[13px] text-center">Section</th>
-                      <th className="px-4 py-4 text-[13px]">Day</th>
-                      <th className="px-4 py-4 text-[13px]">Date</th>
-                      <th className="px-4 py-4 text-[13px]">Time</th>
-                      <th className="px-4 py-4 text-[13px] text-center">Room</th>
-                      <th className="px-4 py-4 text-[13px]">Faculty</th>
-                      <th className="px-4 py-4 text-[13px]">Semester</th>
+                      <th className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-[13px] sticky left-0 z-10 bg-stone-50/95 dark:bg-stone-900/95 backdrop-blur border-r border-stone-200 dark:border-stone-800 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] dark:shadow-[4px_0_12px_-4px_rgba(0,0,0,0.2)]">Course</th>
+                      <th className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-[13px] text-center">Section</th>
+                      <th className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-[13px]">Day</th>
+                      <th className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-[13px]">Date</th>
+                      <th className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-[13px]">Time</th>
+                      <th className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-[13px] text-center">Room</th>
+                      <th className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-[13px]">Faculty</th>
+                      <th className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-[13px]">Semester</th>
                     </tr>
                   </thead>
                   <tbody>
                     {existingExams.map((ex, i) => (
                       <tr key={i} className="border-b border-stone-100 dark:border-stone-800/50 hover:bg-stone-50/50 dark:hover:bg-stone-800/30 text-stone-800 dark:text-stone-200">
-                        <td className="px-4 py-4 text-sm font-mono font-bold text-stone-900 dark:text-white sticky left-0 z-10 bg-white/95 dark:bg-stone-950/95 backdrop-blur border-r border-stone-200 dark:border-stone-800 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] dark:shadow-[4px_0_12px_-4px_rgba(0,0,0,0.2)]">{ex.courseCode}</td>
-                        <td className="px-4 py-4 text-sm text-center font-mono">{ex.section}</td>
-                        <td className="px-4 py-4 text-sm">{ex.day}</td>
-                        <td className="px-4 py-4 text-sm font-medium">{ex.date}</td>
-                        <td className="px-4 py-4 text-sm text-stone-600 dark:text-stone-400">{ex.time}</td>
-                        <td className="px-4 py-4 text-sm text-center font-bold text-emerald-600 dark:text-emerald-400">{ex.room}</td>
-                        <td className="px-4 py-4 text-sm capitalize">{ex.faculty}</td>
-                        <td className="px-4 py-4 text-sm text-stone-500">{ex.semester || portal?.student?.currentSemester || 'Summer-26'}</td>
+                        <td className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm font-mono font-bold text-stone-900 dark:text-white sticky left-0 z-10 bg-white/95 dark:bg-stone-950/95 backdrop-blur border-r border-stone-200 dark:border-stone-800 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] dark:shadow-[4px_0_12px_-4px_rgba(0,0,0,0.2)]">{ex.courseCode}</td>
+                        <td className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-center font-mono">{ex.section}</td>
+                        <td className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm">{ex.day}</td>
+                        <td className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm font-medium">{ex.date}</td>
+                        <td className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-stone-600 dark:text-stone-400">{ex.time}</td>
+                        <td className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-center font-bold text-emerald-600 dark:text-emerald-400">{ex.room}</td>
+                        <td className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm capitalize">{ex.faculty}</td>
+                        <td className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-stone-500">{ex.semester || portal?.student?.currentSemester || 'Summer-26'}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
               
-              <div className="mt-4 p-3 bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-800 rounded-lg text-xs text-stone-600 dark:text-stone-400">
+              <div className="mt-4 p-3 bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-800 rounded-lg text-[11px] sm:text-xs text-stone-600 dark:text-stone-400">
                 Congratulations and wishing you the best success always. For any query please visit Registrar office / Accounts office / Controller office.
               </div>
             </div>
 
             {/* Slip Footer Signature */}
-            <div className="pt-6 border-t border-stone-200 dark:border-stone-800 flex flex-col sm:flex-row justify-between items-center gap-6">
-              <div className="text-xs font-mono text-stone-400 dark:text-stone-500 text-center sm:text-left">
+            <div className="pt-4 sm:pt-6 border-t border-stone-200 dark:border-stone-800 flex flex-row justify-between items-end gap-3 sm:gap-6">
+              <div className="text-[10px] sm:text-xs font-mono text-stone-400 dark:text-stone-500 text-left">
                 <div>Printed: {dateStr} at {timeStr}</div>
-                <div>System Verified Online</div>
+                <div className="text-emerald-600 dark:text-emerald-400 font-semibold">✓ System Verified Online</div>
               </div>
-              <div className="text-center sm:text-right space-y-1">
-                <div className="inline-block border-b border-stone-300 dark:border-stone-700 pb-2">
+              <div className="text-right space-y-0.5 sm:space-y-1 shrink-0">
+                <div className="inline-block border-b border-stone-300 dark:border-stone-700 pb-1 sm:pb-2">
                   <img 
                     src="https://wsrv.nl/?url=http://sims.presidency.edu.bd/img/layout/Signature_of_Exam_Controller.png&output=webp" 
                     alt="Signature" 
-                    className="h-10 w-auto object-contain mx-auto mix-blend-multiply dark:brightness-200 dark:contrast-100" 
+                    className="h-8 sm:h-10 w-auto object-contain ml-auto mix-blend-multiply dark:brightness-200 dark:contrast-100" 
                     referrerPolicy="no-referrer"
                   />
                 </div>
-                <div className="text-sm font-bold text-stone-800 dark:text-stone-200">(Mohammad Zahedur Rahman)</div>
-                <div className="text-xs font-bold text-stone-500 dark:text-stone-400">Controller of Examinations</div>
+                <div className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200">(Mohammad Zahedur Rahman)</div>
+                <div className="text-[10px] sm:text-xs font-bold text-stone-500 dark:text-stone-400">Controller of Examinations</div>
               </div>
             </div>
           </Card>
