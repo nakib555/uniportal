@@ -88,6 +88,7 @@ export const VALID_TABS = new Set([
   'degree-audit',
   'transcript',
   'academic-calendar',
+  'class-distribution',
   'admin-dashboard',
   'faculty-schedule',
   'course-management',
