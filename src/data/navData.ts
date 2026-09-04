@@ -43,8 +43,7 @@ export const getNavItems = (isAdmin: boolean): NavItem[] => {
     { id: 'academics', label: 'Academics', icon: GraduationCap, subItems: [
       { id: 'degree-audit', label: 'Degree Audit', icon: Compass },
       { id: 'transcript', label: 'Grades & Transcript', icon: FileText },
-      { id: 'academic-calendar', label: 'Academic Calendar', icon: CalendarSearch },
-      { id: 'class-distribution', label: 'Class Distribution', icon: BarChart3 }
+      { id: 'academic-calendar', label: 'Academic Calendar', icon: CalendarSearch }
     ]},
   ];
 };
