@@ -12,6 +12,7 @@ export default defineConfig(({mode}) => {
       target: 'esnext',
       minify: 'esbuild',
       cssMinify: true,
+      modulePreload: false,
       rollupOptions: {
         output: {
           manualChunks: {
