@@ -9,13 +9,16 @@ import { ExamCountdownWidget } from '../components/ExamCountdownWidget';
 export function HomeView({ portal }: { portal: ReturnType<typeof usePortalLogic> }) {
   const { student, bankSlipTotal, handleNavClick } = portal;
   
+  const currentDayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()];
+  const todaysSchedule = portal.studentData.schedule.filter(c => c.day === currentDayName && c.start !== '-').sort((a, b) => a.start.localeCompare(b.start));
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'CGPA', value: student.cgpa.toFixed(2), sub: 'Out of 4.0', icon: GraduationCap, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
           { label: 'Credits Completed', value: student.creditsCompleted, sub: 'Total 124 required', icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30' },
-          { label: 'Upcoming Classes', value: portal.filteredSchedule.length.toString(), sub: portal.filteredSchedule.length === 0 ? 'No classes today' : 'Today', icon: Calendar, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30' },
+          { label: 'Upcoming Classes', value: todaysSchedule.length.toString(), sub: todaysSchedule.length === 0 ? 'No classes today' : 'Today', icon: Calendar, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30' },
           { label: 'Due Payment', value: student.accountBalance < 0 ? `৳${Math.abs(student.accountBalance).toLocaleString()}` : '৳0', sub: 'Outstanding Dues', icon: Wallet, color: 'text-rose-600', bg: 'bg-rose-100 dark:bg-rose-900/30' }
         ].map((stat, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
@@ -53,7 +56,11 @@ export function HomeView({ portal }: { portal: ReturnType<typeof usePortalLogic>
             </div>
             
             <div className="space-y-4">
-              {portal.filteredSchedule.slice(0, 3).map((item, i) => (
+              {todaysSchedule.length === 0 ? (
+                <div className="text-center p-6 bg-stone-50 dark:bg-stone-900/50 rounded-xl border border-stone-100 dark:border-stone-800">
+                  <p className="text-stone-500 dark:text-stone-400">No classes today.</p>
+                </div>
+              ) : todaysSchedule.slice(0, 3).map((item, i) => (
                 <div key={i} className="flex items-start gap-4 p-4 rounded-xl border border-stone-100 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/50 hover:border-stone-200 dark:hover:border-stone-700 transition-colors">
                   <div className="w-[100px] shrink-0 text-center py-2 px-3 bg-white dark:bg-stone-900 rounded-lg shadow-sm border border-stone-200 dark:border-stone-800">
                     <p className="text-sm font-bold text-stone-900 dark:text-stone-100">{item.start}</p>

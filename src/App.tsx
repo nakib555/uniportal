@@ -5,6 +5,7 @@ import { useAppStore } from './store';
 import { useMediaQuery } from './hooks/useMediaQuery';
 import { SyncPortalDialog } from './components/SyncPortalDialog';
 import { LoginView } from './views/LoginView';
+import { LogoutView } from './views/LogoutView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { MobileLayout } from './components/layout/MobileLayout';
 import { DesktopLayout } from './components/layout/DesktopLayout';
@@ -32,7 +33,7 @@ function AuthenticatedPortal({ isDesktop }: { isDesktop: boolean }) {
 }
 
 export default function App() {
-  const { isLoggedIn, isDarkMode } = useAppStore();
+  const { isLoggedIn, showLogoutSplash, isDarkMode } = useAppStore();
   const isDesktop = useMediaQuery('(min-width: 768px)'); // md breakpoint
 
   React.useEffect(() => {
@@ -58,7 +59,11 @@ export default function App() {
 
     const checkSessionExpiration = () => {
       const currentExpiresAt = localStorage.getItem('pu_session_expires_at');
-      if (currentExpiresAt && Date.now() >= Number(currentExpiresAt)) {
+      const isLoggedInStorage = localStorage.getItem('pu_is_logged_in');
+      
+      if (!isLoggedInStorage) {
+        useAppStore.getState().setIsLoggedIn(false);
+      } else if (currentExpiresAt && Date.now() >= Number(currentExpiresAt)) {
         localStorage.setItem('pu_auto_logged_out', 'true');
         useAppStore.getState().setIsLoggedIn(false);
       }
@@ -99,7 +104,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       {!isLoggedIn ? (
-        <LoginView />
+        showLogoutSplash ? <LogoutView /> : <LoginView />
       ) : (
         <AuthenticatedPortal isDesktop={isDesktop} />
       )}

@@ -51,6 +51,8 @@ export const usePortalLogic = () => {
   const [syncSuccess, setSyncSuccess] = useState<boolean>(false);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
 
+  const [lastSyncTime, setLastSyncTime] = useState(Date.now());
+
   const handleManualSync = async (password?: string) => {
     if (!store.currentStudentId) {
       setSyncError("No active student ID to synchronize.");
@@ -86,8 +88,8 @@ export const usePortalLogic = () => {
         if (password) {
           tempAuthService.setTempCredentials(store.currentStudentId, password);
         }
+        setLastSyncTime(Date.now());
         setSyncSuccess(true);
-        setTimeout(() => setSyncSuccess(false), 3000);
         return true;
       } else {
         setSyncError(res.message || "Failed to synchronize data from Presidency University SIMS.");
@@ -115,9 +117,9 @@ export const usePortalLogic = () => {
   // Load dynamic student details based on current ID
   const studentData = useMemo(() => {
     return getStudentData(store.currentStudentId);
-  }, [store.currentStudentId]);
+  }, [store.currentStudentId, lastSyncTime]);
 
-  // Synchronize courses whenever student ID changes
+  // Synchronize courses whenever student ID or sync time changes
   useEffect(() => {
     if (store.currentStudentId) {
       const data = getStudentData(store.currentStudentId);
@@ -127,7 +129,7 @@ export const usePortalLogic = () => {
         setProfilePic(data.profile.photo);
       }
     }
-  }, [store.currentStudentId, setRegisteredCourses, setCompletedCourses, setProfilePic]);
+  }, [store.currentStudentId, lastSyncTime, setRegisteredCourses, setCompletedCourses, setProfilePic]);
 
   const student = studentData.profile;
 

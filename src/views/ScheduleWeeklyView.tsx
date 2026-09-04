@@ -84,11 +84,17 @@ export function ScheduleWeeklyView({ portal }: { portal: ReturnType<typeof usePo
             {/* Header */}
             <div className="flex border-b border-stone-100 dark:border-stone-800">
               <div className="w-16 flex-shrink-0 border-r border-stone-100 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/50"></div>
-              {DAYS.map(day => (
-                <div key={day} className="flex-1 py-3 text-center border-r border-stone-100 dark:border-stone-800 font-bold text-sm tracking-wide text-stone-700 dark:text-stone-300 bg-stone-50 dark:bg-stone-900/50">
-                  {day}
-                </div>
-              ))}
+              {DAYS.map(day => {
+                const isToday = day === ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()];
+                return (
+                  <div key={day} className={`flex-1 py-3 text-center border-r border-stone-100 dark:border-stone-800 font-bold text-sm tracking-wide ${isToday ? 'text-[#8c1515] dark:text-[#ef4444] bg-[#8c1515]/5 dark:bg-[#ef4444]/10' : 'text-stone-700 dark:text-stone-300 bg-stone-50 dark:bg-stone-900/50'}`}>
+                    <div className="flex items-center justify-center gap-1.5">
+                      {day}
+                      {isToday && <span className="text-[9px] uppercase bg-[#8c1515] dark:bg-[#ef4444] text-white px-1.5 py-0.5 rounded-sm">Today</span>}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             
             {/* Grid */}
@@ -104,11 +110,13 @@ export function ScheduleWeeklyView({ portal }: { portal: ReturnType<typeof usePo
               </div>
               
               {/* Day columns */}
-              {DAYS.map(day => (
-                <div key={day} className="flex-1 border-r border-stone-100 dark:border-stone-800 relative">
+              {DAYS.map(day => {
+                const isToday = day === ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()];
+                return (
+                <div key={day} className={`flex-1 border-r border-stone-100 dark:border-stone-800 relative ${isToday ? 'bg-[#8c1515]/[0.02] dark:bg-[#ef4444]/[0.02]' : ''}`}>
                   {/* Horizontal grid lines */}
                   {Array.from({ length: END_HOUR - START_HOUR }).map((_, i) => (
-                    <div key={i} className="absolute w-full border-t border-stone-100 dark:border-stone-800/50" style={{ top: `${i * 80}px` }}></div>
+                    <div key={i} className={`absolute w-full border-t ${isToday ? 'border-[#8c1515]/10 dark:border-[#ef4444]/10' : 'border-stone-100 dark:border-stone-800/50'}`} style={{ top: `${i * 80}px` }}></div>
                   ))}
                   
                   {/* Events */}
@@ -142,7 +150,8 @@ export function ScheduleWeeklyView({ portal }: { portal: ReturnType<typeof usePo
                       );
                     })}
                 </div>
-              ))}
+              );
+              })}
             </div>
           </div>
         </div>

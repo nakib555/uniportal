@@ -40,6 +40,8 @@ interface AppState {
   // Auth
   isLoggedIn: boolean;
   setIsLoggedIn: (v: boolean) => void;
+  showLogoutSplash: boolean;
+  setShowLogoutSplash: (v: boolean) => void;
   isAdmin: boolean;
   setIsAdmin: (v: boolean) => void;
   currentStudentId: string | null;
@@ -77,20 +79,36 @@ const getInitialStudentId = (): string | null => {
 
 const getInitialIsLoggedIn = (): boolean => {
   if (typeof window !== 'undefined' && window.localStorage) {
-    return localStorage.getItem('pu_is_logged_in') === 'true';
+    const isLoggedIn = localStorage.getItem('pu_is_logged_in') === 'true';
+    if (isLoggedIn) {
+      const expiresAt = localStorage.getItem('pu_session_expires_at');
+      if (expiresAt && Date.now() >= Number(expiresAt)) {
+        // Session expired while the app was closed (PWA background/closed state)
+        localStorage.removeItem('pu_is_logged_in');
+        localStorage.removeItem('pu_active_student_id');
+        localStorage.removeItem('pu_session_expires_at');
+        // Let the auto_logged_out flag trigger a splash if needed, or just return false
+        localStorage.setItem('pu_auto_logged_out', 'true');
+        return false;
+      }
+      return true;
+    }
   }
   return false;
 };
 
 export const useAppStore = create<AppState>((set) => ({
   isLoggedIn: getInitialIsLoggedIn(),
+  showLogoutSplash: false,
+  setShowLogoutSplash: (v) => set({ showLogoutSplash: v }),
   setIsLoggedIn: (v) => {
     if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('pu_is_logged_in', String(v));
       if (v) {
+        localStorage.setItem('pu_is_logged_in', 'true');
         // Start absolute 30-minute session timestamp (1800000 ms)
         localStorage.setItem('pu_session_expires_at', String(Date.now() + 30 * 60 * 1000));
       } else {
+        localStorage.removeItem('pu_is_logged_in');
         localStorage.removeItem('pu_active_student_id');
         localStorage.removeItem('pu_session_expires_at');
         tempAuthService.clearTempCredentials();
@@ -98,8 +116,15 @@ export const useAppStore = create<AppState>((set) => ({
     }
     if (!v) {
       tempAuthService.clearTempCredentials();
+      
+      let isAutoLogout = false;
+      if (typeof window !== 'undefined' && window.localStorage) {
+        isAutoLogout = localStorage.getItem('pu_auto_logged_out') === 'true';
+      }
+
       set({ 
         isLoggedIn: false,
+        showLogoutSplash: !isAutoLogout,
         isAdmin: false,
         currentStudentId: null,
         activeTab: 'home',
@@ -110,7 +135,7 @@ export const useAppStore = create<AppState>((set) => ({
       });
       return;
     }
-    set({ isLoggedIn: v });
+    set({ isLoggedIn: v, showLogoutSplash: false });
   },
   isAdmin: false,
   setIsAdmin: (v) => set({ isAdmin: v }),
