@@ -23,6 +23,7 @@ import { FacultyEvalView } from '../../views/FacultyEvalView';
 import { FinancialAidView } from '../../views/FinancialAidView';
 import { StatementView } from '../../views/StatementView';
 import { AdmitCardView } from '../../views/AdmitCardView';
+import { AcademicCalendarView } from '../../views/AcademicCalendarView';
 import { PWAInstallButton } from '../pwa/PWAInstallButton';
 import { ExamCountdownWidget } from '../ExamCountdownWidget';
 import { BankSlipsView } from '../../views/BankSlipsView';
@@ -1348,6 +1349,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
               {/* === ACADEMICS TAB === */}
               {activeTab === 'degree-audit' && <DegreeAuditView portal={props} />}
               {activeTab === 'transcript' && <GradesView portal={props} />}
+              {activeTab === 'academic-calendar' && <AcademicCalendarView />}
               {activeTab === 'exam-routine' && <ExamsView portal={props} />}
               {activeTab === 'exam-admit-card' && <AdmitCardView portal={props} />}
               {activeTab === 'attendance' && <AttendanceView />}

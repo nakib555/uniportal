@@ -145,10 +145,62 @@ export class PuSyncService {
       const result = await response.json();
 
       if (response.ok && result.success && result.studentData) {
-        this.setSyncedStudent(cleanId, result.studentData);
+        // Defensive data merging: if any tab failed or timed out, preserve existing cached data
+        const existingStudent = this.getSyncedStudent(cleanId);
+        const tabStatus = result.tabStatus as Record<string, boolean> | undefined;
+
+        let mergedStudent: StudentDetails = result.studentData;
+        if (existingStudent) {
+          mergedStudent = {
+            ...result.studentData,
+            profile: {
+              ...result.studentData.profile,
+              photo: result.studentData.profile?.photo || existingStudent.profile?.photo,
+              name: result.studentData.profile?.name || existingStudent.profile?.name,
+              cgpa: result.studentData.profile?.cgpa || existingStudent.profile?.cgpa,
+              accountBalance: typeof result.studentData.profile?.accountBalance === 'number' 
+                ? result.studentData.profile.accountBalance 
+                : existingStudent.profile?.accountBalance
+            },
+            // Preserve registered courses if the tab fetch failed or returned 0 while previous records existed
+            registeredCourses: (tabStatus && tabStatus['Registered Courses'] === false && result.studentData.registeredCourses.length === 0 && existingStudent.registeredCourses.length > 0)
+              ? existingStudent.registeredCourses
+              : result.studentData.registeredCourses,
+            // Preserve completed courses if the tab fetch failed
+            completedCourses: (tabStatus && tabStatus['Completed Courses'] === false && result.studentData.completedCourses.length === 0 && existingStudent.completedCourses.length > 0)
+              ? existingStudent.completedCourses
+              : result.studentData.completedCourses,
+            // Preserve class schedule if tab fetch failed
+            schedule: (tabStatus && tabStatus['Class Schedule'] === false && result.studentData.schedule.length === 0 && existingStudent.schedule.length > 0)
+              ? existingStudent.schedule
+              : result.studentData.schedule,
+            // Preserve financial transactions & statement summary if tab fetch failed
+            transactions: (tabStatus && tabStatus['Accounts Overview'] === false && tabStatus['Semester Statement'] === false && result.studentData.transactions.length === 0 && existingStudent.transactions.length > 0)
+              ? existingStudent.transactions
+              : result.studentData.transactions,
+            statementSummary: result.studentData.statementSummary || existingStudent.statementSummary,
+            instalments: (result.studentData.instalments && result.studentData.instalments.length > 0)
+              ? result.studentData.instalments
+              : existingStudent.instalments,
+            // Preserve related teachers if tab fetch failed
+            teachers: (tabStatus && tabStatus['Related Teachers'] === false && result.studentData.teachers.length === 0 && existingStudent.teachers.length > 0)
+              ? existingStudent.teachers
+              : result.studentData.teachers,
+            // Preserve bank slip fees if tab fetch failed
+            bankSlipFees: (result.studentData.bankSlipFees && result.studentData.bankSlipFees.length > 0)
+              ? result.studentData.bankSlipFees
+              : existingStudent.bankSlipFees,
+            // Preserve previously fetched Exam Admit Card records across regular syncs
+            exams: (result.studentData.exams && result.studentData.exams.length > 0)
+              ? result.studentData.exams
+              : (existingStudent.exams || [])
+          };
+        }
+
+        this.setSyncedStudent(cleanId, mergedStudent);
         return {
           success: true,
-          studentData: result.studentData,
+          studentData: mergedStudent,
           source: 'live_portal',
           message: result.message || 'Presidency University SIMS data synchronized successfully'
         };

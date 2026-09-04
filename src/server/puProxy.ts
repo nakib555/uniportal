@@ -14,7 +14,6 @@ const STRUCTURE = [
   { tabName: 'Accounts Overview', url: `${SIMS_BASE}/students/semesterTransactions` },
   { tabName: 'Bank Slips', url: `${SIMS_BASE}/students/bankSlips` },
   { tabName: 'Semester Statement', url: `${SIMS_BASE}/students/semesterStatement` },
-  { tabName: 'Courses Overview', url: `${SIMS_BASE}/students/courses` },
   { tabName: 'Registered Courses', url: `${SIMS_BASE}/students/registeredCourses` },
   { tabName: 'Completed Courses', url: `${SIMS_BASE}/students/completedCourses` },
   { tabName: 'Class Schedule', url: `${SIMS_BASE}/students/classSchedule` },
@@ -136,6 +135,7 @@ export interface SyncResult {
   message?: string;
   hasRestriction?: boolean;
   exams?: StudentDetails['exams'];
+  tabStatus?: Record<string, boolean>;
 }
 
 export async function executePresidencySync(
@@ -269,25 +269,68 @@ export async function executePresidencySync(
       'Referer': `${SIMS_BASE}/students`
     };
 
-    const tabPromises = targetStructure.map(async (item) => {
-      try {
+    // Helper to fetch a single tab with redirect-to-login detection & automatic 1-stage retry
+    const fetchTabWithRetry = async (
+      item: { tabName: string; url: string }
+    ): Promise<{ tabName: string; url: string; html: string; success: boolean }> => {
+      for (let attempt = 1; attempt <= 2; attempt++) {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 15000);
-        const tabResult = await requestWithRedirects(item.url, {
-          headers: tabFetchHeaders,
-          signal: controller.signal
-        }, cookieJar);
-        clearTimeout(timer);
-        return { tabName: item.tabName, url: item.url, html: tabResult.bodyText };
-      } catch (e) {
-        return { tabName: item.tabName, url: item.url, html: '' };
+        const timer = setTimeout(() => controller.abort(), 18000);
+        try {
+          const tabResult = await requestWithRedirects(item.url, {
+            headers: tabFetchHeaders,
+            signal: controller.signal
+          }, cookieJar);
+          clearTimeout(timer);
+
+          const bodyText = tabResult.bodyText || '';
+          // Detect if CakePHP redirected back to login form (session lost or locked out)
+          const isLoginPage = tabResult.finalUrl.includes('users/login') ||
+            bodyText.includes('name="data[User][username]"') ||
+            bodyText.includes('id="UserLoginForm"');
+
+          if (isLoginPage) {
+            console.warn(`[puProxy] Tab "${item.tabName}" was redirected to login page.`);
+            return { tabName: item.tabName, url: item.url, html: '', success: false };
+          }
+
+          if (bodyText.length > 50) {
+            return { tabName: item.tabName, url: item.url, html: bodyText, success: true };
+          }
+        } catch (e: any) {
+          clearTimeout(timer);
+          console.warn(`[puProxy] Attempt ${attempt} failed for tab "${item.tabName}": ${e?.message || 'timeout/network error'}`);
+          if (attempt === 1) {
+            // Wait 500ms before single retry to allow CakePHP session lock to release
+            await new Promise(r => setTimeout(r, 500));
+          }
+        }
+      }
+      return { tabName: item.tabName, url: item.url, html: '', success: false };
+    };
+
+    // Concurrency runner: fetch with controlled concurrency of 3 to avoid CakePHP session flock contention
+    const CONCURRENCY_LIMIT = 3;
+    const tabResults: { tabName: string; url: string; html: string; success: boolean }[] = [];
+    const queue = [...targetStructure];
+
+    const workers = Array.from({ length: Math.min(CONCURRENCY_LIMIT, queue.length) }, async () => {
+      while (queue.length > 0) {
+        const item = queue.shift();
+        if (item) {
+          const res = await fetchTabWithRetry(item);
+          tabResults.push(res);
+        }
       }
     });
 
-    const tabResults = await Promise.all(tabPromises);
+    await Promise.all(workers);
+
     const tabMap = new Map<string, string>();
+    const tabStatus: Record<string, boolean> = {};
     for (const tr of tabResults) {
       tabMap.set(tr.tabName, tr.html);
+      tabStatus[tr.tabName] = tr.success;
     }
 
     // Fetch student photo while authenticated
@@ -397,16 +440,16 @@ export async function executePresidencySync(
 
     $reg('table tr').each((_, tr) => {
       const tds = $reg(tr).find('td');
-      if (tds.length >= 6) {
+      if (tds.length >= 5) {
         const offset = tds.length >= 7 ? 1 : 0;
         const code = cleanText($reg(tds[offset]).text());
         const title = cleanText($reg(tds[offset + 1]).text());
         const section = cleanText($reg(tds[offset + 2]).text());
         const creditStr = cleanText($reg(tds[offset + 3]).text());
-        const faculty = cleanText($reg(tds[offset + 4]).text());
+        const faculty = tds.length > offset + 4 ? cleanText($reg(tds[offset + 4]).text()) : '';
         const semester = tds.length > offset + 5 ? cleanText($reg(tds[offset + 5]).text()) : (profile.currentSemester || 'Current');
 
-        if (code && title && code.toUpperCase() !== 'CODE' && code.toUpperCase() !== 'COURSE') {
+        if (code && title && code.toUpperCase() !== 'CODE' && code.toUpperCase() !== 'COURSE' && code.toUpperCase() !== 'SL') {
           const credits = parseFloat(creditStr) || 3.0;
           registeredCourses.push({
             code,
@@ -920,6 +963,7 @@ export async function executePresidencySync(
         status: 200,
         hasRestriction: Boolean(isRestricted),
         exams,
+        tabStatus,
         message: 'Exam admit card data fetched successfully'
       };
     }
@@ -949,6 +993,7 @@ export async function executePresidencySync(
       success: true,
       status: 200,
       studentData,
+      tabStatus,
       message: 'Real-time Presidency University SIMS data synchronized successfully'
     };
   } catch (err: any) {

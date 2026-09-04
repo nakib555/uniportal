@@ -18,6 +18,7 @@ import { FinancialAidView } from '../../views/FinancialAidView';
 import { StatementView } from '../../views/StatementView';
 import { AdmitCardView } from '../../views/AdmitCardView';
 import { BankSlipsView } from '../../views/BankSlipsView';
+import { AcademicCalendarView } from '../../views/AcademicCalendarView';
 import { AdminDashboardView } from '../../views/admin/AdminDashboardView';
 import { AdminStudentRecordsView } from '../../views/admin/AdminStudentRecordsView';
 import { AdminCourseManagementView } from '../../views/admin/AdminCourseManagementView';
@@ -51,6 +52,7 @@ export function DesktopLayout(portal: ReturnType<typeof usePortalLogic>) {
       case 'class-schedule': return <ScheduleWeeklyView portal={portal} />;
       case 'degree-audit': return <DegreeAuditView portal={portal} />;
       case 'transcript': return <GradesView portal={portal} />;
+      case 'academic-calendar': return <AcademicCalendarView />;
       case 'exam-routine': return <ExamsView portal={portal} />;
       case 'exam-admit-card': return <AdmitCardView portal={portal} />;
       case 'attendance': return <AttendanceView />;
