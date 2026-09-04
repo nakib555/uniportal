@@ -70,6 +70,50 @@ interface AppState {
   addCourse: (course: any) => void;
 }
 
+export const VALID_TABS = new Set([
+  'home',
+  'profile',
+  'accounts',
+  'statement',
+  'bank-slips',
+  'courses',
+  'registered-courses',
+  'completed-courses',
+  'available-courses',
+  'schedule',
+  'class-schedule',
+  'exam-routine',
+  'exam-admit-card',
+  'academics',
+  'degree-audit',
+  'transcript',
+  'academic-calendar',
+  'admin-dashboard',
+  'faculty-schedule',
+  'course-management',
+  'student-records',
+  'enrollment-approvals',
+  'grade-submissions',
+  'department-reports',
+  'financial-reports',
+  'academic-performance',
+  'system-settings'
+]);
+
+const getInitialTab = (): string => {
+  if (typeof window !== 'undefined') {
+    const hash = window.location.hash.replace(/^#\/?/, '').trim();
+    if (hash && VALID_TABS.has(hash)) {
+      return hash;
+    }
+    const storedTab = window.localStorage?.getItem('pu_active_tab');
+    if (storedTab && VALID_TABS.has(storedTab)) {
+      return storedTab;
+    }
+  }
+  return 'home';
+};
+
 const getInitialStudentId = (): string | null => {
   if (typeof window !== 'undefined' && window.localStorage) {
     return localStorage.getItem('pu_active_student_id');
@@ -111,6 +155,14 @@ export const useAppStore = create<AppState>((set) => ({
         localStorage.removeItem('pu_is_logged_in');
         localStorage.removeItem('pu_active_student_id');
         localStorage.removeItem('pu_session_expires_at');
+        localStorage.removeItem('pu_active_tab');
+        if (window.location.hash) {
+          try {
+            history.replaceState(null, '', window.location.pathname + window.location.search);
+          } catch {
+            window.location.hash = '';
+          }
+        }
         tempAuthService.clearTempCredentials();
       }
     }
@@ -120,6 +172,14 @@ export const useAppStore = create<AppState>((set) => ({
       let isAutoLogout = false;
       if (typeof window !== 'undefined' && window.localStorage) {
         isAutoLogout = localStorage.getItem('pu_auto_logged_out') === 'true';
+        localStorage.removeItem('pu_active_tab');
+        if (window.location.hash) {
+          try {
+            history.replaceState(null, '', window.location.pathname + window.location.search);
+          } catch {
+            window.location.hash = '';
+          }
+        }
       }
 
       set({ 
@@ -176,8 +236,20 @@ export const useAppStore = create<AppState>((set) => ({
   })),
   addCourse: (course) => set((state) => ({ coursesData: [...state.coursesData, course] })),
 
-  activeTab: "home",
-  setActiveTab: (tab) => set({ activeTab: tab }),
+  activeTab: getInitialTab(),
+  setActiveTab: (tab) => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('pu_active_tab', tab);
+        if (window.location.hash.replace(/^#\/?/, '') !== tab) {
+          window.location.hash = `#${tab}`;
+        }
+      } catch {
+        // storage or history error handling
+      }
+    }
+    set({ activeTab: tab });
+  },
   
   expandedMenus: { courses: true },
   toggleMenu: (id) => set((state) => ({ 

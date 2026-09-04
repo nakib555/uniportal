@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { Calendar, AlertCircle, CreditCard, BookOpen, GraduationCap, Info, Search, Map, CalendarDays, Clock, ChevronLeft, ChevronRight, LayoutList } from 'lucide-react';
+import { Calendar, AlertCircle, CreditCard, BookOpen, GraduationCap, Info, Search, Map, CalendarDays, Clock, ChevronLeft, ChevronRight, LayoutList, CheckCircle2 } from 'lucide-react';
 import { Card, Badge } from '../components/ui';
 
 interface CalendarEvent {
   activity: string;
+  details?: string;
   date: string;
   day: string;
   duration?: string;
@@ -15,39 +16,313 @@ interface CalendarEvent {
 }
 
 const CALENDAR_DATA: CalendarEvent[] = [
-  { activity: "Fall 2026 (Trimester start)", date: "6 Sep 2026", day: "Sunday", type: "academic", highlight: true, month: "September 2026", dateKeys: ['2026-09-06'] },
-  { activity: "Advising & Registration for Day/Evening Students", date: "7 - 9 Sep 2026", day: "Mon - Wed", duration: "3 days", type: "administrative", month: "September 2026", dateKeys: ['2026-09-07', '2026-09-08', '2026-09-09'] },
-  { activity: "Classes start for Day & Evening Students", date: "8 Sep 2026", day: "Tuesday", type: "academic", highlight: true, month: "September 2026", dateKeys: ['2026-09-08'] },
-  { activity: "Advising & Registration for Weekend Students (Friday Batch)", date: "11 - 18 Sep 2026", day: "Fri - Fri", duration: "8 days", type: "administrative", month: "September 2026", dateKeys: ['2026-09-11', '2026-09-12', '2026-09-13', '2026-09-14', '2026-09-15', '2026-09-16', '2026-09-17', '2026-09-18'] },
-  { activity: "Classes start for Weekend Students (Friday Batch)", date: "11 Sep 2026", day: "Friday", type: "academic", month: "September 2026", dateKeys: ['2026-09-11'] },
-  { activity: "Advising & Registration for Weekend Students (Saturday Batch)", date: "12 - 19 Sep 2026", day: "Sat - Sat", duration: "8 days", type: "administrative", month: "September 2026", dateKeys: ['2026-09-12', '2026-09-13', '2026-09-14', '2026-09-15', '2026-09-16', '2026-09-17', '2026-09-18', '2026-09-19'] },
-  { activity: "Classes start for Weekend Students (Saturday Batch)", date: "12 Sep 2026", day: "Saturday", type: "academic", month: "September 2026", dateKeys: ['2026-09-12'] },
-  { activity: "Late registration starts for All Students (with Tk. 1000/- late fee)", date: "20 Sep 2026", day: "Sunday", type: "administrative", month: "September 2026", dateKeys: ['2026-09-20'] },
+  // September 2026
+  { 
+    activity: "Fall 2026 (Trimester start)", 
+    date: "6 Sep 2026", 
+    day: "Sunday", 
+    type: "academic", 
+    highlight: true, 
+    month: "September 2026", 
+    dateKeys: ['2026-09-06'] 
+  },
+  { 
+    activity: "Advising/Registration for Day and Evening Students of Trimester", 
+    details: "With payment of Semester Fee",
+    date: "7 - 9 Sep 2026", 
+    day: "Monday - Wednesday", 
+    duration: "3 days", 
+    type: "administrative", 
+    month: "September 2026", 
+    dateKeys: ['2026-09-07', '2026-09-08', '2026-09-09'] 
+  },
+  { 
+    activity: "Classes start for Day and Evening Students", 
+    date: "8 Sep 2026", 
+    day: "Tuesday", 
+    type: "academic", 
+    highlight: true, 
+    month: "September 2026", 
+    dateKeys: ['2026-09-08'] 
+  },
+  { 
+    activity: "Advising/Registration for Weekend students (Friday Batch) of Trimester", 
+    details: "With payment of Semester Fee",
+    date: "11 - 18 Sep 2026", 
+    day: "Friday - Friday", 
+    duration: "8 days", 
+    type: "administrative", 
+    month: "September 2026", 
+    dateKeys: ['2026-09-11', '2026-09-12', '2026-09-13', '2026-09-14', '2026-09-15', '2026-09-16', '2026-09-17', '2026-09-18'] 
+  },
+  { 
+    activity: "Classes start for Weekend Students (Friday Batch)", 
+    date: "11 Sep 2026", 
+    day: "Friday", 
+    type: "academic", 
+    month: "September 2026", 
+    dateKeys: ['2026-09-11'] 
+  },
+  { 
+    activity: "Advising/Registration for Weekend students (Saturday Batch) of Trimester", 
+    details: "With payment of Semester Fee",
+    date: "12 - 19 Sep 2026", 
+    day: "Saturday - Saturday", 
+    duration: "8 days", 
+    type: "administrative", 
+    month: "September 2026", 
+    dateKeys: ['2026-09-12', '2026-09-13', '2026-09-14', '2026-09-15', '2026-09-16', '2026-09-17', '2026-09-18', '2026-09-19'] 
+  },
+  { 
+    activity: "Classes start for Weekend Students (Saturday Batch)", 
+    date: "12 Sep 2026", 
+    day: "Saturday", 
+    type: "academic", 
+    month: "September 2026", 
+    dateKeys: ['2026-09-12'] 
+  },
+  { 
+    activity: "Late registration starts for All Students", 
+    details: "Late registration fee Tk. 1000/- will be included",
+    date: "20 Sep 2026", 
+    day: "Sunday", 
+    type: "administrative", 
+    month: "September 2026", 
+    dateKeys: ['2026-09-20'] 
+  },
   
-  { activity: "Last day to remove 'I' grade / Submit Summer 2026 Thesis & Projects", date: "2 Oct 2026", day: "Friday", type: "academic", month: "October 2026", dateKeys: ['2026-10-02'] },
-  { activity: "Last day of Late Registration / Add or Drop with full refund (Existing Students)", date: "9 Oct 2026", day: "Friday", type: "administrative", month: "October 2026", dateKeys: ['2026-10-09'] },
-  { activity: "Waiver Review and System Update", date: "11 Oct 2026", day: "Sunday", type: "administrative", month: "October 2026", dateKeys: ['2026-10-11'] },
-  { activity: "Deadline: 1st Installment (50% of tuition fees)", date: "16 Oct 2026", day: "Friday", type: "financial", highlight: true, month: "October 2026", dateKeys: ['2026-10-16'] },
-  { activity: "Holiday: Durga Puja", date: "20 - 21 Oct 2026", day: "Tue - Wed", duration: "2 days", type: "holiday", month: "October 2026", dateKeys: ['2026-10-20', '2026-10-21'] },
-  { activity: "Last date of Admission for Freshers", date: "23 Oct 2026", day: "Friday", type: "administrative", month: "October 2026", dateKeys: ['2026-10-23'] },
-  { activity: "Last day of Add or Drop with full refund (Freshers)", date: "27 Oct 2026", day: "Tuesday", type: "administrative", month: "October 2026", dateKeys: ['2026-10-27'] },
-  { activity: "Midterm Exams (No regular classes during this period)", date: "28 Oct - 7 Nov 2026", day: "Wed - Sat", duration: "11 days", type: "exam", highlight: true, month: "October 2026", dateKeys: ['2026-10-28', '2026-10-29', '2026-10-30', '2026-10-31', '2026-11-01', '2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05', '2026-11-06', '2026-11-07'] }, 
+  // October 2026
+  { 
+    activity: "Last day to remove 'I' grade for the Summer 2026 semester / Last date of grade submission of Thesis/Project/Internship/Dissertation for Summer 2026", 
+    details: "Applicable for Summer 2026 semester final records and dissertation submissions",
+    date: "2 Oct 2026", 
+    day: "Friday", 
+    type: "academic", 
+    month: "October 2026", 
+    dateKeys: ['2026-10-02'] 
+  },
+  { 
+    activity: "Last day of Late Registration / Add or Drop with full refund / Section change for Existing Students", 
+    details: "Final deadline for existing students course adds, drops, or section changes with full refund",
+    date: "9 Oct 2026", 
+    day: "Friday", 
+    type: "administrative", 
+    month: "October 2026", 
+    dateKeys: ['2026-10-09'] 
+  },
+  { 
+    activity: "Waiver Review and System Update based on the results of the Summer 2026 semester examinations", 
+    details: "Automatic scholarship and tuition waiver updates based on Summer 2026 published CGPA",
+    date: "11 Oct 2026", 
+    day: "Sunday", 
+    type: "administrative", 
+    month: "October 2026", 
+    dateKeys: ['2026-10-11'] 
+  },
+  { 
+    activity: "Last date of payment of 1st installment: 50% of total tuition fees", 
+    details: "If payment is made after 16 October Tk. 500/- Late Fee will be added",
+    date: "16 Oct 2026", 
+    day: "Friday", 
+    type: "financial", 
+    highlight: true, 
+    month: "October 2026", 
+    dateKeys: ['2026-10-16'] 
+  },
+  { 
+    activity: "Holiday: Durga Puja", 
+    date: "20 - 21 Oct 2026", 
+    day: "Tuesday - Wednesday", 
+    duration: "2 days", 
+    type: "holiday", 
+    month: "October 2026", 
+    dateKeys: ['2026-10-20', '2026-10-21'] 
+  },
+  { 
+    activity: "Last date of Admission for Freshers students", 
+    details: "Final admissions cut-off date for incoming new students",
+    date: "23 Oct 2026", 
+    day: "Friday", 
+    type: "administrative", 
+    month: "October 2026", 
+    dateKeys: ['2026-10-23'] 
+  },
+  { 
+    activity: "Last day of Add or Drop with full refund / Section change for Fresher students", 
+    details: "Final deadline for Fresher students course adjustments with full refund",
+    date: "27 Oct 2026", 
+    day: "Tuesday", 
+    type: "administrative", 
+    month: "October 2026", 
+    dateKeys: ['2026-10-27'] 
+  },
+  { 
+    activity: "Midterm exam (All Students)", 
+    details: "No classes will be held during the Midterm Examination period. Department offices must submit the schedule of make-up classes for this period to the Registrar's Office",
+    date: "28 Oct - 7 Nov 2026", 
+    day: "Wednesday - Saturday", 
+    duration: "11 days", 
+    type: "exam", 
+    highlight: true, 
+    month: "October 2026", 
+    dateKeys: ['2026-10-28', '2026-10-29', '2026-10-30', '2026-10-31', '2026-11-01', '2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05', '2026-11-06', '2026-11-07'] 
+  }, 
   
-  { activity: "Course & Teacher Evaluation by students", date: "9 - 13 Nov 2026", day: "Mon - Fri", duration: "5 days", type: "academic", month: "November 2026", dateKeys: ['2026-11-09', '2026-11-10', '2026-11-11', '2026-11-12', '2026-11-13'] },
-  { activity: "Deadline: 2nd Installment (30% of tuition fees)", date: "13 Nov 2026", day: "Friday", type: "financial", highlight: true, month: "November 2026", dateKeys: ['2026-11-13'] },
-  { activity: "Last day to withdraw course(s) without refund", date: "27 Nov 2026", day: "Friday", type: "administrative", month: "November 2026", dateKeys: ['2026-11-27'] },
-  { activity: "Classes end for Weekend Students", date: "27 Nov 2026", day: "Friday", type: "academic", month: "November 2026", dateKeys: ['2026-11-27'] },
+  // November 2026
+  { 
+    activity: "Course & Teacher Evaluation (online) by students", 
+    details: "Mandatory student feedback submission via online portal for each enrolled course",
+    date: "9 - 13 Nov 2026", 
+    day: "Monday - Friday", 
+    duration: "5 days", 
+    type: "academic", 
+    month: "November 2026", 
+    dateKeys: ['2026-11-09', '2026-11-10', '2026-11-11', '2026-11-12', '2026-11-13'] 
+  },
+  { 
+    activity: "Last date of payment of 2nd installment: 30% of total tuition fees", 
+    details: "If payment is made after 13 November Tk. 500/- Late Fee will be added",
+    date: "13 Nov 2026", 
+    day: "Friday", 
+    type: "financial", 
+    highlight: true, 
+    month: "November 2026", 
+    dateKeys: ['2026-11-13'] 
+  },
+  { 
+    activity: "Department to submit the Courses offering for next semester to the Registrar's Office", 
+    details: "Academic departments prepare and transmit course offerings list for Spring 2027",
+    date: "20 Nov 2026", 
+    day: "Friday", 
+    type: "administrative", 
+    month: "November 2026", 
+    dateKeys: ['2026-11-20'] 
+  },
+  { 
+    activity: "Department to submit the schedule of the Final Exam to the Controller of Examinations office", 
+    details: "Departments finalize and transmit final examination time and room slots",
+    date: "21 Nov 2026", 
+    day: "Saturday", 
+    type: "administrative", 
+    month: "November 2026", 
+    dateKeys: ['2026-11-21'] 
+  },
+  { 
+    activity: "Department to submit the Class Schedule for next semester to the Registrar's Office", 
+    details: "Final routine and faculty room allocation submission for Spring 2027",
+    date: "26 Nov 2026", 
+    day: "Thursday", 
+    type: "administrative", 
+    month: "November 2026", 
+    dateKeys: ['2026-11-26'] 
+  },
+  { 
+    activity: "Last day to withdraw course (s) without refund / Reinstate withdrawn course (s)", 
+    details: "'W' grade will be assigned for withdrawn courses. Non-refundable.",
+    date: "27 Nov 2026", 
+    day: "Friday", 
+    type: "administrative", 
+    month: "November 2026", 
+    dateKeys: ['2026-11-27'] 
+  },
+  { 
+    activity: "Classes end for weekend students", 
+    date: "27 Nov 2026", 
+    day: "Friday", 
+    type: "academic", 
+    month: "November 2026", 
+    dateKeys: ['2026-11-27'] 
+  },
   
-  { activity: "Final Exams for Weekend Students", date: "4, 11 & 18 Dec 2026", day: "Fridays", duration: "3 days", type: "exam", month: "December 2026", dateKeys: ['2026-12-04', '2026-12-11', '2026-12-18'] },
-  { activity: "Deadline: 3rd Installment (Remaining tuition fees)", date: "7 Dec 2026", day: "Monday", type: "financial", highlight: true, month: "December 2026", dateKeys: ['2026-12-07'] },
-  { activity: "Classes end for Day and Evening Students", date: "9 Dec 2026", day: "Wednesday", type: "academic", month: "December 2026", dateKeys: ['2026-12-09'] },
-  { activity: "Final Exams for Day & Evening Students", date: "10 - 20 Dec 2026", day: "Thu - Sun", duration: "10 days", type: "exam", highlight: true, month: "December 2026", dateKeys: ['2026-12-10', '2026-12-11', '2026-12-12', '2026-12-13', '2026-12-14', '2026-12-15', '2026-12-16', '2026-12-17', '2026-12-18', '2026-12-19', '2026-12-20'] },
-  { activity: "Holiday: Victory Day", date: "16 Dec 2026", day: "Wednesday", duration: "1 day", type: "holiday", month: "December 2026", dateKeys: ['2026-12-16'] },
-  { activity: "Publication of Results & Final Grade Submission", date: "24 Dec 2026", day: "Thursday", type: "academic", month: "December 2026", dateKeys: ['2026-12-24'] },
-  { activity: "Holiday: Christmas Day", date: "25 Dec 2026", day: "Friday", duration: "1 day", type: "holiday", month: "December 2026", dateKeys: ['2026-12-25'] },
-  { activity: "Holiday: Winter Vacation", date: "26 Dec 2026 - 3 Jan 2027", day: "Sat - Sun", duration: "9 days", type: "holiday", month: "December 2026", dateKeys: ['2026-12-26', '2026-12-27', '2026-12-28', '2026-12-29', '2026-12-30', '2026-12-31', '2027-01-01', '2027-01-02', '2027-01-03'] },
+  // December 2026
+  { 
+    activity: "Final Exam for Weekend Students", 
+    details: "Held on three consecutive Fridays for Weekend Friday & Saturday batches",
+    date: "4, 11 & 18 Dec 2026", 
+    day: "Fridays", 
+    duration: "3 days", 
+    type: "exam", 
+    highlight: true, 
+    month: "December 2026", 
+    dateKeys: ['2026-12-04', '2026-12-11', '2026-12-18'] 
+  },
+  { 
+    activity: "Last date of payment of 3rd installment: Remaining amount of tuition fees", 
+    details: "If payment is made after 07 December Tk. 500/- Late Fee will be added",
+    date: "7 Dec 2026", 
+    day: "Monday", 
+    type: "financial", 
+    highlight: true, 
+    month: "December 2026", 
+    dateKeys: ['2026-12-07'] 
+  },
+  { 
+    activity: "Classes end for Day and Evening Students", 
+    date: "9 Dec 2026", 
+    day: "Wednesday", 
+    type: "academic", 
+    month: "December 2026", 
+    dateKeys: ['2026-12-09'] 
+  },
+  { 
+    activity: "Final Exam for Day And Evening Students (Excluding Fridays)", 
+    details: "Excluding Fridays (4, 11 & 18 Dec reserved exclusively for Weekend Final Exams)",
+    date: "10 - 20 Dec 2026", 
+    day: "Thursday - Sunday", 
+    duration: "10 days", 
+    type: "exam", 
+    highlight: true, 
+    month: "December 2026", 
+    // Excluding Dec 11 & Dec 18 (Fridays reserved for Weekend batch)
+    dateKeys: ['2026-12-10', '2026-12-12', '2026-12-13', '2026-12-14', '2026-12-15', '2026-12-16', '2026-12-17', '2026-12-19', '2026-12-20'] 
+  },
+  { 
+    activity: "Holiday: Victory day", 
+    date: "16 Dec 2026", 
+    day: "Wednesday", 
+    duration: "1 day", 
+    type: "holiday", 
+    month: "December 2026", 
+    dateKeys: ['2026-12-16'] 
+  },
+  { 
+    activity: "Last date of grade submission and publication of results", 
+    details: "Submission in SIMS and to the Controller of Examinations office",
+    date: "24 Dec 2026", 
+    day: "Thursday", 
+    type: "academic", 
+    month: "December 2026", 
+    dateKeys: ['2026-12-24'] 
+  },
+  { 
+    activity: "Holiday: Christmas day", 
+    date: "25 Dec 2026", 
+    day: "Friday", 
+    duration: "1 day", 
+    type: "holiday", 
+    month: "December 2026", 
+    dateKeys: ['2026-12-25'] 
+  },
+  { 
+    activity: "Holiday: Winter Vacation", 
+    date: "26 Dec 2026 - 3 Jan 2027", 
+    day: "Saturday - Sunday", 
+    duration: "9 days", 
+    type: "holiday", 
+    month: "December 2026", 
+    dateKeys: ['2026-12-26', '2026-12-27', '2026-12-28', '2026-12-29', '2026-12-30', '2026-12-31', '2027-01-01', '2027-01-02', '2027-01-03'] 
+  },
   
-  { activity: "Spring 2027 (Trimester start)", date: "4 Jan 2027", day: "Monday", type: "academic", highlight: true, month: "January 2027", dateKeys: ['2027-01-04'] },
+  // January 2027
+  { 
+    activity: "Spring 2027 (Trimester start)", 
+    date: "4 Jan 2027", 
+    day: "Monday", 
+    type: "academic", 
+    highlight: true, 
+    month: "January 2027", 
+    dateKeys: ['2027-01-04'] 
+  },
 ];
 
 const TYPE_CONFIG: Record<string, { label: string, icon: any, color: string, bg: string, border: string }> = {
@@ -92,8 +367,12 @@ export function AcademicCalendarView() {
   const groupedData = useMemo(() => {
     const filtered = CALENDAR_DATA.filter(event => {
       const matchesFilter = filterType === 'all' || event.type === filterType;
-      const matchesSearch = event.activity.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            event.date.toLowerCase().includes(searchQuery.toLowerCase());
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch = !q || 
+        event.activity.toLowerCase().includes(q) || 
+        (event.details && event.details.toLowerCase().includes(q)) ||
+        event.date.toLowerCase().includes(q) ||
+        event.day.toLowerCase().includes(q);
       return matchesFilter && matchesSearch;
     });
 
@@ -109,8 +388,51 @@ export function AcademicCalendarView() {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-black tracking-tight text-stone-900 dark:text-white">Academic Calendar</h2>
-          <p className="text-sm text-stone-500 mt-1">Fall 2026 Trimester Agenda & Deadlines</p>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-black tracking-tight text-stone-900 dark:text-white">Academic Calendar</h2>
+            <Badge variant="outline" className="text-xs font-bold text-[#8c1515] dark:text-rose-400 border-[#8c1515]/30 dark:border-rose-800/40 bg-[#8c1515]/5">
+              Fall 2026
+            </Badge>
+          </div>
+          <p className="text-sm text-stone-500 mt-1">Presidency University Trimester Schedule, Regulatory Deadlines & Examination Matrix</p>
+        </div>
+      </div>
+
+      {/* Official Classes & Routine Summary Banner */}
+      <div className="bg-stone-50 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800/80 rounded-2xl p-4 sm:p-5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-stone-900 dark:text-stone-100 font-bold text-sm">
+              <Clock className="w-4 h-4 text-[#8c1515] dark:text-rose-400" />
+              <span>Trimester Class Distribution & Sessions Summary</span>
+            </div>
+            <p className="text-xs text-stone-500 dark:text-stone-400">
+              Per Class Duration: <strong>90 min</strong> (twice a week) & <strong>180 min</strong> (once a week for weekend). Additional/Makeup classes arranged by departments as required.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 shrink-0">
+            <div className="px-3 py-2 rounded-xl bg-white dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700/80 text-center">
+              <span className="text-[10px] font-bold text-stone-400 block uppercase tracking-wider">Sun/Tue (ST)</span>
+              <strong className="text-sm font-black text-stone-900 dark:text-white">26 Classes</strong>
+            </div>
+            <div className="px-3 py-2 rounded-xl bg-white dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700/80 text-center">
+              <span className="text-[10px] font-bold text-stone-400 block uppercase tracking-wider">Mon/Wed (MW)</span>
+              <strong className="text-sm font-black text-stone-900 dark:text-white">27 Classes</strong>
+            </div>
+            <div className="px-3 py-2 rounded-xl bg-white dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700/80 text-center">
+              <span className="text-[10px] font-bold text-stone-400 block uppercase tracking-wider">Saturday (A)</span>
+              <strong className="text-sm font-black text-stone-900 dark:text-white">12 Classes</strong>
+            </div>
+            <div className="px-3 py-2 rounded-xl bg-white dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700/80 text-center">
+              <span className="text-[10px] font-bold text-stone-400 block uppercase tracking-wider">Thursday (R)</span>
+              <strong className="text-sm font-black text-stone-900 dark:text-white">13 Classes</strong>
+            </div>
+            <div className="px-3 py-2 rounded-xl bg-white dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700/80 text-center col-span-3 sm:col-span-1">
+              <span className="text-[10px] font-bold text-stone-400 block uppercase tracking-wider">Friday (F)</span>
+              <strong className="text-sm font-black text-stone-900 dark:text-white">12 Classes</strong>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -135,10 +457,10 @@ export function AcademicCalendarView() {
             <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400">
               <AlertCircle className="w-5 h-5" />
             </div>
-            <h3 className="font-bold">Exam Periods</h3>
+            <h3 className="font-bold">Exams Schedule</h3>
           </div>
           <div className="text-sm text-stone-700 dark:text-stone-300 space-y-2 mt-1">
-            <div className="flex justify-between items-center"><span className="text-stone-500 dark:text-stone-400">Midterm Exams</span><strong className="text-stone-900 dark:text-white">28 Oct - 7 Nov</strong></div>
+            <div className="flex justify-between items-center"><span className="text-stone-500 dark:text-stone-400">Midterm (All)</span><strong className="text-stone-900 dark:text-white">28 Oct - 7 Nov</strong></div>
             <div className="flex justify-between items-center"><span className="text-stone-500 dark:text-stone-400">Finals (Day/Eve)</span><strong className="text-stone-900 dark:text-white">10 - 20 Dec</strong></div>
             <div className="flex justify-between items-center pt-2 border-t border-red-200/50 dark:border-red-800/50"><span className="text-stone-500 dark:text-stone-400">Finals (Weekend)</span><strong className="text-stone-900 dark:text-white">4, 11, 18 Dec</strong></div>
           </div>
@@ -149,12 +471,12 @@ export function AcademicCalendarView() {
             <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400">
               <CreditCard className="w-5 h-5" />
             </div>
-            <h3 className="font-bold">Tuition Deadlines</h3>
+            <h3 className="font-bold">Cut-off Dates of Payment</h3>
           </div>
           <div className="text-sm text-stone-700 dark:text-stone-300 space-y-2 mt-1">
-            <div className="flex justify-between items-center"><span className="text-stone-500 dark:text-stone-400">1st Installment (50%)</span><strong className="text-stone-900 dark:text-white">16 Oct</strong></div>
-            <div className="flex justify-between items-center"><span className="text-stone-500 dark:text-stone-400">2nd Installment (30%)</span><strong className="text-stone-900 dark:text-white">13 Nov</strong></div>
-            <div className="flex justify-between items-center pt-2 border-t border-emerald-200/50 dark:border-emerald-800/50"><span className="text-stone-500 dark:text-stone-400">3rd Installment (Rest)</span><strong className="text-stone-900 dark:text-white">7 Dec</strong></div>
+            <div className="flex justify-between items-center"><span className="text-stone-500 dark:text-stone-400">1st Installment (50%)</span><strong className="text-stone-900 dark:text-white">16 Oct 2026</strong></div>
+            <div className="flex justify-between items-center"><span className="text-stone-500 dark:text-stone-400">2nd Installment (30%)</span><strong className="text-stone-900 dark:text-white">13 Nov 2026</strong></div>
+            <div className="flex justify-between items-center pt-2 border-t border-emerald-200/50 dark:border-emerald-800/50"><span className="text-stone-500 dark:text-stone-400">3rd Installment (Rest)</span><strong className="text-stone-900 dark:text-white">7 Dec 2026</strong></div>
           </div>
         </Card>
       </div>
@@ -314,6 +636,11 @@ export function AcademicCalendarView() {
                       <p className="text-sm font-bold text-stone-900 dark:text-white leading-snug">
                         {event.activity}
                       </p>
+                      {event.details && (
+                        <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed -mt-1">
+                          {event.details}
+                        </p>
+                      )}
                       
                       <div className="flex items-center gap-3 text-[11px] font-bold text-stone-500 uppercase tracking-widest mt-1">
                         <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 opacity-60" /> {event.day}</span>
@@ -360,10 +687,15 @@ export function AcademicCalendarView() {
                            {TYPE_CONFIG[event.type].label}
                          </span>
                       </div>
-                      <div className="flex flex-col gap-2">
+                      <div className="flex flex-col gap-1.5">
                          <p className={`text-sm ${event.highlight ? 'font-bold text-stone-900 dark:text-white' : 'font-medium text-stone-700 dark:text-stone-300'}`}>
                            {event.activity}
                          </p>
+                         {event.details && (
+                           <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
+                             {event.details}
+                           </p>
+                         )}
                          <div className="flex items-center gap-3 text-[11px] font-bold text-stone-500 uppercase tracking-widest mt-1">
                            <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 opacity-60" /> {event.day}</span>
                            {event.duration && (
@@ -381,9 +713,9 @@ export function AcademicCalendarView() {
                 {/* Desktop View: Clean Rows */}
                 <div className="hidden md:flex flex-col divide-y divide-stone-100 dark:divide-stone-800/60">
                   {(events as CalendarEvent[]).map((event, i) => (
-                    <div key={i} className="flex justify-between items-center py-3.5 px-6 hover:bg-stone-50 dark:hover:bg-stone-900/30 transition-colors group">
+                    <div key={i} className="flex justify-between items-start py-3.5 px-6 hover:bg-stone-50 dark:hover:bg-stone-900/30 transition-colors group">
                       
-                      <div className="flex items-center w-[160px] shrink-0 gap-4">
+                      <div className="flex items-center w-[160px] shrink-0 gap-4 pt-0.5">
                         <div className="flex flex-col gap-0.5">
                           <span className={`font-black text-sm ${event.highlight ? 'text-stone-900 dark:text-white' : 'text-stone-700 dark:text-stone-300 group-hover:text-stone-900 dark:group-hover:text-stone-100'}`}>
                             {event.date.replace(/ 202\d/, '')}
@@ -392,13 +724,18 @@ export function AcademicCalendarView() {
                         </div>
                       </div>
 
-                      <div className="flex-1 px-4 border-l border-stone-100 dark:border-stone-800/60 py-1">
+                      <div className="flex-1 px-4 border-l border-stone-100 dark:border-stone-800/60 py-0.5 flex flex-col gap-1">
                         <span className={`text-sm ${event.highlight ? 'font-bold text-stone-900 dark:text-white' : 'font-medium text-stone-700 dark:text-stone-300 group-hover:text-stone-900 dark:group-hover:text-stone-200'} transition-colors`}>
                           {event.activity}
                         </span>
+                        {event.details && (
+                          <span className="text-xs text-stone-500 dark:text-stone-400 leading-normal">
+                            {event.details}
+                          </span>
+                        )}
                       </div>
                       
-                      <div className="flex items-center gap-6 text-right justify-end shrink-0 pl-4">
+                      <div className="flex items-center gap-6 text-right justify-end shrink-0 pl-4 pt-0.5">
                         {event.duration && (
                           <div className="flex flex-col items-end">
                              <span className="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Duration</span>

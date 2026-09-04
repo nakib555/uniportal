@@ -1,7 +1,7 @@
 import React from 'react';
 import { usePortalLogic } from './hooks/usePortalLogic';
 import { ReactLenis } from 'lenis/react';
-import { useAppStore } from './store';
+import { useAppStore, VALID_TABS } from './store';
 import { useMediaQuery } from './hooks/useMediaQuery';
 import { SyncPortalDialog } from './components/SyncPortalDialog';
 import { LoginView } from './views/LoginView';
@@ -40,6 +40,30 @@ export default function App() {
     if (isDarkMode) document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
   }, [isDarkMode]);
+
+  // Synchronize URL hash with activeTab for navigation persistence and browser back/forward buttons
+  React.useEffect(() => {
+    if (!isLoggedIn) return;
+
+    const currentTab = useAppStore.getState().activeTab;
+    if (window.location.hash.replace(/^#\/?/, '') !== currentTab) {
+      window.location.hash = `#${currentTab}`;
+    }
+
+    const handleHashChange = () => {
+      const rawHash = window.location.hash.replace(/^#\/?/, '').trim();
+      if (rawHash && VALID_TABS.has(rawHash)) {
+        if (useAppStore.getState().activeTab !== rawHash) {
+          useAppStore.getState().setActiveTab(rawHash);
+        }
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, [isLoggedIn]);
 
   // Absolute 30-Minute Session Timeout with Auto-logout (Regardless of Activity)
   React.useEffect(() => {
