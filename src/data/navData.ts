@@ -9,8 +9,7 @@ export const getNavItems = (isAdmin: boolean): NavItem[] => {
       { id: 'course-management', label: 'Course Management', icon: BookOpen },
       { id: 'student-records', label: 'Student Records', icon: Users, subItems: [
         { id: 'enrollment-approvals', label: 'Enrollment Approvals' },
-        { id: 'grade-submissions', label: 'Grade Submissions' },
-        { id: 'attendance-tracking', label: 'Attendance Management' }
+        { id: 'grade-submissions', label: 'Grade Submissions' }
       ]},
       { id: 'department-reports', label: 'Reports', icon: BarChart3, subItems: [
         { id: 'financial-reports', label: 'Financial Summaries' },
@@ -25,8 +24,7 @@ export const getNavItems = (isAdmin: boolean): NavItem[] => {
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'accounts', label: 'Accounts', icon: Wallet, subItems: [
       { id: 'statement', label: 'Accounts Overview' },
-      { id: 'bank-slips', label: 'Bank Slips' },
-      { id: 'financial-aid', label: 'Financial Aid' }
+      { id: 'bank-slips', label: 'Bank Slips' }
     ]},
     { id: 'courses', label: 'Courses', icon: BookOpen, subItems: [
       { id: 'registered-courses', label: 'Registered Courses' },
@@ -41,9 +39,7 @@ export const getNavItems = (isAdmin: boolean): NavItem[] => {
     { id: 'academics', label: 'Academics', icon: GraduationCap, subItems: [
       { id: 'degree-audit', label: 'Degree Audit' },
       { id: 'transcript', label: 'Grades & Transcript' },
-      { id: 'academic-calendar', label: 'Academic Calendar' },
-      { id: 'attendance', label: 'Attendance' },
-      { id: 'faculty-evaluation', label: 'Faculty Evaluation' },
+      { id: 'academic-calendar', label: 'Academic Calendar' }
     ]},
   ];
 };

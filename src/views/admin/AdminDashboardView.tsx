@@ -93,11 +93,11 @@ export function AdminDashboardView() {
         </Card>
 
         <Card className="p-6 bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800">
-          <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 mb-4">
-            <AlertTriangle className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 mb-4">
+            <BookOpen className="w-5 h-5" />
           </div>
-          <p className="text-sm font-bold text-stone-500 uppercase tracking-widest mb-1">Low Attendance Alerts</p>
-          <p className="text-3xl font-black text-stone-900 dark:text-white">8</p>
+          <p className="text-sm font-bold text-stone-500 uppercase tracking-widest mb-1">Total Faculty</p>
+          <p className="text-3xl font-black text-stone-900 dark:text-white">42</p>
         </Card>
       </div>
 
@@ -105,7 +105,7 @@ export function AdminDashboardView() {
         <Card className="col-span-2 p-0 border-stone-200 overflow-hidden flex flex-col">
           <div className="px-6 py-4 border-b border-stone-100 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/50 flex justify-between items-center">
             <h3 className="font-bold text-stone-900 dark:text-white flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-indigo-500" /> Department Attendance Trend
+              <TrendingUp className="w-5 h-5 text-indigo-500" /> Enrollment Trend
             </h3>
           </div>
           <div className="h-64 px-4 pt-4 w-full flex-1 min-w-0 min-h-[250px]">

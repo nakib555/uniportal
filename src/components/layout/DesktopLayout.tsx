@@ -12,9 +12,6 @@ import { ScheduleWeeklyView } from '../../views/ScheduleWeeklyView';
 import { DegreeAuditView } from '../../views/DegreeAuditView';
 import { GradesView } from '../../views/GradesView';
 import { ExamsView } from '../../views/ExamsView';
-import { AttendanceView } from '../../views/AttendanceView';
-import { FacultyEvalView } from '../../views/FacultyEvalView';
-import { FinancialAidView } from '../../views/FinancialAidView';
 import { StatementView } from '../../views/StatementView';
 import { AdmitCardView } from '../../views/AdmitCardView';
 import { BankSlipsView } from '../../views/BankSlipsView';
@@ -24,7 +21,6 @@ import { AdminStudentRecordsView } from '../../views/admin/AdminStudentRecordsVi
 import { AdminCourseManagementView } from '../../views/admin/AdminCourseManagementView';
 import { AdminGradeManagementView } from '../../views/admin/AdminGradeManagementView';
 import { AdminEnrollmentApprovalsView } from '../../views/admin/AdminEnrollmentApprovalsView';
-import { AdminAttendanceManagementView } from '../../views/admin/AdminAttendanceManagementView';
 
 interface DesktopLayoutProps {
   portal: ReturnType<typeof usePortalLogic>;
@@ -41,11 +37,9 @@ export function DesktopLayout(portal: ReturnType<typeof usePortalLogic>) {
       case 'course-management': return <AdminCourseManagementView />;
       case 'grade-submissions': return <AdminGradeManagementView />;
       case 'enrollment-approvals': return <AdminEnrollmentApprovalsView />;
-      case 'attendance-tracking': return <AdminAttendanceManagementView />;
       case 'profile': return <ProfileView portal={portal} />;
       case 'bank-slips': return <BankSlipsView portal={portal} />;
       case 'statement': return <StatementView portal={portal} />;
-      case 'financial-aid': return <FinancialAidView />;
       case 'registered-courses':
       case 'available-courses': return <CoursesView portal={portal} />;
       case 'completed-courses': return <CompletedCoursesView />;
@@ -55,8 +49,6 @@ export function DesktopLayout(portal: ReturnType<typeof usePortalLogic>) {
       case 'academic-calendar': return <AcademicCalendarView />;
       case 'exam-routine': return <ExamsView portal={portal} />;
       case 'exam-admit-card': return <AdmitCardView portal={portal} />;
-      case 'attendance': return <AttendanceView />;
-      case 'faculty-evaluation': return <FacultyEvalView />;
       default: return <div className="p-8 text-stone-500">View under construction.</div>;
     }
   };

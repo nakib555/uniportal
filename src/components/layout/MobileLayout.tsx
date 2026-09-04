@@ -18,9 +18,6 @@ import { ScheduleTable } from '../ScheduleTable';
 import { DegreeAuditView } from '../../views/DegreeAuditView';
 import { GradesView } from '../../views/GradesView';
 import { ExamsView } from '../../views/ExamsView';
-import { AttendanceView } from '../../views/AttendanceView';
-import { FacultyEvalView } from '../../views/FacultyEvalView';
-import { FinancialAidView } from '../../views/FinancialAidView';
 import { StatementView } from '../../views/StatementView';
 import { AdmitCardView } from '../../views/AdmitCardView';
 import { AcademicCalendarView } from '../../views/AcademicCalendarView';
@@ -33,7 +30,6 @@ import { AdminStudentRecordsView } from '../../views/admin/AdminStudentRecordsVi
 import { AdminCourseManagementView } from '../../views/admin/AdminCourseManagementView';
 import { AdminGradeManagementView } from '../../views/admin/AdminGradeManagementView';
 import { AdminEnrollmentApprovalsView } from '../../views/admin/AdminEnrollmentApprovalsView';
-import { AdminAttendanceManagementView } from '../../views/admin/AdminAttendanceManagementView';
 import {
   Dialog,
   DialogContent,
@@ -405,7 +401,6 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
               {activeTab === 'course-management' && <AdminCourseManagementView />}
               {activeTab === 'grade-submissions' && <AdminGradeManagementView />}
               {activeTab === 'enrollment-approvals' && <AdminEnrollmentApprovalsView />}
-              {activeTab === 'attendance-tracking' && <AdminAttendanceManagementView />}
 
               {/* === HOME TAB === */}
               {activeTab === 'home' && (
@@ -1352,11 +1347,8 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
               {activeTab === 'academic-calendar' && <AcademicCalendarView />}
               {activeTab === 'exam-routine' && <ExamsView portal={props} />}
               {activeTab === 'exam-admit-card' && <AdmitCardView portal={props} />}
-              {activeTab === 'attendance' && <AttendanceView />}
-              {activeTab === 'faculty-evaluation' && <FacultyEvalView />}
 
               {/* === FINANCIAL AID === */}
-              {activeTab === 'financial-aid' && <FinancialAidView />}
 
             </motion.div>
           </AnimatePresence>

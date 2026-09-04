@@ -259,41 +259,50 @@ export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic
         </div>
 
         {/* Desktop View: Table */}
-        <div className="hidden sm:flex flex-col divide-y divide-stone-100 dark:divide-stone-800">
-          {transactions.map((t, i) => (
-            <div key={i} className="flex justify-between items-center py-4 px-6 hover:bg-stone-50 dark:hover:bg-stone-900/30 transition-colors">
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="font-mono text-[10px] bg-stone-100 dark:bg-stone-800 text-stone-500 uppercase rounded-sm border-none px-1.5">
-                    {t.code || (t.debit ? 'CHARGE' : 'RECEIPT')}
-                  </Badge>
-                  <span className="text-xs text-stone-500 font-medium">{t.date}</span>
-                </div>
-                <span className="font-bold text-stone-900 dark:text-stone-100">{t.description}</span>
-              </div>
-              
-              <div className="flex items-center gap-8 text-right min-w-[280px] justify-end">
-                <div className="flex flex-col items-end w-20">
-                  <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1">Fee</span>
-                  <span className="font-mono font-medium text-stone-700 dark:text-stone-300">
-                    {t.debit ? t.debit.toLocaleString() : '0'}
-                  </span>
-                </div>
-                <div className="flex flex-col items-end w-20">
-                  <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1">Paid</span>
-                  <span className="font-mono font-medium text-emerald-600 dark:text-emerald-400">
-                    {t.credit ? t.credit.toLocaleString() : '0'}
-                  </span>
-                </div>
-                <div className="flex flex-col items-end w-24">
-                  <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1">Balance</span>
-                  <span className="font-mono font-bold text-stone-900 dark:text-stone-100">
-                    {t.balance.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="hidden sm:block overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-stone-200 dark:border-stone-800 text-stone-400 dark:text-stone-500 uppercase text-[10px] tracking-widest bg-stone-50/50 dark:bg-stone-900/50">
+                <th className="py-3 px-6 font-bold w-24">Date</th>
+                <th className="py-3 px-6 font-bold">Description</th>
+                <th className="py-3 px-6 font-bold text-right w-32">Fee</th>
+                <th className="py-3 px-6 font-bold text-right w-32">Paid</th>
+                <th className="py-3 px-6 font-bold text-right w-32">Balance</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
+              {transactions.map((t, i) => (
+                <tr key={i} className="hover:bg-stone-50 dark:hover:bg-stone-900/30 transition-colors group">
+                  <td className="py-4 px-6 align-middle">
+                    <span className="text-xs text-stone-500 font-medium whitespace-nowrap">{t.date}</span>
+                  </td>
+                  <td className="py-4 px-6 align-middle">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="font-mono text-[10px] bg-stone-100 dark:bg-stone-800 text-stone-500 uppercase rounded-sm border-none px-1.5 shrink-0">
+                        {t.code || (t.debit ? 'CHARGE' : 'RECEIPT')}
+                      </Badge>
+                      <span className="font-bold text-stone-900 dark:text-stone-100">{t.description}</span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6 align-middle text-right">
+                    <span className="font-mono font-medium text-stone-700 dark:text-stone-300">
+                      {t.debit ? t.debit.toLocaleString() : '-'}
+                    </span>
+                  </td>
+                  <td className="py-4 px-6 align-middle text-right">
+                    <span className="font-mono font-medium text-emerald-600 dark:text-emerald-400">
+                      {t.credit ? t.credit.toLocaleString() : '-'}
+                    </span>
+                  </td>
+                  <td className="py-4 px-6 align-middle text-right">
+                    <span className="font-mono font-bold text-stone-900 dark:text-stone-100">
+                      {t.balance.toLocaleString()}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
         {/* Authentic Statement Summary Footer */}
         {transactions.length > 0 && (

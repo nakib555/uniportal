@@ -106,7 +106,6 @@ export function AdvisingView() {
                 <select className="w-full px-3 py-2 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]">
                   <option>Academic Advising</option>
                   <option>Registrar's Office</option>
-                  <option>Financial Aid</option>
                   <option>IT Support</option>
                 </select>
               </div>
