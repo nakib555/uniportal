@@ -4,7 +4,7 @@ import {
   Home, User, BookOpen, Calendar, Wallet, Users, Bell, 
   ChevronRight, ChevronLeft, ChevronDown, CheckCircle2,
   GraduationCap, Clock, MapPin, Menu, AlertCircle, BookMarked, Search, Moon, Info, Sun, Camera,
-  TrendingDown, TrendingUp, FileText, X, Mail, Phone, KeyRound, Edit3, LogOut, RefreshCw, Loader2
+  TrendingDown, TrendingUp, FileText, X, Mail, Phone, KeyRound, Edit3, LogOut, RefreshCw, Loader2, BarChart3
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { 
@@ -21,6 +21,7 @@ import { ExamsView } from '../../views/ExamsView';
 import { StatementView } from '../../views/StatementView';
 import { AdmitCardView } from '../../views/AdmitCardView';
 import { AcademicCalendarView } from '../../views/AcademicCalendarView';
+import { ClassDistributionView } from '../../views/ClassDistributionView';
 import { PWAInstallButton } from '../pwa/PWAInstallButton';
 import { ExamCountdownWidget } from '../ExamCountdownWidget';
 import { BankSlipsView } from '../../views/BankSlipsView';
@@ -40,13 +41,14 @@ import {
   DialogClose,
 } from '../ui/dialog';
 import { Button } from '../ui/button';
+import { haptics } from '../../utils/haptics';
 
 
 type NavItem = {
   id: string;
   label: string;
   icon: React.ElementType;
-  subItems?: { id: string; label: string }[];
+  subItems?: { id: string; label: string; icon?: React.ElementType }[];
 };
 
 // Simple format time utility
@@ -231,7 +233,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                           <button
                             key={subItem.id}
                             onClick={() => handleSubItemClick(subItem.id)}
-                            className={`w-full text-left py-2 px-3 text-[13px] rounded-lg transition-colors relative ${
+                            className={`w-full text-left py-2 px-3 text-[13px] rounded-lg transition-colors flex items-center gap-2 relative ${
                               activeTab === subItem.id 
                                 ? 'text-[#8c1515] dark:text-[#ef4444] font-bold bg-[#8c1515]/5 dark:bg-[#ef4444]/10' 
                                 : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200 hover:bg-stone-50 dark:hover:bg-stone-800/50'
@@ -240,7 +242,12 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                             {activeTab === subItem.id && (
                               <span className="absolute left-[-20px] top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#8c1515] dark:bg-[#ef4444]" />
                             )}
-                            {subItem.label}
+                            {subItem.icon && (
+                              <subItem.icon className={`w-3.5 h-3.5 shrink-0 transition-colors ${
+                                activeTab === subItem.id ? 'text-[#8c1515] dark:text-[#ef4444]' : 'text-stone-400 dark:text-stone-500'
+                              }`} />
+                            )}
+                            <span>{subItem.label}</span>
                           </button>
                         ))}
                       </div>
@@ -282,7 +289,13 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
           className="h-16 border-b border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex items-center justify-between px-4 md:px-8 shrink-0 z-10 sticky top-0 print:hidden"
         >
            <div className="flex items-center gap-3">
-             <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden p-2 -ml-2 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg">
+             <button 
+               onClick={() => {
+                 haptics.light();
+                 setIsMobileMenuOpen(true);
+               }} 
+               className="md:hidden p-2 -ml-2 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg"
+             >
                <Menu className="w-5 h-5" />
              </button>
              
@@ -502,6 +515,11 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                           <User className="w-6 h-6 text-sky-500 mb-3" />
                           <h4 className="font-bold text-sm text-stone-900 dark:text-white mb-1">Profile info</h4>
                           <p className="text-xs text-stone-500 dark:text-stone-400">View academic status</p>
+                        </button>
+                        <button onClick={() => setActiveTab('class-distribution')} className="text-left p-4 rounded-xl border border-stone-200 dark:border-stone-800 hover:border-[#8c1515]/30 dark:hover:border-[#ef4444]/30 hover:bg-[#8c1515]/5 dark:hover:bg-[#ef4444]/5 transition-all group">
+                          <BarChart3 className="w-6 h-6 text-[#8c1515] dark:text-[#ef4444] mb-3" />
+                          <h4 className="font-bold text-sm text-stone-900 dark:text-white mb-1">Class Metrics</h4>
+                          <p className="text-xs text-stone-500 dark:text-stone-400">Trimester sessions chart</p>
                         </button>
                       </div>
 
@@ -1345,6 +1363,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
               {activeTab === 'degree-audit' && <DegreeAuditView portal={props} />}
               {activeTab === 'transcript' && <GradesView portal={props} />}
               {activeTab === 'academic-calendar' && <AcademicCalendarView />}
+              {activeTab === 'class-distribution' && <ClassDistributionView portal={props} />}
               {activeTab === 'exam-routine' && <ExamsView portal={props} />}
               {activeTab === 'exam-admit-card' && <AdmitCardView portal={props} />}
 
@@ -1568,6 +1587,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                  </button>
                  <button 
                    onClick={() => {
+                     haptics.success();
                      setIsSelectionLocked(true);
                      setIsConfirmRegistrationOpen(false);
                    }}

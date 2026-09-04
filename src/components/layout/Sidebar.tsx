@@ -100,7 +100,7 @@ export const Sidebar: React.FC = () => {
                             key={sub.id}
                             onClick={() => handleNavClick(sub.id)}
                             className={clsx(
-                              "w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all block truncate relative",
+                              "w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 truncate relative",
                               activeTab === sub.id 
                                 ? "bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-white" 
                                 : "text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50"
@@ -109,7 +109,13 @@ export const Sidebar: React.FC = () => {
                              {activeTab === sub.id && (
                                <div className="absolute left-[-1.15rem] top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#8c1515] dark:bg-[#ef4444] z-10" />
                              )}
-                             {sub.label}
+                             {sub.icon && (
+                               <sub.icon className={clsx(
+                                 "w-3.5 h-3.5 shrink-0 transition-colors",
+                                 activeTab === sub.id ? "text-[#8c1515] dark:text-[#ef4444]" : "text-stone-400 dark:text-stone-500"
+                               )} />
+                             )}
+                             <span className="truncate">{sub.label}</span>
                           </button>
                         ))}
                       </div>

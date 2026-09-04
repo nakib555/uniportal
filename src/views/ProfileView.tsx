@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Mail, Phone, MapPin, KeyRound, Edit3, CheckCircle2, Camera } from 'lucide-react';
+import { Mail, Phone, MapPin, KeyRound, Edit3, CheckCircle2, Camera, TrendingUp, Contact, ShieldCheck, GraduationCap, Calendar } from 'lucide-react';
 import { Card, Badge } from '../components/ui';
 import { usePortalLogic } from '../hooks/usePortalLogic';
 import {
@@ -121,11 +121,20 @@ export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLog
           </div>
         </div>
         
-        <div className="pt-24 pb-8 px-8 flex justify-between items-start">
-          <div className="flex gap-4">
-            <Badge variant="brand">{student.program}</Badge>
-            <Badge variant="outline">Batch {student.admissionSemester}</Badge>
-            <Badge variant="success">{student.status}</Badge>
+        <div className="pt-24 pb-8 px-8 flex justify-between items-start flex-wrap gap-4">
+          <div className="flex flex-wrap gap-3 items-center">
+            <Badge variant="brand" className="flex items-center gap-1">
+              <GraduationCap className="w-3.5 h-3.5" />
+              <span>{student.program}</span>
+            </Badge>
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5 text-stone-400" />
+              <span>Batch {student.admissionSemester}</span>
+            </Badge>
+            <Badge variant="success" className="flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+              <span>{student.status}</span>
+            </Badge>
           </div>
           <button 
             onClick={handleUploadTrigger}
@@ -138,7 +147,10 @@ export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLog
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="p-6 md:col-span-2 lg:col-span-1">
-          <h3 className="font-semibold text-lg mb-6 border-b border-stone-100 dark:border-stone-800 pb-4">Academic Progress</h3>
+          <h3 className="font-semibold text-lg mb-6 border-b border-stone-100 dark:border-stone-800 pb-4 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-[#8c1515] dark:text-[#ef4444]" />
+            <span>Academic Progress</span>
+          </h3>
           <div className="bg-stone-50 dark:bg-stone-900/50 p-5 rounded-2xl border border-stone-100 dark:border-stone-800 space-y-4">
             <div>
               <div className="flex justify-between items-end mb-1">
@@ -158,7 +170,10 @@ export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLog
         </Card>
 
         <Card className="p-6">
-          <h3 className="font-semibold text-lg mb-6 border-b border-stone-100 dark:border-stone-800 pb-4">Contact Information</h3>
+          <h3 className="font-semibold text-lg mb-6 border-b border-stone-100 dark:border-stone-800 pb-4 flex items-center gap-2">
+            <Contact className="w-5 h-5 text-[#8c1515] dark:text-[#ef4444]" />
+            <span>Contact Information</span>
+          </h3>
           <div className="space-y-4">
             <div className="flex items-start gap-4">
               <div className="p-2.5 bg-sky-50 dark:bg-sky-900/30 text-sky-600 rounded-lg shrink-0">
@@ -182,7 +197,10 @@ export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLog
         </Card>
 
         <Card className="p-6">
-          <h3 className="font-semibold text-lg mb-6 border-b border-stone-100 dark:border-stone-800 pb-4">Security</h3>
+          <h3 className="font-semibold text-lg mb-6 border-b border-stone-100 dark:border-stone-800 pb-4 flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-[#8c1515] dark:text-[#ef4444]" />
+            <span>Security</span>
+          </h3>
           <div className="space-y-4">
             <div className="flex items-start gap-4">
               <div className="p-2.5 bg-amber-50 dark:bg-amber-900/30 text-amber-600 rounded-lg shrink-0">
@@ -191,7 +209,10 @@ export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLog
               <div className="flex-1">
                 <p className="text-sm font-medium text-stone-900 dark:text-stone-100">Password</p>
                 <p className="text-xs text-stone-500 mb-2">Last changed 3 months ago</p>
-                <button onClick={() => setIsPasswordOpen(true)} className="text-xs font-semibold text-[#8c1515] hover:underline">Change Password</button>
+                <button onClick={() => setIsPasswordOpen(true)} className="text-xs font-semibold text-[#8c1515] hover:underline flex items-center gap-1">
+                  <KeyRound className="w-3.5 h-3.5" />
+                  <span>Change Password</span>
+                </button>
               </div>
             </div>
           </div>

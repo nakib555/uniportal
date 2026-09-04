@@ -13,6 +13,7 @@ import {
   DialogClose,
 } from '../components/ui/dialog';
 import { Button } from '../components/ui/button';
+import { haptics } from '../utils/haptics';
 
 export const RegisteredCoursesView: React.FC = () => {
   const { registeredCourses, setRegisteredCourses, isSelectionLocked, setActiveTab } = useAppStore();
@@ -24,6 +25,7 @@ export const RegisteredCoursesView: React.FC = () => {
     if (!courseToDrop) return;
     
     if (isSelectionLocked) {
+      haptics.warning();
       setErrorMsg(`Course selection is locked for this semester.`);
       setCourseToDrop(null);
       return;
@@ -32,16 +34,19 @@ export const RegisteredCoursesView: React.FC = () => {
     // Check if dropping this course breaks corequisite rules for other registered courses
     const brokenCoreqCourse = registeredCourses.find(c => c.corequisites?.includes(courseToDrop));
     if (brokenCoreqCourse) {
+      haptics.warning();
       setErrorMsg(`Cannot drop ${courseToDrop} because it is a co-requisite for ${brokenCoreqCourse.code}.`);
       setCourseToDrop(null);
       return;
     }
     
+    haptics.success();
     setRegisteredCourses(registeredCourses.filter(c => c.code !== courseToDrop));
     setCourseToDrop(null);
   };
 
   const handleDropCourse = (courseCode: string) => {
+    haptics.medium();
     setCourseToDrop(courseCode);
   };
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { BookOpen, Calendar, Clock, GraduationCap, MapPin, TrendingUp, Wallet, Users } from 'lucide-react';
+import { BookOpen, Calendar, Clock, GraduationCap, MapPin, TrendingUp, Wallet, Users, Compass, Layers, Award, ArrowRight, BarChart3 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { Card, Badge } from '../components/ui';
 import { usePortalLogic } from '../hooks/usePortalLogic';
@@ -49,9 +49,10 @@ export function HomeView({ portal }: { portal: ReturnType<typeof usePortalLogic>
               </h3>
               <button 
                 onClick={() => portal.store.setActiveTab('class-schedule')}
-                className="text-sm font-medium text-[#8c1515] hover:underline"
+                className="text-sm font-semibold text-[#8c1515] dark:text-[#ef4444] hover:underline flex items-center gap-1 group"
               >
-                View Full Schedule
+                <span>View Full Schedule</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </button>
             </div>
             
@@ -138,7 +139,10 @@ export function HomeView({ portal }: { portal: ReturnType<typeof usePortalLogic>
             <div className="space-y-5">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-stone-600 dark:text-stone-400">Total Credits</span>
+                  <span className="text-sm font-semibold text-stone-600 dark:text-stone-400 flex items-center gap-1.5">
+                    <BookOpen className="w-4 h-4 text-blue-500" />
+                    <span>Total Credits</span>
+                  </span>
                   <span className="text-sm font-bold">{student.creditsCompleted} / 124</span>
                 </div>
                 <div className="h-2.5 w-full bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
@@ -148,7 +152,10 @@ export function HomeView({ portal }: { portal: ReturnType<typeof usePortalLogic>
               
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-stone-600 dark:text-stone-400">Major Core</span>
+                  <span className="text-sm font-semibold text-stone-600 dark:text-stone-400 flex items-center gap-1.5">
+                    <Layers className="w-4 h-4 text-indigo-500" />
+                    <span>Major Core</span>
+                  </span>
                   <span className="text-sm font-bold">45 / 60</span>
                 </div>
                 <div className="h-2.5 w-full bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
@@ -158,7 +165,10 @@ export function HomeView({ portal }: { portal: ReturnType<typeof usePortalLogic>
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-stone-600 dark:text-stone-400">Electives</span>
+                  <span className="text-sm font-semibold text-stone-600 dark:text-stone-400 flex items-center gap-1.5">
+                    <Award className="w-4 h-4 text-emerald-500" />
+                    <span>Electives</span>
+                  </span>
                   <span className="text-sm font-bold">12 / 24</span>
                 </div>
                 <div className="h-2.5 w-full bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
@@ -167,12 +177,22 @@ export function HomeView({ portal }: { portal: ReturnType<typeof usePortalLogic>
               </div>
             </div>
             
-            <button 
-              onClick={() => portal.store.setActiveTab('degree-audit')}
-              className="mt-6 w-full py-2.5 text-sm font-medium text-[#8c1515] border border-[#8c1515]/20 hover:bg-[#8c1515]/5 rounded-lg transition-colors"
-            >
-              View Full Audit
-            </button>
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <button 
+                onClick={() => portal.store.setActiveTab('degree-audit')}
+                className="w-full py-2.5 text-xs font-bold text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-900 rounded-lg transition-all flex items-center justify-center gap-1.5 group"
+              >
+                <Compass className="w-4 h-4 transition-transform group-hover:rotate-45" />
+                <span>View Audit</span>
+              </button>
+              <button 
+                onClick={() => portal.store.setActiveTab('class-distribution')}
+                className="w-full py-2.5 text-xs font-bold text-white bg-[#8c1515] dark:bg-[#ef4444] hover:opacity-90 rounded-lg transition-all flex items-center justify-center gap-1.5 group shadow-sm"
+              >
+                <BarChart3 className="w-4 h-4 transition-transform group-hover:scale-110" />
+                <span>Class Metrics</span>
+              </button>
+            </div>
           </Card>
         </div>
       </div>

@@ -6,7 +6,7 @@ import { useAppStore } from '../store';
 import { getStudentData, TRANSACTIONS_DATA } from '../data';
 import { usePortalLogic } from '../hooks/usePortalLogic';
 import { AreaChart, Area, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
-import { TrendingDown, TrendingUp, Wallet, AlertCircle, Download, CreditCard, ArrowRight, CheckCircle2, Loader2, X, Lock, Printer } from 'lucide-react';
+import { TrendingDown, TrendingUp, Wallet, AlertCircle, Download, CreditCard, ArrowRight, CheckCircle2, Loader2, X, Lock, Printer, Calendar, FileText } from 'lucide-react';
 import { PrintableStatement } from '../components/print/PrintableStatement';
 import { PaymentPortal } from '../components/PaymentPortal';
 import { exportStatementToPdf } from '../utils/statementPdf';
@@ -263,11 +263,36 @@ export const StatementView: React.FC<{ portal?: ReturnType<typeof usePortalLogic
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-stone-200 dark:border-stone-800 text-stone-400 dark:text-stone-500 uppercase text-[10px] tracking-widest bg-stone-50/50 dark:bg-stone-900/50">
-                <th className="py-3 px-6 font-bold w-24">Date</th>
-                <th className="py-3 px-6 font-bold">Description</th>
-                <th className="py-3 px-6 font-bold text-right w-32">Fee</th>
-                <th className="py-3 px-6 font-bold text-right w-32">Paid</th>
-                <th className="py-3 px-6 font-bold text-right w-32">Balance</th>
+                <th className="py-3 px-6 font-bold w-28">
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-stone-400" />
+                    <span>Date</span>
+                  </span>
+                </th>
+                <th className="py-3 px-6 font-bold">
+                  <span className="flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-stone-400" />
+                    <span>Description</span>
+                  </span>
+                </th>
+                <th className="py-3 px-6 font-bold text-right w-32">
+                  <span className="inline-flex items-center gap-1.5 justify-end w-full">
+                    <TrendingDown className="w-3.5 h-3.5 text-rose-500" />
+                    <span>Fee</span>
+                  </span>
+                </th>
+                <th className="py-3 px-6 font-bold text-right w-32">
+                  <span className="inline-flex items-center gap-1.5 justify-end w-full">
+                    <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Paid</span>
+                  </span>
+                </th>
+                <th className="py-3 px-6 font-bold text-right w-32">
+                  <span className="inline-flex items-center gap-1.5 justify-end w-full">
+                    <Wallet className="w-3.5 h-3.5 text-blue-500" />
+                    <span>Balance</span>
+                  </span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 dark:divide-stone-800">

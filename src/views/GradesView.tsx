@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Card, Badge } from '../components/ui';
 import { COMPLETED_COURSES } from '../data';
 import { usePortalLogic } from '../hooks/usePortalLogic';
-import { Download } from 'lucide-react';
+import { Download, GraduationCap, Award, TrendingUp, Calendar, Filter } from 'lucide-react';
 import { PrintableTranscript } from '../components/print/PrintableTranscript';
 
 const getMarksRange = (grade?: string) => {
@@ -44,12 +44,19 @@ export function GradesView({ portal }: { portal?: ReturnType<typeof usePortalLog
     <>
       <PrintableTranscript semesters={semesters} />
       <div className="space-y-6 print-hide">
-        <div className="flex justify-between items-center bg-stone-50 dark:bg-stone-900 p-6 rounded-xl border border-stone-200 dark:border-stone-800">
-          <div>
-             <h2 className="text-2xl font-bold text-stone-900 dark:text-white">Academic Transcript</h2>
-             <p className="text-stone-500 dark:text-stone-400">Cumulative GPA: <span className="font-bold text-stone-900 dark:text-stone-100">{cgpa.toFixed(2)}</span></p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-stone-50 dark:bg-stone-900 p-6 rounded-xl border border-stone-200 dark:border-stone-800 gap-4">
+          <div className="flex items-start gap-3">
+            <GraduationCap className="w-8 h-8 text-[#8c1515] dark:text-[#ef4444] mt-1 shrink-0" />
+            <div>
+               <h2 className="text-2xl font-bold text-stone-900 dark:text-white">Academic Transcript</h2>
+               <p className="text-stone-500 dark:text-stone-400 flex items-center gap-1.5 mt-1">
+                 <TrendingUp className="w-4 h-4 text-emerald-500" />
+                 <span>Cumulative GPA:</span>
+                 <span className="font-bold text-stone-900 dark:text-stone-100">{cgpa.toFixed(2)}</span>
+               </p>
+            </div>
           </div>
-          <button onClick={() => window.print()} className="flex items-center gap-2 bg-[#8c1515] hover:bg-[#731010] dark:bg-[#ef4444] dark:hover:bg-[#dc2626] text-white px-4 py-2 rounded-xl font-bold transition-colors">
+          <button onClick={() => window.print()} className="flex items-center gap-2 bg-[#8c1515] hover:bg-[#731010] dark:bg-[#ef4444] dark:hover:bg-[#dc2626] text-white px-4 py-2 rounded-xl font-bold transition-colors shadow-sm">
              <Download className="w-4 h-4" /> Download PDF
           </button>
         </div>
@@ -63,8 +70,14 @@ export function GradesView({ portal }: { portal?: ReturnType<typeof usePortalLog
         semesters.map(semester => (
         <Card key={semester.term} className="overflow-hidden border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-950">
           <div className="p-4 bg-stone-100 dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 flex justify-between items-center">
-             <h3 className="font-bold text-stone-900 dark:text-white">{semester.term}</h3>
-             <Badge variant="success">Semester GPA: {semester.gpa.toFixed(2)}</Badge>
+             <h3 className="font-bold text-stone-900 dark:text-white flex items-center gap-2">
+               <Calendar className="w-4 h-4 text-[#8c1515] dark:text-[#ef4444]" />
+               <span>{semester.term}</span>
+             </h3>
+             <Badge variant="success" className="flex items-center gap-1">
+               <Award className="w-3.5 h-3.5" />
+               <span>Semester GPA: {semester.gpa.toFixed(2)}</span>
+             </Badge>
           </div>
                     <div className="overflow-x-auto custom-scrollbar overscroll-x-contain rounded-b-xl">
              <table className="w-full text-left text-sm whitespace-nowrap">

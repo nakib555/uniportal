@@ -5,6 +5,7 @@ import { Badge } from '../components/ui/badge';
 import { useAppStore } from '../store';
 import { Course, AVAILABLE_COURSES } from '../data';
 import { Search, AlertCircle, GraduationCap, Clock, User, FileText, CheckCircle2 } from 'lucide-react';
+import { haptics } from '../utils/haptics';
 
 export const CourseEnrollmentView: React.FC = () => {
   const { 
@@ -75,18 +76,21 @@ export const CourseEnrollmentView: React.FC = () => {
 
   const handleRegister = (course: Course) => {
     if (isSelectionLocked) {
+      haptics.warning();
       setRegisterError(`Course selection is locked for this semester.`);
       setTimeout(() => setRegisterError(null), 3000);
       return;
     }
 
     if (!hasCompletedPrerequisites(course)) {
+      haptics.warning();
       setRegisterError(`Prerequisite not met: ${course.prerequisites?.join(', ')}`);
       setTimeout(() => setRegisterError(null), 3000);
       return;
     }
 
     if (registeredCourses.some(c => c.code === course.code)) {
+      haptics.warning();
       setRegisterError(`Already registered for ${course.code}.`);
       setTimeout(() => setRegisterError(null), 3000);
       return;
@@ -103,11 +107,13 @@ export const CourseEnrollmentView: React.FC = () => {
         const currentCredits = registeredCourses.reduce((acc, c) => acc + c.credits, 0);
         
         if (currentCredits + course.credits + missingCoreqCredits > 21) {
+          haptics.warning();
           setRegisterError(`Cannot add ${course.code} because adding its missing co-requisites (${missingCoreqs.join(', ')}) would exceed the 21 credit limit.`);
           setTimeout(() => setRegisterError(null), 3000);
           return;
         }
 
+        haptics.medium();
         setPendingCoreqCourse({ main: course, coreqs: missingCoreqCourses });
         setIsCoreqModalOpen(true);
         return;
@@ -116,16 +122,19 @@ export const CourseEnrollmentView: React.FC = () => {
 
     const currentCredits = registeredCourses.reduce((acc, c) => acc + c.credits, 0);
     if (currentCredits + course.credits > 21) {
+      haptics.warning();
       setRegisterError(`Cannot exceed maximum of 21 credits. Total will be ${currentCredits + course.credits}.`);
       setTimeout(() => setRegisterError(null), 3000);
       return;
     }
 
+    haptics.success();
     setRegisteredCourses([...registeredCourses, course]);
   };
 
   const confirmCoreqsRegistration = () => {
     if (!pendingCoreqCourse) return;
+    haptics.success();
     setRegisteredCourses([...registeredCourses, pendingCoreqCourse.main, ...pendingCoreqCourse.coreqs]);
     setIsCoreqModalOpen(false);
     setPendingCoreqCourse(null);
@@ -158,7 +167,10 @@ export const CourseEnrollmentView: React.FC = () => {
               id="departmentFilter"
               className="w-full bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-700 rounded-lg px-3 py-2 text-sm text-stone-700 dark:text-stone-300 outline-none focus:ring-2 focus:ring-indigo-500/50"
               value={courseDeptFilter}
-              onChange={e => setCourseDeptFilter(e.target.value)}
+              onChange={e => {
+                haptics.selection();
+                setCourseDeptFilter(e.target.value);
+              }}
             >
               <option value="All">All Departments</option>
               <option value="CSE">CSE</option>
@@ -173,7 +185,10 @@ export const CourseEnrollmentView: React.FC = () => {
               id="creditsFilter"
               className="w-full bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-700 rounded-lg px-3 py-2 text-sm text-stone-700 dark:text-stone-300 outline-none focus:ring-2 focus:ring-indigo-500/50"
               value={courseCreditFilter}
-              onChange={e => setCourseCreditFilter(e.target.value)}
+              onChange={e => {
+                haptics.selection();
+                setCourseCreditFilter(e.target.value);
+              }}
             >
               <option value="All">Any Credits</option>
               <option value="1">1.0 Credits</option>
@@ -187,7 +202,10 @@ export const CourseEnrollmentView: React.FC = () => {
               id="prereqFilter"
               className="w-full bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-700 rounded-lg px-3 py-2 text-sm text-stone-700 dark:text-stone-300 outline-none focus:ring-2 focus:ring-indigo-500/50"
               value={coursePrereqFilter}
-              onChange={e => setCoursePrereqFilter(e.target.value)}
+              onChange={e => {
+                haptics.selection();
+                setCoursePrereqFilter(e.target.value);
+              }}
             >
               <option value="All">Any Status</option>
               <option value="met">All Met / None Required</option>
@@ -199,10 +217,10 @@ export const CourseEnrollmentView: React.FC = () => {
             <div className="w-full relative">
                <span className="text-xs font-bold text-stone-500 uppercase tracking-widest mb-1.5 block">Sort By</span>
                <div className="flex bg-stone-50 dark:bg-stone-950 rounded-lg p-1 border border-stone-200 dark:border-stone-700">
-                  <button onClick={() => setCourseSortBy('code')} className={`flex-1 text-xs py-1.5 rounded-md font-medium transition-colors ${courseSortBy === 'code' ? 'bg-white dark:bg-stone-800 shadow-sm text-stone-900 dark:text-white' : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'}`}>Code</button>
-                  <button onClick={() => setCourseSortBy('title')} className={`flex-1 text-xs py-1.5 rounded-md font-medium transition-colors ${courseSortBy === 'title' ? 'bg-white dark:bg-stone-800 shadow-sm text-stone-900 dark:text-white' : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'}`}>Title</button>
-                  <button onClick={() => setCourseSortBy('credits-desc')} className={`flex-1 text-xs py-1.5 rounded-md font-medium transition-colors ${courseSortBy.startsWith('credits') ? 'bg-white dark:bg-stone-800 shadow-sm text-stone-900 dark:text-white' : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'}`}>
-                    Credits {courseSortBy === 'credits-desc' ? 'â†“' : 'â†‘'}
+                  <button onClick={() => { haptics.selection(); setCourseSortBy('code'); }} className={`flex-1 text-xs py-1.5 rounded-md font-medium transition-colors ${courseSortBy === 'code' ? 'bg-white dark:bg-stone-800 shadow-sm text-stone-900 dark:text-white' : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'}`}>Code</button>
+                  <button onClick={() => { haptics.selection(); setCourseSortBy('title'); }} className={`flex-1 text-xs py-1.5 rounded-md font-medium transition-colors ${courseSortBy === 'title' ? 'bg-white dark:bg-stone-800 shadow-sm text-stone-900 dark:text-white' : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'}`}>Title</button>
+                  <button onClick={() => { haptics.selection(); setCourseSortBy(courseSortBy === 'credits-desc' ? 'credits-asc' : 'credits-desc'); }} className={`flex-1 text-xs py-1.5 rounded-md font-medium transition-colors ${courseSortBy.startsWith('credits') ? 'bg-white dark:bg-stone-800 shadow-sm text-stone-900 dark:text-white' : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'}`}>
+                    Credits {courseSortBy === 'credits-desc' ? '↓' : '↑'}
                   </button>
                </div>
             </div>
@@ -248,7 +266,11 @@ export const CourseEnrollmentView: React.FC = () => {
                  <h4 className="font-extrabold text-[#1c1c1c] dark:text-stone-100 text-lg mb-2 leading-tight pr-4 flex justify-between items-start gap-2">
                    <span>{course.title}</span>
                    <button
-                     onClick={(e) => { e.stopPropagation(); setSelectedSyllabusCourse(course); }}
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       haptics.medium();
+                       setSelectedSyllabusCourse(course);
+                     }}
                      className="text-stone-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 p-1.5 rounded-lg shrink-0 transition-colors"
                      title="View Syllabus"
                    >

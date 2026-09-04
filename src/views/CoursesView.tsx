@@ -14,6 +14,7 @@ import {
   DialogClose,
 } from '../components/ui/dialog';
 import { Button } from '../components/ui/button';
+import { haptics } from '../utils/haptics';
 
 export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLogic> }) {
   const { 
@@ -33,6 +34,7 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
 
   const confirmDrop = () => {
     if (courseToDrop) {
+      haptics.success();
       handleDropCourse(courseToDrop);
       setCourseToDrop(null);
     }
@@ -180,14 +182,20 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
                       </div>
                     </div>
                     <div className="border-t border-stone-100 dark:border-stone-800 p-4 bg-stone-50 dark:bg-stone-800/30 flex gap-2">
-			<button 
-			onClick={() => setSelectedSyllabusCourse(course)}
-			className="px-4 py-2 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 rounded-lg text-sm font-medium hover:bg-stone-50 transition-colors"
-			>
-			<Info className="w-4 h-4" />
-			</button>
                       <button 
-                        onClick={() => setCourseToDrop(course.code)}
+                        onClick={() => {
+                          haptics.medium();
+                          setSelectedSyllabusCourse(course);
+                        }}
+                        className="px-4 py-2 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 rounded-lg text-sm font-medium hover:bg-stone-50 transition-colors"
+                      >
+                        <Info className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => {
+                          haptics.light();
+                          setCourseToDrop(course.code);
+                        }}
                         disabled={isSelectionLocked}
                         className="flex-1 py-2 flex items-center justify-center gap-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
@@ -213,14 +221,20 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
                     </div>
                   </div>
                   <div className="border-t border-stone-100 dark:border-stone-800 p-4 bg-stone-50 dark:bg-stone-800/30 flex gap-2">
-		    <button 
-			onClick={() => setSelectedSyllabusCourse(course)}
-			className="px-4 py-2 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 rounded-lg text-sm font-medium hover:bg-stone-50 transition-colors"
-			>
-			<Info className="w-4 h-4" />
-		    </button>
                     <button 
-                      onClick={() => setCourseToDrop(course.code)}
+                      onClick={() => {
+                        haptics.medium();
+                        setSelectedSyllabusCourse(course);
+                      }}
+                      className="px-4 py-2 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 rounded-lg text-sm font-medium hover:bg-stone-50 transition-colors"
+                    >
+                      <Info className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={() => {
+                        haptics.light();
+                        setCourseToDrop(course.code);
+                      }}
                       disabled={isSelectionLocked}
                       className="flex-1 py-2 flex items-center justify-center gap-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -401,7 +415,10 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
            <Filter className="w-4 h-4 text-stone-400 shrink-0" />
            <select 
              value={courseDeptFilter} 
-             onChange={e => setCourseDeptFilter(e.target.value)}
+             onChange={e => {
+               haptics.selection();
+               setCourseDeptFilter(e.target.value);
+             }}
              className="w-full bg-stone-100 dark:bg-stone-800 border-none text-sm rounded-lg py-2 focus:ring-2 focus:ring-[#8c1515]/20"
            >
              <option value="All">All Depts</option>
@@ -414,7 +431,10 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
         
         <select 
           value={courseCreditFilter} 
-          onChange={e => setCourseCreditFilter(e.target.value)}
+          onChange={e => {
+            haptics.selection();
+            setCourseCreditFilter(e.target.value);
+          }}
           className="w-full bg-stone-100 dark:bg-stone-800 border-none text-sm rounded-lg py-2 focus:ring-2 focus:ring-[#8c1515]/20"
         >
           <option value="All">All Credits</option>
@@ -424,7 +444,10 @@ export function CoursesView({ portal }: { portal: ReturnType<typeof usePortalLog
         
         <select 
           value={coursePrereqFilter} 
-          onChange={e => setCoursePrereqFilter(e.target.value)}
+          onChange={e => {
+            haptics.selection();
+            setCoursePrereqFilter(e.target.value);
+          }}
           className="w-full bg-stone-100 dark:bg-stone-800 border-none text-sm rounded-lg py-2 focus:ring-2 focus:ring-[#8c1515]/20"
         >
           <option value="All">All Status</option>

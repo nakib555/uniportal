@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, Badge } from '../components/ui';
 import { usePortalLogic } from '../hooks/usePortalLogic';
 import { FEES_LIST } from '../data';
-import { CheckCircle2, Wallet, Printer, ShieldAlert, CreditCard, RefreshCw } from 'lucide-react';
+import { CheckCircle2, Wallet, Printer, ShieldAlert, CreditCard, RefreshCw, Receipt, Coins, FileText, CheckSquare, Hash } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export function BankSlipsView({ portal }: { portal: ReturnType<typeof usePortalLogic> }) {
@@ -52,15 +52,38 @@ export function BankSlipsView({ portal }: { portal: ReturnType<typeof usePortalL
         {/* Left Side: Fee Checklist */}
         <div className="lg:col-span-2 space-y-6">
           <Card className="p-6">
-            <h3 className="text-lg font-black text-stone-900 dark:text-white uppercase tracking-wider mb-4">Select Fees</h3>
+            <h3 className="text-lg font-black text-stone-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Receipt className="w-5 h-5 text-[#8c1515]" />
+              <span>Select Fees</span>
+            </h3>
             <div className="overflow-x-auto rounded-xl border border-stone-200 dark:border-stone-800 max-h-[500px] overflow-y-auto no-scrollbar" data-lenis-prevent>
               <table className="w-full border-collapse text-left text-sm">
                 <thead>
                   <tr className="bg-stone-50 dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 font-bold text-stone-700 dark:text-stone-300">
-                    <th className="px-4 py-3 text-center w-12">Select</th>
-                    <th className="px-4 py-3 w-28">Code</th>
-                    <th className="px-4 py-3">Description</th>
-                    <th className="px-4 py-3 text-right w-32">Amount (TK)</th>
+                    <th className="px-4 py-3 text-center w-12">
+                      <span className="flex items-center justify-center gap-1">
+                        <CheckSquare className="w-3.5 h-3.5" />
+                        <span className="sr-only">Select</span>
+                      </span>
+                    </th>
+                    <th className="px-4 py-3 w-28">
+                      <span className="flex items-center gap-1">
+                        <Hash className="w-3.5 h-3.5" />
+                        <span>Code</span>
+                      </span>
+                    </th>
+                    <th className="px-4 py-3">
+                      <span className="flex items-center gap-1">
+                        <FileText className="w-3.5 h-3.5" />
+                        <span>Description</span>
+                      </span>
+                    </th>
+                    <th className="px-4 py-3 text-right w-32">
+                      <span className="inline-flex items-center gap-1 justify-end w-full">
+                        <Coins className="w-3.5 h-3.5" />
+                        <span>Amount (TK)</span>
+                      </span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100 dark:divide-stone-800">

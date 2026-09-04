@@ -4,7 +4,7 @@ import { Badge } from '../components/ui/badge';
 import { useAppStore } from '../store';
 import { SCHEDULE_DATA } from '../data';
 import { formatTime } from '../lib/utils';
-import { Calendar, Users, MapPin, Download } from 'lucide-react';
+import { Calendar, Users, MapPin, Download, CalendarDays, BookOpen } from 'lucide-react';
 
 export const ClassScheduleView: React.FC = () => {
   const { is24HourFormat } = useAppStore();
@@ -40,9 +40,12 @@ export const ClassScheduleView: React.FC = () => {
   return (
     <div className="space-y-6 max-w-4xl max-auto">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">Class Schedule</h2>
-          <p className="text-stone-500 dark:text-stone-400 mt-1">Your weekly academic routine.</p>
+        <div className="flex items-start gap-3">
+          <Calendar className="w-8 h-8 text-[#8c1515] dark:text-[#ef4444] mt-1 shrink-0" />
+          <div>
+            <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">Class Schedule</h2>
+            <p className="text-stone-500 dark:text-stone-400 mt-1">Your weekly academic routine.</p>
+          </div>
         </div>
         <button onClick={() => window.print()} className="flex w-fit items-center gap-2 px-4 py-2 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 rounded-xl text-sm font-medium transition-colors">
           <Download className="w-4 h-4" /> Print PDF
@@ -51,7 +54,10 @@ export const ClassScheduleView: React.FC = () => {
 
       <Card className="p-4 bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 shadow-sm flex flex-col sm:flex-row gap-4 mb-4">
          <div className="flex-1">
-            <label className="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-1.5 ml-1">Day</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-1.5 ml-1 flex items-center gap-1.5">
+              <CalendarDays className="w-3.5 h-3.5 text-stone-400" />
+              <span>Day</span>
+            </label>
             <select 
               value={scheduleDayFilter} 
               onChange={(e) => setScheduleDayFilter(e.target.value)}
@@ -64,7 +70,10 @@ export const ClassScheduleView: React.FC = () => {
             </select>
          </div>
          <div className="flex-1">
-            <label className="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-1.5 ml-1">Course</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-1.5 ml-1 flex items-center gap-1.5">
+              <BookOpen className="w-3.5 h-3.5 text-stone-400" />
+              <span>Course</span>
+            </label>
             <select 
               value={scheduleCourseFilter} 
               onChange={(e) => setScheduleCourseFilter(e.target.value)}

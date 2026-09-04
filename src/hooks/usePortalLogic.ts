@@ -5,12 +5,13 @@ import {
 } from '../data';
 import { PuSyncService } from '../services/puSyncService';
 import { tempAuthService } from '../services/tempAuthService';
+import { haptics } from '../utils/haptics';
 
 export type NavItem = {
   id: string;
   label: string;
   icon: any;
-  subItems?: { id: string; label: string }[];
+  subItems?: { id: string; label: string; icon?: any }[];
 };
 
 export const usePortalLogic = () => {
@@ -248,11 +249,13 @@ export const usePortalLogic = () => {
   }, [studentData.transactions]);
 
   const handleMenuToggle = (id: string) => {
+    haptics.selection();
     store.toggleMenu(id);
     if (store.isSidebarCollapsed) store.setIsSidebarCollapsed(false);
   };
 
   const handleNavClick = (item: NavItem) => {
+    haptics.light();
     if (item.subItems) {
       handleMenuToggle(item.id);
       if (!store.expandedMenus[item.id] && !item.subItems.find(s => s.id === store.activeTab)) {
@@ -265,6 +268,7 @@ export const usePortalLogic = () => {
   };
 
   const handleSubItemClick = (subId: string) => {
+    haptics.light();
     store.setActiveTab(subId);
     if (window.innerWidth < 768) store.setIsMobileMenuOpen(false);
   };
@@ -278,18 +282,21 @@ export const usePortalLogic = () => {
 
   const handleRegister = (course: Course) => {
     if (isSelectionLocked) {
+      haptics.warning();
       setRegisterError(`Course selection is locked for this semester.`);
       setTimeout(() => setRegisterError(null), 3000);
       return;
     }
 
     if (!hasCompletedPrerequisites(course)) {
+      haptics.warning();
       setRegisterError(`Prerequisite not met: ${course.prerequisites?.join(', ')}`);
       setTimeout(() => setRegisterError(null), 3000);
       return;
     }
 
     if (registeredCourses.some(c => c.code === course.code)) {
+      haptics.warning();
       setRegisterError(`Already registered for ${course.code}.`);
       setTimeout(() => setRegisterError(null), 3000);
       return;
@@ -307,11 +314,13 @@ export const usePortalLogic = () => {
         const currentCredits = registeredCourses.reduce((acc, c) => acc + c.credits, 0);
         
         if (currentCredits + course.credits + missingCoreqCredits > 21) {
+          haptics.warning();
           setRegisterError(`Cannot add ${course.code} because adding its missing co-requisites (${missingCoreqs.join(', ')}) would exceed the 21 credit limit.`);
           setTimeout(() => setRegisterError(null), 3000);
           return;
         }
 
+        haptics.medium();
         setPendingCoreqCourse({ main: course, coreqs: missingCoreqCourses });
         setIsCoreqModalOpen(true);
         return;
@@ -321,22 +330,26 @@ export const usePortalLogic = () => {
     // Check Max 21
     const currentCredits = registeredCourses.reduce((acc, c) => acc + c.credits, 0);
     if (currentCredits + course.credits > 21) {
+      haptics.warning();
       setRegisterError(`Cannot exceed maximum of 21 credits. Total will be ${currentCredits + course.credits}.`);
       setTimeout(() => setRegisterError(null), 3000);
       return;
     }
 
+    haptics.success();
     setRegisteredCourses([...registeredCourses, course]);
   };
 
   const handleRegisterBundle = (main: Course, labs: Course[]) => {
     if (isSelectionLocked) {
+      haptics.warning();
       setRegisterError(`Course selection is locked for this semester.`);
       setTimeout(() => setRegisterError(null), 3000);
       return;
     }
 
     if (!hasCompletedPrerequisites(main)) {
+      haptics.warning();
       setRegisterError(`Prerequisite not met: ${main.prerequisites?.join(', ')}`);
       setTimeout(() => setRegisterError(null), 3000);
       return;
@@ -346,6 +359,7 @@ export const usePortalLogic = () => {
     const coursesToAdd = coursesToConsider.filter(c => !registeredCourses.some(rc => rc.code === c.code));
 
     if (coursesToAdd.length === 0) {
+      haptics.warning();
       setRegisterError(`Already registered for all courses in bundle.`);
       setTimeout(() => setRegisterError(null), 3000);
       return;
@@ -354,16 +368,19 @@ export const usePortalLogic = () => {
     const totalCreditsToAdd = coursesToAdd.reduce((acc, l) => acc + l.credits, 0);
     const currentCredits = registeredCourses.reduce((acc, c) => acc + c.credits, 0);
     if (currentCredits + totalCreditsToAdd > 21) {
+      haptics.warning();
       setRegisterError(`Cannot exceed maximum of 21 credits. Total will be ${currentCredits + totalCreditsToAdd}.`);
       setTimeout(() => setRegisterError(null), 3000);
       return;
     }
 
+    haptics.success();
     setRegisteredCourses([...registeredCourses, ...coursesToAdd]);
   };
 
   const confirmCoreqsRegistration = () => {
     if (!pendingCoreqCourse) return;
+    haptics.success();
     setRegisteredCourses([...registeredCourses, pendingCoreqCourse.main, ...pendingCoreqCourse.coreqs]);
     setIsCoreqModalOpen(false);
     setPendingCoreqCourse(null);
@@ -371,6 +388,7 @@ export const usePortalLogic = () => {
   
   const handleDropCourse = (courseCode: string) => {
     if (isSelectionLocked) {
+      haptics.warning();
       setRegisterError(`Course selection is locked for this semester.`);
       setTimeout(() => setRegisterError(null), 3000);
       return;
@@ -378,11 +396,13 @@ export const usePortalLogic = () => {
     // Check if dropping this course breaks corequisite rules for other registered courses
     const brokenCoreqCourse = registeredCourses.find(c => c.corequisites?.includes(courseCode));
     if (brokenCoreqCourse) {
+      haptics.warning();
       setRegisterError(`Cannot drop ${courseCode} because it is a co-requisite for ${brokenCoreqCourse.code}.`);
       setTimeout(() => setRegisterError(null), 4000);
       return;
     }
     
+    haptics.success();
     setRegisteredCourses(registeredCourses.filter(c => c.code !== courseCode));
   };
 

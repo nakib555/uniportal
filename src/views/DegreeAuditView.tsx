@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, Badge } from '../components/ui';
 import { COMPLETED_COURSES } from '../data';
 import { usePortalLogic } from '../hooks/usePortalLogic';
-import { ChevronRight, GraduationCap, ArrowRight, CheckCircle2, Lock, Download } from 'lucide-react';
+import { ChevronRight, GraduationCap, ArrowRight, CheckCircle2, Lock, Download, Compass, BookOpen } from 'lucide-react';
 import { PrintableDegreeAudit } from '../components/print/PrintableDegreeAudit';
 
 export function DegreeAuditView({ portal }: { portal?: ReturnType<typeof usePortalLogic> }) {
@@ -125,11 +125,17 @@ export function DegreeAuditView({ portal }: { portal?: ReturnType<typeof usePort
            const percent = r.req > 0 ? Math.min(Math.round((r.comp / r.req) * 100), 100) : 0;
            const colorClass = index === 0 ? 'border-l-emerald-500' : index === 1 ? 'border-l-amber-500' : index === 2 ? 'border-l-indigo-500' : 'border-l-blue-500';
            const bgClass = index === 0 ? 'bg-emerald-500' : index === 1 ? 'bg-amber-500' : index === 2 ? 'bg-indigo-500' : 'bg-blue-500';
+           const iconColor = index === 0 ? 'text-emerald-500' : index === 1 ? 'text-amber-500' : index === 2 ? 'text-indigo-500' : 'text-blue-500';
            
+           const AreaIcon = index === 0 ? GraduationCap : index === 1 ? Compass : index === 2 ? BookOpen : CheckCircle2;
+
            return (
              <Card key={r.area} className={`p-4 border-l-4 ${colorClass} border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-950 cursor-pointer hover:shadow-md transition-all hover:-translate-y-0.5 group flex flex-col justify-between`}>
                <div>
-                 <h4 className="font-bold mb-2 group-hover:text-stone-600 dark:group-hover:text-stone-400 transition-colors text-stone-900 dark:text-white">{r.area}</h4>
+                 <div className="flex items-start justify-between mb-2">
+                   <h4 className="font-bold group-hover:text-stone-600 dark:group-hover:text-stone-400 transition-colors text-stone-900 dark:text-white pr-2">{r.area}</h4>
+                   <AreaIcon className={`w-5 h-5 shrink-0 ${iconColor}`} />
+                 </div>
                  <div className="flex justify-between items-center mb-2">
                    <p className="text-sm text-stone-600 dark:text-stone-400">{r.comp} / {r.req} credits</p>
                    <span className="text-xs font-bold text-stone-500">{percent}%</span>

@@ -16,6 +16,7 @@ import { StatementView } from '../../views/StatementView';
 import { AdmitCardView } from '../../views/AdmitCardView';
 import { BankSlipsView } from '../../views/BankSlipsView';
 import { AcademicCalendarView } from '../../views/AcademicCalendarView';
+import { ClassDistributionView } from '../../views/ClassDistributionView';
 import { AdminDashboardView } from '../../views/admin/AdminDashboardView';
 import { AdminStudentRecordsView } from '../../views/admin/AdminStudentRecordsView';
 import { AdminCourseManagementView } from '../../views/admin/AdminCourseManagementView';
@@ -47,6 +48,7 @@ export function DesktopLayout(portal: ReturnType<typeof usePortalLogic>) {
       case 'degree-audit': return <DegreeAuditView portal={portal} />;
       case 'transcript': return <GradesView portal={portal} />;
       case 'academic-calendar': return <AcademicCalendarView />;
+      case 'class-distribution': return <ClassDistributionView portal={portal} />;
       case 'exam-routine': return <ExamsView portal={portal} />;
       case 'exam-admit-card': return <AdmitCardView portal={portal} />;
       default: return <div className="p-8 text-stone-500">View under construction.</div>;

@@ -88,6 +88,7 @@ export const VALID_TABS = new Set([
   'degree-audit',
   'transcript',
   'academic-calendar',
+  'class-distribution',
   'admin-dashboard',
   'faculty-schedule',
   'course-management',
@@ -251,7 +252,7 @@ export const useAppStore = create<AppState>((set) => ({
     set({ activeTab: tab });
   },
   
-  expandedMenus: { courses: true },
+  expandedMenus: { courses: true, academics: true },
   toggleMenu: (id) => set((state) => ({ 
     expandedMenus: { [id]: !state.expandedMenus[id] } 
   })),
