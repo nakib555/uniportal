@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { Calendar, AlertCircle, CreditCard, BookOpen, GraduationCap, Info, Search, Map, CalendarDays, Clock } from 'lucide-react';
-import { Card } from '../components/ui';
+import { Card, Badge } from '../components/ui';
 
 interface CalendarEvent {
   activity: string;
@@ -178,47 +178,80 @@ export function AcademicCalendarView() {
                 {month}
                 <div className="h-px bg-stone-200 dark:bg-stone-800 flex-1 mt-1"></div>
               </h3>
-              <Card className="overflow-hidden border border-stone-200 dark:border-stone-800 divide-y divide-stone-100 dark:divide-stone-800/60 shadow-sm bg-white dark:bg-stone-900">
-                {(events as CalendarEvent[]).map((event, i) => (
-                  <div key={i} className="flex flex-col md:flex-row gap-3 md:gap-6 p-4 md:p-5 hover:bg-stone-50 dark:hover:bg-stone-900/40 transition-colors group">
-                    
-                    {/* Left: Date Block */}
-                    <div className="md:w-44 shrink-0 flex flex-row md:flex-col items-center md:items-start gap-3 md:gap-0">
-                       <div className={`font-black text-lg md:text-xl leading-tight ${event.highlight ? 'text-stone-900 dark:text-white' : 'text-stone-700 dark:text-stone-300'}`}>
-                         {event.date.split(' 202')[0]} {/* Strip year for cleaner look if desired, or keep it. Let's keep the raw string for exactness but style it */}
-                       </div>
-                       <div className="flex items-center gap-1.5 text-sm font-medium text-stone-500 md:mt-1">
-                         <Clock className="w-3.5 h-3.5 hidden md:block opacity-60" />
-                         <span>{event.day}</span>
-                         {event.duration && (
-                           <>
-                             <span className="w-1 h-1 rounded-full bg-stone-300 dark:bg-stone-700 md:hidden"></span>
-                             <span className="md:hidden">{event.duration}</span>
-                           </>
-                         )}
-                       </div>
-                    </div>
-
-                    {/* Right: Event Details */}
-                    <div className="flex-1 flex flex-col gap-2 justify-center">
-                       <div className="flex items-center gap-2 flex-wrap">
-                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border ${TYPE_CONFIG[event.type].bg} ${TYPE_CONFIG[event.type].color} ${TYPE_CONFIG[event.type].border}`}>
-                           {React.createElement(TYPE_CONFIG[event.type].icon, { className: 'w-3.5 h-3.5' })}
+              <Card className="overflow-hidden border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-sm">
+                {/* Mobile View */}
+                <div className="block md:hidden divide-y divide-stone-100 dark:divide-stone-800/60">
+                  {(events as CalendarEvent[]).map((event, i) => (
+                    <div key={i} className="flex flex-col gap-3 p-4 hover:bg-stone-50 dark:hover:bg-stone-900/40 transition-colors">
+                      <div className="flex items-center justify-between gap-3">
+                         <div className={`font-black text-lg leading-tight ${event.highlight ? 'text-stone-900 dark:text-white' : 'text-stone-700 dark:text-stone-300'}`}>
+                           {event.date}
+                         </div>
+                         <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ${TYPE_CONFIG[event.type].bg} ${TYPE_CONFIG[event.type].color} border-none`}>
+                           {React.createElement(TYPE_CONFIG[event.type].icon, { className: 'w-3 h-3' })}
                            {TYPE_CONFIG[event.type].label}
                          </span>
-                         {event.duration && (
-                           <span className="hidden md:inline-flex items-center text-xs font-medium text-stone-500 bg-stone-100 dark:bg-stone-800 px-2 py-1 rounded-md">
-                             Duration: {event.duration}
-                           </span>
-                         )}
-                       </div>
-                       <p className={`text-sm md:text-base ${event.highlight ? 'font-bold text-stone-900 dark:text-white' : 'font-medium text-stone-700 dark:text-stone-300 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors'}`}>
-                         {event.activity}
-                       </p>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                         <p className={`text-sm ${event.highlight ? 'font-bold text-stone-900 dark:text-white' : 'font-medium text-stone-700 dark:text-stone-300'}`}>
+                           {event.activity}
+                         </p>
+                         <div className="flex items-center gap-3 text-[11px] font-bold text-stone-500 uppercase tracking-widest mt-1">
+                           <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 opacity-60" /> {event.day}</span>
+                           {event.duration && (
+                             <>
+                               <span className="w-1 h-1 rounded-full bg-stone-300 dark:bg-stone-700"></span>
+                               <span>{event.duration}</span>
+                             </>
+                           )}
+                         </div>
+                      </div>
                     </div>
+                  ))}
+                </div>
 
-                  </div>
-                ))}
+                {/* Desktop View: Clean Rows */}
+                <div className="hidden md:flex flex-col divide-y divide-stone-100 dark:divide-stone-800/60">
+                  {(events as CalendarEvent[]).map((event, i) => (
+                    <div key={i} className="flex justify-between items-center py-3.5 px-6 hover:bg-stone-50 dark:hover:bg-stone-900/30 transition-colors group">
+                      
+                      <div className="flex items-center w-[160px] shrink-0 gap-4">
+                        <div className="flex flex-col gap-0.5">
+                          <span className={`font-black text-sm ${event.highlight ? 'text-stone-900 dark:text-white' : 'text-stone-700 dark:text-stone-300 group-hover:text-stone-900 dark:group-hover:text-stone-100'}`}>
+                            {event.date.replace(/ 202\d/, '')}
+                          </span>
+                          <span className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest">{event.day}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 px-4 border-l border-stone-100 dark:border-stone-800/60 py-1">
+                        <span className={`text-sm ${event.highlight ? 'font-bold text-stone-900 dark:text-white' : 'font-medium text-stone-700 dark:text-stone-300 group-hover:text-stone-900 dark:group-hover:text-stone-200'} transition-colors`}>
+                          {event.activity}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-6 text-right justify-end shrink-0 pl-4">
+                        {event.duration && (
+                          <div className="flex flex-col items-end">
+                             <span className="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Duration</span>
+                             <span className="text-[11px] font-bold text-stone-600 dark:text-stone-400">
+                               {event.duration}
+                             </span>
+                          </div>
+                        )}
+                        <div className="w-[120px] flex justify-end">
+                          <Badge variant="outline" className={`font-sans text-[10px] uppercase font-bold rounded border-none px-2 py-1 ${TYPE_CONFIG[event.type].bg} ${TYPE_CONFIG[event.type].color}`}>
+                            <div className="flex items-center gap-1.5">
+                               {React.createElement(TYPE_CONFIG[event.type].icon, { className: 'w-3 h-3 shrink-0' })}
+                               <span className="whitespace-nowrap">{TYPE_CONFIG[event.type].label}</span>
+                            </div>
+                          </Badge>
+                        </div>
+                      </div>
+
+                    </div>
+                  ))}
+                </div>
               </Card>
             </motion.div>
           ))
