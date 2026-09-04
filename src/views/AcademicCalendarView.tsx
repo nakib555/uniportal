@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { motion } from 'motion/react';
-import { Calendar, AlertCircle, CreditCard, BookOpen, GraduationCap, Info, Search, Map, CalendarDays, Clock, ChevronLeft, ChevronRight, LayoutList, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Calendar, AlertCircle, CreditCard, BookOpen, GraduationCap, Info, Search, Map, CalendarDays, Clock, ChevronLeft, ChevronRight, LayoutList, CheckCircle2, ChevronDown, Sparkles, Layers, ListFilter } from 'lucide-react';
 import { Card, Badge } from '../components/ui';
+import { useAppStore } from '../store';
+import { getStudentData } from '../data';
 
 interface CalendarEvent {
   activity: string;
@@ -339,6 +341,10 @@ export function AcademicCalendarView() {
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [calendarDate, setCalendarDate] = useState<Date>(new Date(2026, 8, 1)); // September 2026
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
+  
+  // Custom interactive states for Trimester Class Distribution summary
+  const [statsMode, setStatsMode] = useState<'trimester' | 'personal'>('trimester');
+  const [selectedCard, setSelectedCard] = useState<string | null>(null);
 
   const handlePrevMonth = () => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1));
   const handleNextMonth = () => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1));
@@ -383,6 +389,64 @@ export function AcademicCalendarView() {
     }, {} as Record<string, CalendarEvent[]>);
   }, [filterType, searchQuery]);
 
+  // Fetch active student's schedule from store to calculate personal schedule load
+  const { currentStudentId } = useAppStore();
+  const studentData = useMemo(() => getStudentData(currentStudentId), [currentStudentId]);
+  const personalSchedule = studentData?.schedule || [];
+
+  const personalCounts = useMemo(() => {
+    const counts = { ST: 0, MW: 0, A: 0, R: 0, F: 0 };
+    personalSchedule.forEach(item => {
+      const d = item.day.toLowerCase();
+      if (d === 'sunday' || d === 'tuesday') {
+        counts.ST += 1;
+      } else if (d === 'monday' || d === 'wednesday') {
+        counts.MW += 1;
+      } else if (d === 'saturday') {
+        counts.A += 1;
+      } else if (d === 'thursday') {
+        counts.R += 1;
+      } else if (d === 'friday') {
+        counts.F += 1;
+      }
+    });
+    return counts;
+  }, [personalSchedule]);
+
+  // Standard Trimester session slots definition for interactive detailing
+  const daySlotDetails: Record<string, { title: string; time: string; type: string }[]> = {
+    ST: [
+      { title: "Slot 1 (ST)", time: "08:30 AM - 10:00 AM", type: "90 min" },
+      { title: "Slot 2 (ST)", time: "10:10 AM - 11:40 AM", type: "90 min" },
+      { title: "Slot 3 (ST)", time: "11:50 AM - 01:20 PM", type: "90 min" },
+      { title: "Slot 4 (ST)", time: "01:30 PM - 03:00 PM", type: "90 min" },
+      { title: "Slot 5 (ST)", time: "03:10 PM - 04:40 PM", type: "90 min" },
+      { title: "Slot 6 (ST)", time: "04:50 PM - 06:20 PM", type: "90 min" },
+    ],
+    MW: [
+      { title: "Slot 1 (MW)", time: "08:30 AM - 10:00 AM", type: "90 min" },
+      { title: "Slot 2 (MW)", time: "10:10 AM - 11:40 AM", type: "90 min" },
+      { title: "Slot 3 (MW)", time: "11:50 AM - 01:20 PM", type: "90 min" },
+      { title: "Slot 4 (MW)", time: "01:30 PM - 03:00 PM", type: "90 min" },
+      { title: "Slot 5 (MW)", time: "03:10 PM - 04:40 PM", type: "90 min" },
+      { title: "Slot 6 (MW)", time: "04:50 PM - 06:20 PM", type: "90 min" },
+    ],
+    A: [
+      { title: "Slot 1 (A) - Morning", time: "09:00 AM - 12:00 PM", type: "180 min" },
+      { title: "Slot 2 (A) - Midday", time: "12:00 PM - 03:00 PM", type: "180 min" },
+      { title: "Slot 3 (A) - Afternoon", time: "03:00 PM - 06:00 PM", type: "180 min" },
+      { title: "Slot 4 (A) - Evening", time: "06:00 PM - 09:00 PM", type: "180 min" },
+    ],
+    R: [
+      { title: "Special Makeup & Overflow", time: "Arranged by departments as required", type: "Flexible" },
+    ],
+    F: [
+      { title: "Slot 1 (F) - Morning", time: "09:00 AM - 12:00 PM", type: "180 min" },
+      { title: "Slot 2 (F) - Afternoon", time: "03:00 PM - 06:00 PM", type: "180 min" },
+      { title: "Slot 3 (F) - Evening", time: "06:00 PM - 09:00 PM", type: "180 min" },
+    ],
+  };
+
   return (
     <div className="space-y-8 pb-12">
       {/* Header Section */}
@@ -398,42 +462,260 @@ export function AcademicCalendarView() {
         </div>
       </div>
 
-      {/* Official Classes & Routine Summary Banner */}
-      <div className="bg-stone-50 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800/80 rounded-2xl p-4 sm:p-5">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-stone-900 dark:text-stone-100 font-bold text-sm">
-              <Clock className="w-4 h-4 text-[#8c1515] dark:text-rose-400" />
+      {/* Official Classes & Routine Summary Banner - Beautifully Re-designed with Interactive UX */}
+      <div className="bg-stone-50/60 dark:bg-stone-900/40 border border-stone-200/80 dark:border-stone-800/80 rounded-2xl p-5 md:p-6 shadow-sm transition-all">
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 mb-6">
+          <div className="space-y-2 max-w-xl">
+            <div className="flex items-center gap-2.5 text-[#8c1515] dark:text-rose-400 font-extrabold text-base tracking-tight">
+              <Clock className="w-5 h-5 text-[#8c1515] dark:text-rose-400 animate-pulse" />
               <span>Trimester Class Distribution & Sessions Summary</span>
             </div>
-            <p className="text-xs text-stone-500 dark:text-stone-400">
-              Per Class Duration: <strong>90 min</strong> (twice a week) & <strong>180 min</strong> (once a week for weekend). Additional/Makeup classes arranged by departments as required.
+            <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 leading-relaxed">
+              Per Class Duration: <strong className="font-semibold text-stone-800 dark:text-stone-200">90 min</strong> (twice a week) & <strong className="font-semibold text-stone-800 dark:text-stone-200">180 min</strong> (once a week for weekend). Additional/Makeup classes arranged by departments as required.
             </p>
           </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 shrink-0">
-            <div className="px-3 py-2 rounded-xl bg-white dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700/80 text-center">
-              <span className="text-[10px] font-bold text-stone-400 block uppercase tracking-wider">Sun/Tue (ST)</span>
-              <strong className="text-sm font-black text-stone-900 dark:text-white">26 Classes</strong>
-            </div>
-            <div className="px-3 py-2 rounded-xl bg-white dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700/80 text-center">
-              <span className="text-[10px] font-bold text-stone-400 block uppercase tracking-wider">Mon/Wed (MW)</span>
-              <strong className="text-sm font-black text-stone-900 dark:text-white">27 Classes</strong>
-            </div>
-            <div className="px-3 py-2 rounded-xl bg-white dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700/80 text-center">
-              <span className="text-[10px] font-bold text-stone-400 block uppercase tracking-wider">Saturday (A)</span>
-              <strong className="text-sm font-black text-stone-900 dark:text-white">12 Classes</strong>
-            </div>
-            <div className="px-3 py-2 rounded-xl bg-white dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700/80 text-center">
-              <span className="text-[10px] font-bold text-stone-400 block uppercase tracking-wider">Thursday (R)</span>
-              <strong className="text-sm font-black text-stone-900 dark:text-white">13 Classes</strong>
-            </div>
-            <div className="px-3 py-2 rounded-xl bg-white dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700/80 text-center col-span-3 sm:col-span-1">
-              <span className="text-[10px] font-bold text-stone-400 block uppercase tracking-wider">Friday (F)</span>
-              <strong className="text-sm font-black text-stone-900 dark:text-white">12 Classes</strong>
-            </div>
+          {/* Interactive Mode Toggle */}
+          <div className="flex items-center self-start sm:self-center shrink-0 bg-stone-100/80 dark:bg-stone-950 p-1 rounded-xl border border-stone-200/50 dark:border-stone-800/60">
+            <button
+              onClick={() => {
+                setStatsMode('trimester');
+                setSelectedCard(null);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                statsMode === 'trimester'
+                  ? 'bg-white dark:bg-stone-850 text-[#8c1515] dark:text-rose-400 shadow-sm font-black'
+                  : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>Trimester Plan</span>
+            </button>
+            <button
+              onClick={() => {
+                setStatsMode('personal');
+                setSelectedCard(null);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                statsMode === 'personal'
+                  ? 'bg-white dark:bg-stone-850 text-[#8c1515] dark:text-rose-400 shadow-sm font-black'
+                  : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>My Class Load</span>
+            </button>
           </div>
         </div>
+
+        {/* Responsive Grid Layout (Matches Image 1 on Mobile, Image 2 on Desktop) */}
+        <div className="grid grid-cols-3 md:grid-cols-5 gap-3.5">
+          {/* Card 1: SUN/TUE (ST) */}
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setSelectedCard(selectedCard === 'ST' ? null : 'ST')}
+            className={`cursor-pointer flex flex-col justify-between items-center text-center p-4 bg-white dark:bg-stone-900 rounded-xl border shadow-[0_2px_8px_rgba(0,0,0,0.01)] transition-all ${
+              selectedCard === 'ST'
+                ? 'border-[#8c1515] dark:border-rose-500 ring-1 ring-[#8c1515]/20 dark:ring-rose-500/20'
+                : 'border-stone-200/80 dark:border-stone-800 hover:border-stone-400 dark:hover:border-stone-700'
+            }`}
+          >
+            <div>
+              <p className="text-[10px] sm:text-xs font-bold tracking-wider text-stone-400 dark:text-stone-500 uppercase">SUN/TUE</p>
+              <p className="text-[9px] sm:text-[10px] font-semibold text-stone-400 dark:text-stone-500 mt-0.5">(ST)</p>
+            </div>
+            <div className="my-3">
+              <span className="text-2xl sm:text-3xl font-black text-stone-800 dark:text-white">
+                {statsMode === 'trimester' ? 26 : personalCounts.ST}
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm font-bold text-stone-700 dark:text-stone-300">Classes</p>
+          </motion.div>
+
+          {/* Card 2: MON/WED (MW) */}
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setSelectedCard(selectedCard === 'MW' ? null : 'MW')}
+            className={`cursor-pointer flex flex-col justify-between items-center text-center p-4 bg-white dark:bg-stone-900 rounded-xl border shadow-[0_2px_8px_rgba(0,0,0,0.01)] transition-all ${
+              selectedCard === 'MW'
+                ? 'border-[#8c1515] dark:border-rose-500 ring-1 ring-[#8c1515]/20 dark:ring-rose-500/20'
+                : 'border-stone-200/80 dark:border-stone-800 hover:border-stone-400 dark:hover:border-stone-700'
+            }`}
+          >
+            <div>
+              <p className="text-[10px] sm:text-xs font-bold tracking-wider text-stone-400 dark:text-stone-500 uppercase">MON/WED</p>
+              <p className="text-[9px] sm:text-[10px] font-semibold text-stone-400 dark:text-stone-500 mt-0.5">(MW)</p>
+            </div>
+            <div className="my-3">
+              <span className="text-2xl sm:text-3xl font-black text-stone-800 dark:text-white">
+                {statsMode === 'trimester' ? 27 : personalCounts.MW}
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm font-bold text-stone-700 dark:text-stone-300">Classes</p>
+          </motion.div>
+
+          {/* Card 3: SATURDAY (A) */}
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setSelectedCard(selectedCard === 'A' ? null : 'A')}
+            className={`cursor-pointer flex flex-col justify-between items-center text-center p-4 bg-white dark:bg-stone-900 rounded-xl border shadow-[0_2px_8px_rgba(0,0,0,0.01)] transition-all ${
+              selectedCard === 'A'
+                ? 'border-[#8c1515] dark:border-rose-500 ring-1 ring-[#8c1515]/20 dark:ring-rose-500/20'
+                : 'border-stone-200/80 dark:border-stone-800 hover:border-stone-400 dark:hover:border-stone-700'
+            }`}
+          >
+            <div>
+              <p className="text-[10px] sm:text-xs font-bold tracking-wider text-stone-400 dark:text-stone-500 uppercase">SATURDAY</p>
+              <p className="text-[9px] sm:text-[10px] font-semibold text-stone-400 dark:text-stone-500 mt-0.5">(A)</p>
+            </div>
+            <div className="my-3">
+              <span className="text-2xl sm:text-3xl font-black text-stone-800 dark:text-white">
+                {statsMode === 'trimester' ? 12 : personalCounts.A}
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm font-bold text-stone-700 dark:text-stone-300">Classes</p>
+          </motion.div>
+
+          {/* Card 4: THURSDAY (R) */}
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setSelectedCard(selectedCard === 'R' ? null : 'R')}
+            className={`cursor-pointer col-span-1 flex flex-col justify-between items-center text-center p-4 bg-white dark:bg-stone-900 rounded-xl border shadow-[0_2px_8px_rgba(0,0,0,0.01)] transition-all ${
+              selectedCard === 'R'
+                ? 'border-[#8c1515] dark:border-rose-500 ring-1 ring-[#8c1515]/20 dark:ring-rose-500/20'
+                : 'border-stone-200/80 dark:border-stone-800 hover:border-stone-400 dark:hover:border-stone-700'
+            }`}
+          >
+            <div>
+              <p className="text-[10px] sm:text-xs font-bold tracking-wider text-stone-400 dark:text-stone-500 uppercase">THURSDAY</p>
+              <p className="text-[9px] sm:text-[10px] font-semibold text-stone-400 dark:text-stone-500 mt-0.5">(R)</p>
+            </div>
+            <div className="my-3">
+              <span className="text-2xl sm:text-3xl font-black text-stone-800 dark:text-white">
+                {statsMode === 'trimester' ? 13 : personalCounts.R}
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm font-bold text-stone-700 dark:text-stone-300">Classes</p>
+          </motion.div>
+
+          {/* Card 5: FRIDAY (F) - Spans all 3 columns on mobile, 1 column on desktop */}
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setSelectedCard(selectedCard === 'F' ? null : 'F')}
+            className={`cursor-pointer col-span-3 md:col-span-1 flex flex-row md:flex-col justify-between items-center text-center p-4 bg-white dark:bg-stone-900 rounded-xl border shadow-[0_2px_8px_rgba(0,0,0,0.01)] transition-all ${
+              selectedCard === 'F'
+                ? 'border-[#8c1515] dark:border-rose-500 ring-1 ring-[#8c1515]/20 dark:ring-rose-500/20'
+                : 'border-stone-200/80 dark:border-stone-800 hover:border-stone-400 dark:hover:border-stone-700'
+            }`}
+          >
+            <div className="text-left md:text-center">
+              <p className="text-[10px] sm:text-xs font-bold tracking-wider text-stone-400 dark:text-stone-500 uppercase">FRIDAY</p>
+              <p className="text-[9px] sm:text-[10px] font-semibold text-stone-400 dark:text-stone-500 mt-0.5">(F)</p>
+            </div>
+            <div className="my-0 md:my-3">
+              <span className="text-xl sm:text-2xl md:text-3xl font-black text-stone-800 dark:text-white">
+                {statsMode === 'trimester' ? 12 : personalCounts.F}
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm font-bold text-stone-700 dark:text-stone-300">Classes</p>
+          </motion.div>
+        </div>
+
+        {/* Detailed Dropdown Panel with Smooth Animation */}
+        <AnimatePresence>
+          {selectedCard && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginTop: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginTop: 16 }}
+              exit={{ opacity: 0, height: 0, marginTop: 0 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="overflow-hidden"
+            >
+              <div className="bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-xl p-4 md:p-5 shadow-inner">
+                <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3 mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-[#8c1515]/5 text-[#8c1515] dark:text-rose-400">
+                      <Layers className="w-4 h-4" />
+                    </div>
+                    <h4 className="text-sm font-extrabold text-stone-900 dark:text-white">
+                      {selectedCard === 'ST' ? "Sunday & Tuesday" :
+                       selectedCard === 'MW' ? "Monday & Wednesday" :
+                       selectedCard === 'A' ? "Saturday" :
+                       selectedCard === 'R' ? "Thursday" : "Friday"} Pattern Schedule Slots
+                    </h4>
+                  </div>
+                  <Badge variant="outline" className="text-xs font-bold bg-[#8c1515]/5 border-[#8c1515]/10 text-[#8c1515] dark:text-rose-400">
+                    {selectedCard} Active
+                  </Badge>
+                </div>
+
+                {statsMode === 'personal' && personalSchedule.filter(item => {
+                  const d = item.day.toLowerCase();
+                  if (selectedCard === 'ST') return d === 'sunday' || d === 'tuesday';
+                  if (selectedCard === 'MW') return d === 'monday' || d === 'wednesday';
+                  if (selectedCard === 'A') return d === 'saturday';
+                  if (selectedCard === 'R') return d === 'thursday';
+                  if (selectedCard === 'F') return d === 'friday';
+                  return false;
+                }).length > 0 ? (
+                  /* Show actual registered classes for the pattern */
+                  <div className="space-y-3">
+                    <p className="text-xs font-extrabold text-stone-400 uppercase tracking-widest mb-2">My Registered Classes</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {personalSchedule.filter(item => {
+                        const d = item.day.toLowerCase();
+                        if (selectedCard === 'ST') return d === 'sunday' || d === 'tuesday';
+                        if (selectedCard === 'MW') return d === 'monday' || d === 'wednesday';
+                        if (selectedCard === 'A') return d === 'saturday';
+                        if (selectedCard === 'R') return d === 'thursday';
+                        if (selectedCard === 'F') return d === 'friday';
+                        return false;
+                      }).map((course, idx) => (
+                        <div key={idx} className="p-3 bg-stone-50 dark:bg-stone-900/50 border border-stone-200/60 dark:border-stone-800/60 rounded-lg flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center justify-between gap-1 mb-1">
+                              <Badge className="text-[10px] font-black bg-[#8c1515] text-white dark:bg-rose-950 dark:text-rose-200">
+                                {course.courseCode}
+                              </Badge>
+                              <span className="text-[10px] font-medium text-stone-400 dark:text-stone-500">
+                                Room {course.room}
+                              </span>
+                            </div>
+                            <p className="text-xs font-extrabold text-stone-800 dark:text-stone-200 line-clamp-1">{course.day}</p>
+                            <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">{course.start} - {course.end}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  /* Show standard University slots */
+                  <div>
+                    <p className="text-xs font-extrabold text-stone-400 uppercase tracking-widest mb-3">University Class Slots & Durations</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {daySlotDetails[selectedCard]?.map((slot, idx) => (
+                        <div key={idx} className="p-3 bg-stone-50/50 dark:bg-stone-900/30 border border-stone-200/40 dark:border-stone-800/40 rounded-lg flex items-center justify-between">
+                          <div>
+                            <p className="text-xs font-bold text-stone-700 dark:text-stone-300">{slot.title}</p>
+                            <p className="text-[11px] text-stone-400 dark:text-stone-500 mt-0.5">{slot.time}</p>
+                          </div>
+                          <Badge variant="outline" className="text-[10px] font-bold border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-500">
+                            {slot.type}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Student-Centric Summary Cards (Bento Style) */}
