@@ -316,7 +316,6 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
                       <th className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-[13px]">Time</th>
                       <th className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-[13px] text-center">Room</th>
                       <th className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-[13px]">Faculty</th>
-                      <th className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-[13px]">Semester</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -329,7 +328,6 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
                         <td className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-stone-600 dark:text-stone-400">{ex.time}</td>
                         <td className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-center font-bold text-emerald-600 dark:text-emerald-400">{ex.room}</td>
                         <td className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm capitalize">{ex.faculty}</td>
-                        <td className="px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-stone-500">{ex.semester || portal?.student?.currentSemester || 'Summer-26'}</td>
                       </tr>
                     ))}
                   </tbody>

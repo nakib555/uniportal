@@ -52,7 +52,7 @@ export function AdmitCardSkeleton() {
           <div className="h-4 w-32 bg-stone-200 dark:bg-stone-800 rounded" />
           <div className="rounded-xl border border-stone-200 dark:border-stone-800 overflow-hidden">
             <div className="bg-stone-50 dark:bg-stone-850 p-4 border-b border-stone-200 dark:border-stone-800 flex justify-between gap-2">
-              {[...Array(6)].map((_, i) => (
+              {[...Array(7)].map((_, i) => (
                 <div key={i} className="h-3 bg-stone-200 dark:bg-stone-800 rounded w-16" />
               ))}
             </div>
@@ -63,6 +63,7 @@ export function AdmitCardSkeleton() {
                   <div className="h-4 bg-stone-200 dark:bg-stone-800 rounded w-10" />
                   <div className="h-4 bg-stone-200 dark:bg-stone-800 rounded w-16" />
                   <div className="h-4 bg-stone-200 dark:bg-stone-800 rounded w-20" />
+                  <div className="h-4 bg-stone-200 dark:bg-stone-800 rounded w-24" />
                   <div className="h-4 bg-stone-200 dark:bg-stone-800 rounded w-12" />
                   <div className="h-4 bg-stone-200 dark:bg-stone-800 rounded w-24" />
                 </div>
