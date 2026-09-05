@@ -77,19 +77,10 @@ function parseExamDateTime(dateStr: string, timeStr: string): Date | null {
   }
 }
 
-export function ExamCountdownWidget({ portalExams }: { portalExams?: Exam[] }) {
-  const store = useAppStore();
-  const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
-
+export function useActiveExam(portalExams?: Exam[]) {
   const exams = portalExams || [];
-
-  // If no exams exist in portal data, do not render the widget
-  if (exams.length === 0) {
-    return null;
-  }
-
-  // Find the next upcoming exam chronologically
-  const nextExamInfo = useMemo(() => {
+  
+  return useMemo(() => {
     const parsed = exams.map(ex => {
       const targetDate = parseExamDateTime(ex.date, ex.time);
       if (!targetDate) return null;
@@ -100,7 +91,6 @@ export function ExamCountdownWidget({ portalExams }: { portalExams?: Exam[] }) {
 
     // Filter to show only future exams
     const futureExams = parsed.filter(item => item.targetDate.getTime() > Date.now());
-
     if (futureExams.length === 0) {
       // If all are in the past, return null to allow showing the completed state
       return null;
@@ -110,6 +100,18 @@ export function ExamCountdownWidget({ portalExams }: { portalExams?: Exam[] }) {
     futureExams.sort((a, b) => a.targetDate.getTime() - b.targetDate.getTime());
     return futureExams[0];
   }, [exams]);
+}
+
+export function ExamCountdownWidget({ portalExams }: { portalExams?: Exam[] }) {
+  const store = useAppStore();
+  const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
+
+  const nextExamInfo = useActiveExam(portalExams);
+
+  // If no exams exist in portal data, do not render the widget
+  if (!portalExams || portalExams.length === 0) {
+    return null;
+  }
 
   // Live timer tick
   useEffect(() => {

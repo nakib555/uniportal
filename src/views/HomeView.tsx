@@ -4,13 +4,15 @@ import { BookOpen, Calendar, Clock, GraduationCap, MapPin, TrendingUp, Wallet, U
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { Card, Badge } from '../components/ui';
 import { usePortalLogic } from '../hooks/usePortalLogic';
-import { ExamCountdownWidget } from '../components/ExamCountdownWidget';
+import { ExamCountdownWidget, useActiveExam } from '../components/ExamCountdownWidget';
 
 export function HomeView({ portal }: { portal: ReturnType<typeof usePortalLogic> }) {
   const { student, bankSlipTotal, handleNavClick } = portal;
   
   const currentDayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()];
   const todaysSchedule = portal.studentData.schedule.filter(c => c.day === currentDayName && c.start !== '-').sort((a, b) => a.start.localeCompare(b.start));
+
+  const activeExam = useActiveExam(portal.studentData?.exams);
 
   return (
     <div className="space-y-6">
@@ -42,46 +44,48 @@ export function HomeView({ portal }: { portal: ReturnType<typeof usePortalLogic>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 space-y-6">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-semibold text-lg flex items-center gap-2">
-                <Clock className="w-5 h-5 text-[#8c1515]" /> Today's Schedule
-              </h3>
-              <button 
-                onClick={() => portal.store.setActiveTab('class-schedule')}
-                className="text-sm font-semibold text-[#8c1515] dark:text-[#ef4444] hover:underline flex items-center gap-1 group"
-              >
-                <span>View Full Schedule</span>
-                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              {todaysSchedule.length === 0 ? (
-                <div className="text-center p-6 bg-stone-50 dark:bg-stone-900/50 rounded-xl border border-stone-100 dark:border-stone-800">
-                  <p className="text-stone-500 dark:text-stone-400">No classes today.</p>
-                </div>
-              ) : todaysSchedule.slice(0, 3).map((item, i) => (
-                <div key={i} className="flex items-start gap-4 p-4 rounded-xl border border-stone-100 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/50 hover:border-stone-200 dark:hover:border-stone-700 transition-colors">
-                  <div className="w-[100px] shrink-0 text-center py-2 px-3 bg-white dark:bg-stone-900 rounded-lg shadow-sm border border-stone-200 dark:border-stone-800">
-                    <p className="text-sm font-bold text-stone-900 dark:text-stone-100">{item.start}</p>
-                    <p className="text-xs text-stone-500 mt-0.5">{item.end}</p>
+          {!activeExam && (
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-semibold text-lg flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-[#8c1515]" /> Today's Schedule
+                </h3>
+                <button 
+                  onClick={() => portal.store.setActiveTab('class-schedule')}
+                  className="text-sm font-semibold text-[#8c1515] dark:text-[#ef4444] hover:underline flex items-center gap-1 group"
+                >
+                  <span>View Full Schedule</span>
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                {todaysSchedule.length === 0 ? (
+                  <div className="text-center p-6 bg-stone-50 dark:bg-stone-900/50 rounded-xl border border-stone-100 dark:border-stone-800">
+                    <p className="text-stone-500 dark:text-stone-400">No classes today.</p>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <h4 className="font-semibold text-stone-900 dark:text-stone-100 truncate">{item.courseCode}</h4>
-                      <Badge variant="outline">{item.type}</Badge>
+                ) : todaysSchedule.slice(0, 3).map((item, i) => (
+                  <div key={i} className="flex items-start gap-4 p-4 rounded-xl border border-stone-100 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/50 hover:border-stone-200 dark:hover:border-stone-700 transition-colors">
+                    <div className="w-[100px] shrink-0 text-center py-2 px-3 bg-white dark:bg-stone-900 rounded-lg shadow-sm border border-stone-200 dark:border-stone-800">
+                      <p className="text-sm font-bold text-stone-900 dark:text-stone-100">{item.start}</p>
+                      <p className="text-xs text-stone-500 mt-0.5">{item.end}</p>
                     </div>
-                    <p className="text-sm text-stone-600 dark:text-stone-400 mb-2">{item.title}</p>
-                    <div className="flex items-center gap-3 text-xs text-stone-500">
-                      <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Room {item.room}</span>
-                      <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> Sect {item.section}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <h4 className="font-semibold text-stone-900 dark:text-stone-100 truncate">{item.courseCode}</h4>
+                        <Badge variant="outline">{item.type}</Badge>
+                      </div>
+                      <p className="text-sm text-stone-600 dark:text-stone-400 mb-2">{item.title}</p>
+                      <div className="flex items-center gap-3 text-xs text-stone-500">
+                        <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Room {item.room}</span>
+                        <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> Sect {item.section}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </Card>
+                ))}
+              </div>
+            </Card>
+          )}
 
           <Card className="p-6">
             <h3 className="font-semibold text-lg mb-6 flex items-center gap-2">
