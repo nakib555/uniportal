@@ -336,31 +336,91 @@ export async function executePresidencySync(
     // Fetch student photo while authenticated
     let photoDataBase64 = '';
     try {
-      const photoUrl = `${SIMS_BASE}/students/studentPhoto`;
-      const photoHeaders: Record<string, string> = {
-        ...commonHeaders,
-        'Referer': `${SIMS_BASE}/students/profile`
-      };
-      const cookieHeader = cookieJar.getCookieHeader();
-      if (cookieHeader) {
-        photoHeaders['Cookie'] = cookieHeader;
-      }
-      const photoController = new AbortController();
-      const photoTimer = setTimeout(() => photoController.abort(), 10000);
-      const photoRes = await fetch(photoUrl, {
-        headers: photoHeaders,
-        signal: photoController.signal
-      });
-      clearTimeout(photoTimer);
-      if (photoRes.ok) {
-        const contentType = photoRes.headers.get('content-type') || '';
-        if (contentType.toLowerCase().includes('image') || contentType.toLowerCase().includes('octet-stream') || photoRes.headers.get('content-length')) {
-          const arrayBuffer = await photoRes.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          if (buffer.length > 100) {
-            const mime = contentType.toLowerCase().includes('image') ? contentType : 'image/jpeg';
-            photoDataBase64 = `data:${mime};base64,${buffer.toString('base64')}`;
+      let curPhotoUrl = `${SIMS_BASE}/students/studentPhoto`;
+      let photoRes: Response | null = null;
+      let finalBuffer: Buffer | null = null;
+      let finalMime = 'image/jpeg';
+
+      for (let i = 0; i < 5; i++) {
+        const photoHeaders: Record<string, string> = {
+          ...commonHeaders,
+          'Referer': `${SIMS_BASE}/students/profile`
+        };
+        const cookieHeader = cookieJar.getCookieHeader();
+        if (cookieHeader) {
+          photoHeaders['Cookie'] = cookieHeader;
+        }
+        
+        const photoController = new AbortController();
+        const photoTimer = setTimeout(() => photoController.abort(), 10000);
+        
+        photoRes = await fetch(curPhotoUrl, {
+          headers: photoHeaders,
+          signal: photoController.signal,
+          redirect: 'manual'
+        });
+        clearTimeout(photoTimer);
+        
+        cookieJar.updateFromResponse(photoRes);
+        
+        if ([301, 302, 303, 307, 308].includes(photoRes.status)) {
+          const loc = photoRes.headers.get('location');
+          if (loc) {
+            curPhotoUrl = new URL(loc, curPhotoUrl).toString();
+            continue;
           }
+        }
+        
+        if (photoRes.ok) {
+          const contentType = photoRes.headers.get('content-type') || '';
+          if (contentType.toLowerCase().includes('image') || contentType.toLowerCase().includes('octet-stream') || photoRes.headers.get('content-length')) {
+            const arrayBuffer = await photoRes.arrayBuffer();
+            finalBuffer = Buffer.from(arrayBuffer);
+            if (contentType.toLowerCase().includes('image')) {
+              finalMime = contentType;
+            }
+          }
+        }
+        break;
+      }
+
+      if (finalBuffer && finalBuffer.length > 100) {
+        photoDataBase64 = `data:${finalMime};base64,${finalBuffer.toString('base64')}`;
+      } else {
+        // Fallback: try to find img src in profileHtml if the direct URL didn't work
+        const profileHtmlForPhoto = tabMap.get('Profile') || '';
+        const $profPhoto = cheerio.load(profileHtmlForPhoto);
+        let imgSrc = $profPhoto('img.profile-user-img').attr('src') || $profPhoto('img.img-circle').attr('src') || $profPhoto('img[src*="student"]').attr('src');
+        
+        if (imgSrc) {
+           if (!imgSrc.startsWith('http')) {
+             imgSrc = `${SIMS_BASE}${imgSrc.startsWith('/') ? '' : '/'}${imgSrc}`;
+           }
+           curPhotoUrl = imgSrc;
+           for (let i = 0; i < 5; i++) {
+             const photoHeaders: Record<string, string> = { ...commonHeaders, 'Referer': `${SIMS_BASE}/students/profile` };
+             const cookieHeader = cookieJar.getCookieHeader();
+             if (cookieHeader) photoHeaders['Cookie'] = cookieHeader;
+             
+             photoRes = await fetch(curPhotoUrl, { headers: photoHeaders, redirect: 'manual' });
+             cookieJar.updateFromResponse(photoRes);
+             
+             if ([301, 302, 303, 307, 308].includes(photoRes.status)) {
+               const loc = photoRes.headers.get('location');
+               if (loc) { curPhotoUrl = new URL(loc, curPhotoUrl).toString(); continue; }
+             }
+             
+             if (photoRes.ok) {
+               const contentType = photoRes.headers.get('content-type') || '';
+               const arrayBuffer = await photoRes.arrayBuffer();
+               finalBuffer = Buffer.from(arrayBuffer);
+               if (contentType.toLowerCase().includes('image')) finalMime = contentType;
+             }
+             break;
+           }
+           if (finalBuffer && finalBuffer.length > 100) {
+             photoDataBase64 = `data:${finalMime};base64,${finalBuffer.toString('base64')}`;
+           }
         }
       }
     } catch (photoErr) {

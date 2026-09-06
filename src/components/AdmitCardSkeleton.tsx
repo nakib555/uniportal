@@ -7,8 +7,8 @@ export function AdmitCardSkeleton() {
       {/* Skeleton Slip Card matching exact official dimensions */}
       <Card className="p-8 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl max-w-3xl mx-auto shadow-sm">
         {/* Header Skeleton */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 pb-6 border-b border-stone-200 dark:border-stone-800">
-          <div className="flex items-center gap-4 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 sm:pb-6 border-b border-stone-200 dark:border-stone-800">
+          <div className="flex items-center gap-2.5 sm:gap-4 w-full sm:w-auto">
             <div className="h-12 w-12 bg-stone-200 dark:bg-stone-800 rounded-lg flex-shrink-0" />
             <div className="space-y-2 flex-1">
               <div className="h-4 w-44 bg-stone-200 dark:bg-stone-800 rounded" />

@@ -249,7 +249,7 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
         <div className="space-y-6">
           <Card className="p-4 sm:p-8 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl max-w-3xl mx-auto shadow-sm print:p-0 print:border-none print:shadow-none">
             {/* Slip Header */}
-            <div className="flex flex-row justify-between items-center gap-2 sm:gap-4 pb-4 sm:pb-6 border-b border-stone-200 dark:border-stone-800">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 sm:pb-6 border-b border-stone-200 dark:border-stone-800">
               <div className="flex items-center gap-2.5 sm:gap-4">
                 <img 
                   src="https://wsrv.nl/?url=http://sims.presidency.edu.bd/img/layout/header_logo.png&output=webp" 
