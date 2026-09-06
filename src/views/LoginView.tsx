@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAppStore } from '../store';
 import { Card } from '../components/ui/card';
-import { Loader2, Lock, User, Eye, EyeOff, ChevronRight, CheckCircle2, RefreshCw, Clock } from 'lucide-react';
+import { Loader2, Lock, User, Eye, EyeOff, ChevronRight, CheckCircle2, RefreshCw, Clock, Fingerprint } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,7 @@ import {
 import { Button } from '../components/ui/button';
 import { PuSyncService } from '../services/puSyncService';
 import { tempAuthService } from '../services/tempAuthService';
+import { biometricAuth } from '../services/biometricAuth';
 
 export const LoginView: React.FC = () => {
   const { setIsLoggedIn, setIsAdmin, setRegisteredCourses, setCompletedCourses } = useAppStore();
@@ -31,6 +32,65 @@ export const LoginView: React.FC = () => {
   const [isForgotOpen, setIsForgotOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
+
+  const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
+  const [registeredBiometricIds, setRegisteredBiometricIds] = useState<string[]>([]);
+  
+  React.useEffect(() => {
+    biometricAuth.isAvailable().then(avail => {
+      setIsBiometricAvailable(avail);
+      if (avail) {
+        setRegisteredBiometricIds(biometricAuth.getRegisteredStudentIds());
+      }
+    });
+  }, []);
+
+  const handleBiometricLogin = async (overrideId?: string) => {
+    const targetId = overrideId || studentId;
+    if (!targetId) {
+      setError('Please enter your Student ID first to use biometrics.');
+      return;
+    }
+    if (!registeredBiometricIds.includes(targetId.trim())) {
+      setError('No biometric login found for this Student ID.');
+      return;
+    }
+    
+    setIsLoading(true);
+    setError('');
+    const recoveredPassword = await biometricAuth.authenticate(targetId.trim());
+    
+    if (recoveredPassword) {
+      setPassword(recoveredPassword);
+      
+      try {
+        setSyncStatus('Connecting to Presidency University SIMS...');
+        const syncResult = await PuSyncService.syncWithPresidency(targetId.trim(), recoveredPassword);
+        setSyncStatus('Synchronizing courses & financial ledger...');
+        
+        if (syncResult.success && syncResult.studentData) {
+          tempAuthService.setTempCredentials(targetId.trim(), recoveredPassword);
+          setRegisteredCourses(syncResult.studentData.registeredCourses);
+          setCompletedCourses(syncResult.studentData.completedCourses);
+          useAppStore.getState().setCurrentStudentId(targetId.trim());
+          setIsAdmin(false);
+          useAppStore.getState().setActiveTab('home');
+          setIsLoggedIn(true);
+        } else {
+          setError(syncResult.message || 'Unable to synchronize student portal records.');
+        }
+      } catch (err: any) {
+        setError(err?.message || 'Authentication error with Presidency SIMS');
+      } finally {
+        setIsLoading(false);
+        setSyncStatus('');
+      }
+    } else {
+      setError('Biometric authentication failed or was cancelled.');
+      setIsLoading(false);
+    }
+  };
+
   
   // IT Support state
   const [isSupportOpen, setIsSupportOpen] = useState(false);
@@ -415,6 +475,26 @@ export const LoginView: React.FC = () => {
                   )}
 
                   <div className="pt-2">
+                     {(isBiometricAvailable && (registeredBiometricIds.length > 0)) && (
+                       <button
+                         type="button"
+                         onClick={() => {
+                           if (!studentId && registeredBiometricIds.length === 1) {
+                             // Auto-fill student ID if there's only 1 registered
+                             setStudentId(registeredBiometricIds[0]);
+                             setTimeout(() => handleBiometricLogin(registeredBiometricIds[0]), 50);
+                           } else {
+                             handleBiometricLogin(studentId);
+                           }
+                         }}
+                         disabled={isLoading}
+                         className="w-full mb-3 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-900 dark:text-stone-100 py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none border border-stone-200 dark:border-stone-700"
+                       >
+                         <Fingerprint className="w-5 h-5 text-[#8c1515] dark:text-[#ef4444]" />
+                         Use Touch ID / Face ID
+                       </button>
+                     )}
+
                      <button
                         type="submit"
                         disabled={isLoading}

@@ -14,11 +14,52 @@ import {
 import { Button } from '../components/ui/button';
 
 import { ProxyImage } from '../components/ProxyImage';
+import { biometricAuth } from '../services/biometricAuth';
+import { tempAuthService } from '../services/tempAuthService';
+import { Fingerprint, Loader2 } from 'lucide-react';
 
 export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLogic> }) {
   const { student, profilePic, updateProfilePhoto } = portal;
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+
+  const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
+  const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
+  const [isBiometricLoading, setIsBiometricLoading] = useState(false);
+  
+  React.useEffect(() => {
+    biometricAuth.isAvailable().then(avail => setIsBiometricAvailable(avail));
+    setIsBiometricEnabled(biometricAuth.hasRegisteredBiometric(student.id));
+  }, [student.id]);
+
+  const toggleBiometric = async () => {
+    if (isBiometricEnabled) {
+      localStorage.removeItem(`pu_bio_${student.id}`);
+      setIsBiometricEnabled(false);
+      setSuccessMsg('Biometric login disabled.');
+      setTimeout(() => setSuccessMsg(''), 3000);
+      return;
+    }
+    
+    setIsBiometricLoading(true);
+    const creds = tempAuthService.getTempCredentials(student.id);
+    if (!creds || !creds.password) {
+      setSuccessMsg('Please log out and log back in to enable biometrics.'); setTimeout(() => setSuccessMsg(''), 4000);
+      setIsBiometricLoading(false);
+      return;
+    }
+    
+    const success = await biometricAuth.register(student.id, creds.password);
+    setIsBiometricLoading(false);
+    if (success) {
+      setIsBiometricEnabled(true);
+      setSuccessMsg('Biometric login enabled successfully!');
+      setTimeout(() => setSuccessMsg(''), 3000);
+    } else {
+      setSuccessMsg('Failed to register biometric. Action cancelled or unsupported.'); setTimeout(() => setSuccessMsg(''), 4000);
+    }
+  };
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUploadTrigger = () => {
@@ -217,6 +258,35 @@ export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLog
                 </button>
               </div>
             </div>
+
+            {isBiometricAvailable && (
+              <div className="flex items-start gap-4 pt-4 border-t border-stone-100 dark:border-stone-800">
+                <div className="p-2.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 rounded-lg shrink-0">
+                  <Fingerprint className="w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-sm font-medium text-stone-900 dark:text-stone-100">Biometric Login</p>
+                      <p className="text-xs text-stone-500 mb-2">{isBiometricEnabled ? 'Enabled for this device' : 'Use Face ID / Touch ID to login'}</p>
+                    </div>
+                    <button 
+                      onClick={toggleBiometric}
+                      disabled={isBiometricLoading}
+                      className={`px-3 py-1.5 rounded text-xs font-bold transition-colors flex items-center gap-1 ${
+                        isBiometricEnabled 
+                          ? 'bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400' 
+                          : 'bg-[#8c1515] text-white hover:bg-[#731010] dark:bg-[#ef4444] dark:hover:bg-[#dc2626]'
+                      }`}
+                    >
+                      {isBiometricLoading && <Loader2 className="w-3 h-3 animate-spin" />}
+                      {isBiometricEnabled ? 'Disable' : 'Enable'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
           </div>
         </Card>
       </div>
