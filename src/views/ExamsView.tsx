@@ -331,7 +331,6 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
                   <th className="py-3.5 px-3">Room</th>
                   <th className="py-3.5 px-3">Campus</th>
                   <th className="py-3.5 px-4">Faculty</th>
-                  <th className="py-3.5 px-4">Security Code</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 dark:divide-stone-800/60 font-medium">
@@ -382,15 +381,6 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
                         '-'
                       )}
                     </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap font-mono text-xs">
-                      {e.securityCode ? (
-                        <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 font-bold border border-emerald-200 dark:border-emerald-800">
-                          {e.securityCode}
-                        </span>
-                      ) : (
-                        <span className="text-stone-400">-</span>
-                      )}
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -429,12 +419,6 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
                       <span>Faculty: {e.faculty}</span>
                     </div>
                   )}
-                  {e.securityCode && (
-                    <div className="flex items-center gap-2 font-mono text-[11px] pt-1">
-                      <span className="text-stone-400">Security Code:</span>
-                      <span className="font-bold text-emerald-700 dark:text-emerald-400">{e.securityCode}</span>
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -466,7 +450,7 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
             </div>
 
             <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed">
-              Presidency University SIMS requires session authentication to retrieve official seat allocations and security codes.
+              Presidency University SIMS requires session authentication to retrieve official seat allocations and room details.
             </p>
 
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
