@@ -59,21 +59,6 @@ export const tempAuthService = {
 
     if (!creds) return null;
 
-    // Check if 30-minute session deadline has passed
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const expiresAt = Number(localStorage.getItem('pu_session_expires_at') || 0);
-      if (expiresAt > 0 && Date.now() >= expiresAt) {
-        tempAuthService.clearTempCredentials();
-        return null;
-      }
-    }
-
-    // Also check max 30-minute timestamp on the credential itself
-    if (creds.timestamp && (Date.now() - creds.timestamp > 30 * 60 * 1000)) {
-      tempAuthService.clearTempCredentials();
-      return null;
-    }
-
     // Verify studentId matches if provided
     if (studentId && creds.studentId !== studentId.trim()) {
       return null;

@@ -3,7 +3,6 @@ import { usePortalLogic } from './hooks/usePortalLogic';
 import { ReactLenis } from 'lenis/react';
 import { useAppStore, VALID_TABS } from './store';
 import { useMediaQuery } from './hooks/useMediaQuery';
-import { SimsReauthModal } from './components/SyncPortalDialog';
 import { LoginView } from './views/LoginView';
 import { LogoutView } from './views/LogoutView';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -19,7 +18,6 @@ function AuthenticatedPortal({ isDesktop }: { isDesktop: boolean }) {
     return (
       <>
         <DesktopLayout {...portalLogic} />
-        <SimsReauthModal portal={portalLogic} />
       </>
     );
   }
@@ -27,7 +25,6 @@ function AuthenticatedPortal({ isDesktop }: { isDesktop: boolean }) {
   return (
     <ReactLenis root>
       <MobileLayout {...portalLogic} />
-      <SimsReauthModal portal={portalLogic} />
     </ReactLenis>
   );
 }
