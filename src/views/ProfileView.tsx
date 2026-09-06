@@ -49,14 +49,15 @@ export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLog
       return;
     }
     
-    const success = await biometricAuth.register(student.id, creds.password);
+    const regResult = await biometricAuth.register(student.id, creds.password);
     setIsBiometricLoading(false);
-    if (success) {
+    if (regResult.success) {
       setIsBiometricEnabled(true);
       setSuccessMsg('Biometric login enabled successfully!');
       setTimeout(() => setSuccessMsg(''), 3000);
     } else {
-      setSuccessMsg('Failed to register biometric. Action cancelled or unsupported.'); setTimeout(() => setSuccessMsg(''), 4000);
+      setSuccessMsg(regResult.errorMessage || 'Failed to register biometric. Action cancelled or unsupported.');
+      setTimeout(() => setSuccessMsg(''), 4000);
     }
   };
 

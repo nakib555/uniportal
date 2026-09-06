@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAppStore } from '../store';
 import { Card } from '../components/ui/card';
-import { Loader2, Lock, User, Eye, EyeOff, ChevronRight, CheckCircle2, RefreshCw, Clock, Fingerprint } from 'lucide-react';
+import { Loader2, Lock, User, Eye, EyeOff, ChevronRight, CheckCircle2, RefreshCw, Clock, Fingerprint, ShieldCheck, KeyRound, Sparkles } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -16,6 +16,7 @@ import { Button } from '../components/ui/button';
 import { PuSyncService } from '../services/puSyncService';
 import { tempAuthService } from '../services/tempAuthService';
 import { biometricAuth } from '../services/biometricAuth';
+import { BiometricAuthModal } from '../components/BiometricAuthModal';
 
 export const LoginView: React.FC = () => {
   const { setIsLoggedIn, setIsAdmin, setRegisteredCourses, setCompletedCourses } = useAppStore();
@@ -33,26 +34,62 @@ export const LoginView: React.FC = () => {
   const [resetEmail, setResetEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
 
+  // WebAuthn & Biometric authentication state
   const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
   const [registeredBiometricIds, setRegisteredBiometricIds] = useState<string[]>([]);
+  const [isBioModalOpen, setIsBioModalOpen] = useState(false);
   
-  React.useEffect(() => {
+  const refreshBiometrics = () => {
     biometricAuth.isAvailable().then(avail => {
       setIsBiometricAvailable(avail);
-      if (avail) {
-        setRegisteredBiometricIds(biometricAuth.getRegisteredStudentIds());
-      }
+      setRegisteredBiometricIds(biometricAuth.getRegisteredStudentIds());
     });
+  };
+
+  useEffect(() => {
+    refreshBiometrics();
   }, []);
+
+  const executePortalSync = async (targetId: string, targetPass: string) => {
+    const cleanId = targetId.trim();
+    const cleanPass = targetPass.trim();
+    if (!cleanId || !cleanPass) return;
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      setSyncStatus('Connecting to Presidency University SIMS...');
+      const syncResult = await PuSyncService.syncWithPresidency(cleanId, cleanPass);
+      setSyncStatus('Synchronizing courses & financial ledger...');
+      
+      if (syncResult.success && syncResult.studentData) {
+        tempAuthService.setTempCredentials(cleanId, cleanPass);
+        setRegisteredCourses(syncResult.studentData.registeredCourses);
+        setCompletedCourses(syncResult.studentData.completedCourses);
+        useAppStore.getState().setCurrentStudentId(cleanId);
+        setIsAdmin(false);
+        useAppStore.getState().setActiveTab('home');
+        setIsLoggedIn(true);
+      } else {
+        setError(syncResult.message || 'Unable to synchronize student portal records.');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Authentication error with Presidency SIMS');
+    } finally {
+      setIsLoading(false);
+      setSyncStatus('');
+    }
+  };
 
   const handleBiometricLogin = async (overrideId?: string) => {
     const targetId = overrideId || studentId;
     if (!targetId) {
-      setError('Please enter your Student ID first to use biometrics.');
+      setIsBioModalOpen(true);
       return;
     }
     if (!registeredBiometricIds.includes(targetId.trim())) {
-      setError('No biometric login found for this Student ID.');
+      setIsBioModalOpen(true);
       return;
     }
     
@@ -62,31 +99,9 @@ export const LoginView: React.FC = () => {
     
     if (recoveredPassword) {
       setPassword(recoveredPassword);
-      
-      try {
-        setSyncStatus('Connecting to Presidency University SIMS...');
-        const syncResult = await PuSyncService.syncWithPresidency(targetId.trim(), recoveredPassword);
-        setSyncStatus('Synchronizing courses & financial ledger...');
-        
-        if (syncResult.success && syncResult.studentData) {
-          tempAuthService.setTempCredentials(targetId.trim(), recoveredPassword);
-          setRegisteredCourses(syncResult.studentData.registeredCourses);
-          setCompletedCourses(syncResult.studentData.completedCourses);
-          useAppStore.getState().setCurrentStudentId(targetId.trim());
-          setIsAdmin(false);
-          useAppStore.getState().setActiveTab('home');
-          setIsLoggedIn(true);
-        } else {
-          setError(syncResult.message || 'Unable to synchronize student portal records.');
-        }
-      } catch (err: any) {
-        setError(err?.message || 'Authentication error with Presidency SIMS');
-      } finally {
-        setIsLoading(false);
-        setSyncStatus('');
-      }
+      await executePortalSync(targetId.trim(), recoveredPassword);
     } else {
-      setError('Biometric authentication failed or was cancelled.');
+      setError('Biometric authentication cancelled or not verified.');
       setIsLoading(false);
     }
   };
@@ -197,6 +212,16 @@ export const LoginView: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full flex bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-100">
+      <BiometricAuthModal
+        isOpen={isBioModalOpen}
+        onClose={() => {
+          setIsBioModalOpen(false);
+          refreshBiometrics();
+        }}
+        onSuccessLogin={executePortalSync}
+        currentStudentId={studentId}
+      />
+
       <Dialog open={isForgotOpen} onOpenChange={(open) => {
         setIsForgotOpen(open);
         if (!open) {
@@ -395,6 +420,90 @@ export const LoginView: React.FC = () => {
                      )}
                   </AnimatePresence>
 
+                  {/* Web Authentication / Passkey Section for Students */}
+                  {loginType === 'student' && (
+                     <div className="rounded-2xl p-4 bg-stone-50/90 dark:bg-stone-800/40 border border-stone-200/90 dark:border-stone-700/80 space-y-3">
+                        <div className="flex items-center justify-between">
+                           <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-lg bg-[#8c1515]/10 dark:bg-[#ef4444]/15 text-[#8c1515] dark:text-[#ef4444] flex items-center justify-center">
+                                 <Fingerprint className="w-4 h-4" />
+                              </div>
+                              <div>
+                                 <span className="text-xs font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
+                                    Web Authentication
+                                    <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 px-1.5 py-0.2 rounded">
+                                       FIDO2
+                                    </span>
+                                 </span>
+                              </div>
+                           </div>
+                           <button
+                              type="button"
+                              onClick={() => setIsBioModalOpen(true)}
+                              className="text-[11px] font-bold text-[#8c1515] dark:text-[#ef4444] hover:underline cursor-pointer flex items-center gap-0.5"
+                           >
+                              <span>Passkey Setup</span>
+                              <ChevronRight className="w-3 h-3" />
+                           </button>
+                        </div>
+
+                        {registeredBiometricIds.length > 0 ? (
+                           <div className="space-y-2">
+                              <button
+                                 type="button"
+                                 onClick={() => {
+                                    if (!studentId && registeredBiometricIds.length === 1) {
+                                       setStudentId(registeredBiometricIds[0]);
+                                       setTimeout(() => handleBiometricLogin(registeredBiometricIds[0]), 50);
+                                    } else {
+                                       handleBiometricLogin(studentId || registeredBiometricIds[0]);
+                                    }
+                                 }}
+                                 disabled={isLoading}
+                                 className="w-full bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-white dark:text-stone-900 py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-70 text-xs shadow-sm cursor-pointer"
+                              >
+                                 <Fingerprint className="w-4 h-4 text-[#8c1515] dark:text-[#ef4444]" />
+                                 <span>
+                                    Sign In with Touch ID / Face ID ({registeredBiometricIds.length === 1 ? `Student #${registeredBiometricIds[0]}` : `${registeredBiometricIds.length} passkeys`})
+                                 </span>
+                              </button>
+                              <p className="text-[10px] text-stone-500 dark:text-stone-400 text-center">
+                                 Tap to verify with your device's fingerprint or facial sensor
+                              </p>
+                           </div>
+                        ) : (
+                           <div className="space-y-2">
+                              <button
+                                 type="button"
+                                 onClick={() => setIsBioModalOpen(true)}
+                                 disabled={isLoading}
+                                 className="w-full bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-900 dark:text-stone-100 py-2.5 px-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] border border-stone-200 dark:border-stone-700 text-xs shadow-xs cursor-pointer"
+                              >
+                                 <Fingerprint className="w-4 h-4 text-[#8c1515] dark:text-[#ef4444]" />
+                                 <span>Sign In with Face ID / Touch ID / Passkey</span>
+                              </button>
+                              <div className="flex items-center justify-between text-[10px] text-stone-500 dark:text-stone-400 px-1">
+                                 <span>Fingerprint, facial recognition, or hardware key</span>
+                                 <span className="font-semibold text-stone-600 dark:text-stone-300">Fast & Passwordless</span>
+                              </div>
+                           </div>
+                        )}
+                     </div>
+                  )}
+
+                  {loginType === 'student' && (
+                     <div className="relative my-4">
+                        <div className="absolute inset-0 flex items-center">
+                           <div className="w-full border-t border-stone-200 dark:border-stone-800" />
+                        </div>
+                        <div className="relative flex justify-center text-xs">
+                           <span className="bg-white dark:bg-stone-900 px-3 text-stone-400 dark:text-stone-500 font-semibold">
+                              Or sign in with Student ID & Password
+                           </span>
+                        </div>
+                     </div>
+                  )}
+
                   <div className="space-y-1.5 focus-within:text-[#8c1515] dark:focus-within:text-[#ef4444] transition-colors">
                      <label htmlFor="student-id-input" className="text-sm font-bold text-stone-700 dark:text-stone-300 ml-1">{loginType === 'student' ? 'Student ID' : 'Faculty/Admin ID'}</label>
                      <div className="relative">
@@ -517,8 +626,21 @@ export const LoginView: React.FC = () => {
                </form>
 
                
-               <div className="mt-6 pt-5 border-t border-stone-100 dark:border-stone-800 text-center">
-                  <p className="text-sm text-stone-500 dark:text-stone-400 font-medium">
+               <div className="mt-6 pt-5 border-t border-stone-100 dark:border-stone-800 flex flex-col gap-2.5 text-center">
+                  <div className="flex items-center justify-between text-xs text-stone-500 dark:text-stone-400 px-1">
+                     <div className="flex items-center gap-1.5">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                        <span>FIDO2 / WebAuthn Certified</span>
+                     </div>
+                     <button
+                        type="button"
+                        onClick={() => setIsBioModalOpen(true)}
+                        className="text-[#8c1515] dark:text-[#ef4444] font-bold hover:underline cursor-pointer"
+                     >
+                        Passkey Hub
+                     </button>
+                  </div>
+                  <p className="text-sm text-stone-500 dark:text-stone-400 font-medium pt-1">
                      Need help? Contact <button type="button" onClick={() => setIsSupportOpen(true)} className="text-[#8c1515] dark:text-[#ef4444] font-bold hover:underline">IT Support</button>
                   </p>
                </div>
