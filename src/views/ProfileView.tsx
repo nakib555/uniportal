@@ -265,7 +265,7 @@ export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLog
                   <Fingerprint className="w-5 h-5" />
                 </div>
                 <div className="flex-1">
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
                     <div>
                       <p className="text-sm font-medium text-stone-900 dark:text-stone-100">Biometric Login</p>
                       <p className="text-xs text-stone-500 mb-2">{isBiometricEnabled ? 'Enabled for this device' : 'Use Face ID / Touch ID to login'}</p>
