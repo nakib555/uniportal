@@ -125,6 +125,7 @@ const GRADE_POINTS: Record<string, number> = {
 export interface SyncOptions {
   skipAdmitCard?: boolean;
   admitCardOnly?: boolean;
+  module?: 'exams' | 'courses' | 'grades' | 'finances' | 'profile' | 'all';
 }
 
 export interface SyncResult {
@@ -254,7 +255,35 @@ export async function executePresidencySync(
 
     // 4. Authenticated successfully: Filter target tabs based on request options
     let targetStructure = STRUCTURE;
-    if (options.admitCardOnly) {
+    if (options.module && options.module !== 'all') {
+      switch (options.module) {
+        case 'exams':
+          targetStructure = STRUCTURE.filter(
+            item => item.tabName === 'Exam Schedule' || item.tabName === 'Exam Admit Card' || item.tabName === 'Class Routine & Registered Courses'
+          );
+          break;
+        case 'courses':
+          targetStructure = STRUCTURE.filter(
+            item => item.tabName === 'Registered Courses' || item.tabName === 'Class Routine & Registered Courses' || item.tabName === 'Class Schedule' || item.tabName === 'Related Teachers'
+          );
+          break;
+        case 'grades':
+          targetStructure = STRUCTURE.filter(
+            item => item.tabName === 'Completed Courses' || item.tabName === 'Profile'
+          );
+          break;
+        case 'finances':
+          targetStructure = STRUCTURE.filter(
+            item => item.tabName === 'Accounts Overview' || item.tabName === 'Bank Slips' || item.tabName === 'Semester Statement'
+          );
+          break;
+        case 'profile':
+          targetStructure = STRUCTURE.filter(
+            item => item.tabName === 'Profile' || item.tabName === 'Home'
+          );
+          break;
+      }
+    } else if (options.admitCardOnly) {
       targetStructure = STRUCTURE.filter(
         item => item.tabName === 'Exam Admit Card' || item.tabName === 'Exam Schedule' || item.tabName === 'Profile' || item.tabName === 'Class Routine & Registered Courses'
       );
@@ -333,10 +362,12 @@ export async function executePresidencySync(
       tabStatus[tr.tabName] = tr.success;
     }
 
-    // Fetch student photo while authenticated
+    // Fetch student photo while authenticated (only when fetching profile or full crawl to keep smart refresh sub-second fast)
     let photoDataBase64 = '';
-    try {
-      let curPhotoUrl = `${SIMS_BASE}/students/studentPhoto`;
+    const shouldFetchPhoto = !options.module || options.module === 'all' || options.module === 'profile';
+    if (shouldFetchPhoto) {
+      try {
+        let curPhotoUrl = `${SIMS_BASE}/students/studentPhoto`;
       let photoRes: Response | null = null;
       let finalBuffer: Buffer | null = null;
       let finalMime = 'image/jpeg';
@@ -443,6 +474,7 @@ export async function executePresidencySync(
     } catch (photoErr) {
       console.warn('[puProxy] Failed to fetch student photo:', photoErr);
     }
+  }
 
     // 5. Terminate session cleanly
     try {
@@ -1275,9 +1307,9 @@ export function puSyncPlugin() {
 
     req.on('end', async () => {
       try {
-        const { studentId, password, skipAdmitCard, admitCardOnly } = JSON.parse(body || '{}');
-        console.log(`[pu-sync-plugin] Executing sync for Student ID: ${studentId} (skipAdmitCard: ${skipAdmitCard}, admitCardOnly: ${admitCardOnly})`);
-        const result = await executePresidencySync(studentId, password, { skipAdmitCard, admitCardOnly });
+        const { studentId, password, skipAdmitCard, admitCardOnly, module } = JSON.parse(body || '{}');
+        console.log(`[pu-sync-plugin] Executing sync for Student ID: ${studentId} (module: ${module || 'all'}, skipAdmitCard: ${skipAdmitCard}, admitCardOnly: ${admitCardOnly})`);
+        const result = await executePresidencySync(studentId, password, { skipAdmitCard, admitCardOnly, module });
         
         console.log(`[pu-sync-plugin] Sync completed with status: ${result.status}, success: ${result.success}`);
         res.statusCode = result.status;

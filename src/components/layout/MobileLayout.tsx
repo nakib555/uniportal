@@ -110,7 +110,8 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
     groupedCompletedCourses, filteredAvailableCourses, totalDebit, totalCredit, statementChartData,
     handleMenuToggle, handleNavClick, handleSubItemClick,
     handleRegister, confirmCoreqsRegistration, handleDropCourse, hasCompletedPrerequisites, setSelectedFees, setPendingCoreqCourse,
-    isSyncModalOpen, setIsSyncModalOpen, isSyncing
+    isSyncModalOpen, setIsSyncModalOpen, isSyncing,
+    handleSmartRefresh, smartRefreshNotice, activeModuleInfo
   } = props;
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedSyllabusCourse, setSelectedSyllabusCourse] = useState<Course | null>(null);
@@ -332,9 +333,12 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
 
               {!isAdmin && (
                 <button 
-                  onClick={() => setIsSyncModalOpen(true)}
-                  className={`w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 dark:text-stone-400 relative transition-colors ${isSyncing ? 'text-[#8c1515] dark:text-[#ef4444]' : ''}`}
-                  title="Sync with Presidency University SIMS"
+                  onClick={() => handleSmartRefresh()}
+                  disabled={isSyncing}
+                  className={`w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-600 dark:text-stone-300 relative transition-all active:scale-95 ${
+                    isSyncing ? 'text-[#8c1515] dark:text-[#ef4444]' : ''
+                  }`}
+                  title={`Smart Refresh: ${activeModuleInfo?.displayName || 'Active section'} (~1s)`}
                 >
                   <RefreshCw className={`w-5 h-5 ${isSyncing ? 'animate-spin' : ''}`} />
                 </button>
@@ -396,6 +400,21 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
               </div>
            </div>
         </header>
+
+        {/* Smart Refresh Floating Toast */}
+        <AnimatePresence>
+          {smartRefreshNotice && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 text-xs font-semibold px-4 py-2 rounded-full shadow-xl flex items-center gap-2 border border-stone-700/40 pointer-events-none"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 dark:text-emerald-600" />
+              <span>{smartRefreshNotice}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Scrollable Content */}
         <main className="flex-1 w-full p-4 md:p-8 relative isolate">

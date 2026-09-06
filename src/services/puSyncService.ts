@@ -250,6 +250,121 @@ export class PuSyncService {
   }
 
   /**
+   * Smart Refresh: synchronizes only the requested module from Presidency SIMS in 1-2 seconds.
+   * Surgically merges fresh module data into the student record while preserving everything else.
+   */
+  public static async syncModule(
+    studentId: string,
+    password: string,
+    module: 'exams' | 'courses' | 'grades' | 'finances' | 'profile' | 'all'
+  ): Promise<PuSyncResult> {
+    const cleanId = studentId.trim();
+    const cleanPass = (password || '').trim();
+
+    if (!cleanId) {
+      return {
+        success: false,
+        studentData: null as any,
+        source: 'live_portal',
+        message: 'Student ID is required.'
+      };
+    }
+
+    if (!cleanPass) {
+      return {
+        success: false,
+        studentData: null as any,
+        source: 'live_portal',
+        message: 'Password is required to authenticate with Presidency University SIMS.'
+      };
+    }
+
+    try {
+      const response = await fetch('/api/pu-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentId: cleanId,
+          password: cleanPass,
+          module
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success && result.studentData) {
+        const existingStudent = this.getSyncedStudent(cleanId);
+        let mergedStudent: StudentDetails = result.studentData;
+
+        if (existingStudent) {
+          mergedStudent = {
+            ...existingStudent,
+            profile: (module === 'profile' || module === 'all' || module === 'grades')
+              ? {
+                  ...existingStudent.profile,
+                  ...result.studentData.profile,
+                  photo: result.studentData.profile?.photo || existingStudent.profile?.photo,
+                  accountBalance: typeof result.studentData.profile?.accountBalance === 'number'
+                    ? result.studentData.profile.accountBalance
+                    : existingStudent.profile?.accountBalance
+                }
+              : existingStudent.profile,
+            registeredCourses: (module === 'courses' || module === 'all')
+              ? (result.studentData.registeredCourses?.length ? result.studentData.registeredCourses : existingStudent.registeredCourses)
+              : existingStudent.registeredCourses,
+            completedCourses: (module === 'grades' || module === 'all')
+              ? (result.studentData.completedCourses?.length ? result.studentData.completedCourses : existingStudent.completedCourses)
+              : existingStudent.completedCourses,
+            schedule: (module === 'courses' || module === 'all')
+              ? (result.studentData.schedule?.length ? result.studentData.schedule : existingStudent.schedule)
+              : existingStudent.schedule,
+            teachers: (module === 'courses' || module === 'all')
+              ? (result.studentData.teachers?.length ? result.studentData.teachers : existingStudent.teachers)
+              : existingStudent.teachers,
+            transactions: (module === 'finances' || module === 'all')
+              ? (result.studentData.transactions?.length ? result.studentData.transactions : existingStudent.transactions)
+              : existingStudent.transactions,
+            statementSummary: (module === 'finances' || module === 'all')
+              ? (result.studentData.statementSummary || existingStudent.statementSummary)
+              : existingStudent.statementSummary,
+            instalments: (module === 'finances' || module === 'all')
+              ? (result.studentData.instalments?.length ? result.studentData.instalments : existingStudent.instalments)
+              : existingStudent.instalments,
+            bankSlipFees: (module === 'finances' || module === 'all')
+              ? (result.studentData.bankSlipFees?.length ? result.studentData.bankSlipFees : existingStudent.bankSlipFees)
+              : existingStudent.bankSlipFees,
+            exams: (module === 'exams' || module === 'all')
+              ? (result.studentData.exams?.length ? result.studentData.exams : (result.exams || existingStudent.exams || []))
+              : existingStudent.exams
+          };
+        }
+
+        this.setSyncedStudent(cleanId, mergedStudent);
+        return {
+          success: true,
+          studentData: mergedStudent,
+          source: 'live_portal',
+          message: result.message || 'Presidency University SIMS data refreshed'
+        };
+      } else {
+        return {
+          success: false,
+          studentData: null as any,
+          source: 'live_portal',
+          message: result.error || 'Authentication failed. Please verify your Student ID and Password.'
+        };
+      }
+    } catch (err: any) {
+      return {
+        success: false,
+        studentData: null as any,
+        source: 'live_portal',
+        message: `Presidency SIMS network connection error: ${err.message || 'Server unreachable'}`
+      };
+    }
+  }
+
+  /**
    * On-demand lazy fetch for Exam Admit Card & routine only.
    * Authenticates with Presidency SIMS and retrieves examination routines & clearance without recrawling all other tabs.
    * Automatically updates cached student details in sync registry and localStorage.

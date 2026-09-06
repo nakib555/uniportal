@@ -46,11 +46,17 @@ export function TopNav({ portal }: TopNavProps) {
 
           {!store.isAdmin && (
             <button 
-              onClick={() => portal.setIsSyncModalOpen(true)} 
-              className={`p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 transition-colors relative flex items-center justify-center ${portal.isSyncing ? 'text-[#8c1515] dark:text-[#ef4444]' : ''}`} 
-              title="Sync with Presidency University SIMS"
+              onClick={() => portal.handleSmartRefresh()}
+              disabled={portal.isSyncing}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-stone-800/80 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 border border-stone-200/80 dark:border-stone-700/80 transition-all text-xs font-bold shadow-sm ${
+                portal.isSyncing ? 'text-[#8c1515] dark:text-[#ef4444] opacity-80' : 'active:scale-95'
+              }`} 
+              title={`Smart Refresh: Re-fetch ${portal.activeModuleInfo?.displayName || 'current section'} from SIMS (~1s)`}
             >
-              <RefreshCw className={`w-5 h-5 ${portal.isSyncing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${portal.isSyncing ? 'animate-spin text-[#8c1515] dark:text-[#ef4444]' : ''}`} />
+              <span className="hidden sm:inline-block">
+                {portal.isSyncing ? 'Syncing...' : 'Smart Refresh'}
+              </span>
             </button>
           )}
           
@@ -129,6 +135,21 @@ export function TopNav({ portal }: TopNavProps) {
           </div>
         </div>
       </div>
+
+      {/* Smart Refresh Success Pill */}
+      <AnimatePresence>
+        {portal.smartRefreshNotice && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute top-[82px] right-8 z-50 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 text-xs font-semibold px-4 py-2 rounded-full shadow-lg flex items-center gap-2 border border-stone-700/40 pointer-events-none"
+          >
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 dark:text-emerald-600" />
+            <span>{portal.smartRefreshNotice}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

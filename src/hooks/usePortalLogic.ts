@@ -14,6 +14,36 @@ export type NavItem = {
   subItems?: { id: string; label: string; icon?: any }[];
 };
 
+export type SmartRefreshModule = 'exams' | 'courses' | 'grades' | 'finances' | 'profile' | 'all';
+
+export function getModuleForTab(tab: string): { module: SmartRefreshModule; displayName: string } {
+  switch (tab) {
+    case 'exam-routine':
+    case 'exam-admit-card':
+      return { module: 'exams', displayName: 'Exam Routine & Seat Plan' };
+    case 'registered-courses':
+    case 'available-courses':
+    case 'class-schedule':
+    case 'courses':
+    case 'schedule':
+      return { module: 'courses', displayName: 'Class Routine & Courses' };
+    case 'completed-courses':
+    case 'transcript':
+    case 'degree-audit':
+    case 'academics':
+      return { module: 'grades', displayName: 'Grades & Transcripts' };
+    case 'accounts':
+    case 'statement':
+    case 'bank-slips':
+      return { module: 'finances', displayName: 'Accounts & Ledger' };
+    case 'profile':
+    case 'home':
+    case 'academic-calendar':
+    default:
+      return { module: 'profile', displayName: 'Student Profile' };
+  }
+}
+
 export const usePortalLogic = () => {
   const store = useAppStore();
   
@@ -53,55 +83,74 @@ export const usePortalLogic = () => {
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
 
   const [lastSyncTime, setLastSyncTime] = useState(Date.now());
+  const [smartRefreshNotice, setSmartRefreshNotice] = useState<string | null>(null);
 
-  const handleManualSync = async (password?: string) => {
+  const activeModuleInfo = getModuleForTab(store.activeTab);
+
+  const handleSmartRefresh = async (customPassword?: string, forceModule?: SmartRefreshModule) => {
     if (!store.currentStudentId) {
       setSyncError("No active student ID to synchronize.");
       return false;
     }
 
-    // Check temporary saved credentials if password was not provided explicitly
-    let passwordToUse = (password || '').trim();
+    const targetModule = forceModule || activeModuleInfo.module;
+    const targetDisplayName = forceModule
+      ? (forceModule === 'all' ? 'All Academic Records' : getModuleForTab(store.activeTab).displayName)
+      : activeModuleInfo.displayName;
+
+    let passwordToUse = (customPassword || '').trim();
     if (!passwordToUse) {
       const creds = tempAuthService.getTempCredentials(store.currentStudentId);
       passwordToUse = creds?.password || '';
     }
 
     if (!passwordToUse) {
-      setSyncError("Session credentials expired or missing. Please enter your SIMS password to sync.");
+      setSyncError("Session credentials expired. Please enter your SIMS password to refresh.");
       setIsSyncModalOpen(true);
       return false;
     }
-    
+
     setIsSyncing(true);
     setSyncError(null);
     setSyncSuccess(false);
 
     try {
-      const res = await PuSyncService.syncWithPresidency(store.currentStudentId, passwordToUse);
+      const res = targetModule === 'all'
+        ? await PuSyncService.syncWithPresidency(store.currentStudentId, passwordToUse, { skipAdmitCard: false })
+        : await PuSyncService.syncModule(store.currentStudentId, passwordToUse, targetModule);
+
       if (res.success && res.studentData) {
-        setRegisteredCourses(res.studentData.registeredCourses);
-        setCompletedCourses(res.studentData.completedCourses);
+        if (targetModule === 'courses' || targetModule === 'all') {
+          setRegisteredCourses(res.studentData.registeredCourses);
+        }
+        if (targetModule === 'grades' || targetModule === 'all') {
+          setCompletedCourses(res.studentData.completedCourses);
+        }
         if (res.studentData.profile?.photo) {
           setProfilePic(res.studentData.profile.photo);
         }
-        // Refresh temporary credentials timestamp if manually provided
-        if (password) {
-          tempAuthService.setTempCredentials(store.currentStudentId, password);
+        if (customPassword) {
+          tempAuthService.setTempCredentials(store.currentStudentId, customPassword);
         }
         setLastSyncTime(Date.now());
         setSyncSuccess(true);
+        setSmartRefreshNotice(`Refreshed ${targetDisplayName}`);
+        setTimeout(() => setSmartRefreshNotice(null), 3000);
         return true;
       } else {
-        setSyncError(res.message || "Failed to synchronize data from Presidency University SIMS.");
+        setSyncError(res.message || `Failed to refresh ${targetDisplayName} from Presidency University SIMS.`);
         return false;
       }
     } catch (e: any) {
-      setSyncError(e.message || "An unexpected error occurred during portal synchronization.");
+      setSyncError(e.message || "An unexpected error occurred during smart refresh.");
       return false;
     } finally {
       setIsSyncing(false);
     }
+  };
+
+  const handleManualSync = async (password?: string) => {
+    return handleSmartRefresh(password);
   };
 
   // Listen to external synced student updates (e.g. from background prefetch or Admit Card view)
@@ -507,6 +556,7 @@ export const usePortalLogic = () => {
     handleMenuToggle, handleNavClick, handleSubItemClick,
     hasCompletedPrerequisites, handleRegister, handleRegisterBundle, confirmCoreqsRegistration, handleDropCourse,
     isSyncing, setIsSyncing, syncError, setSyncError, syncSuccess, setSyncSuccess, isSyncModalOpen, setIsSyncModalOpen, handleManualSync,
+    handleSmartRefresh, smartRefreshNotice, activeModuleInfo,
     isExamSyncing, examSyncError, syncExamSchedule, lastSyncTime
   };
 };

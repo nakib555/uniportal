@@ -90,19 +90,6 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
           <h2 className="text-2xl font-black tracking-tight text-stone-900 dark:text-white">Exam Admit Card</h2>
           <p className="text-sm text-stone-500 mt-1">Download and print your official final examination entry slip.</p>
         </div>
-
-        {/* Action button to re-fetch from SIMS on demand */}
-        {!isFetching && (
-          <button
-            onClick={() => performFetch()}
-            disabled={isFetching}
-            className="flex items-center gap-1.5 text-xs font-bold text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white bg-stone-100 dark:bg-stone-800/60 hover:bg-stone-200 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-700 px-3 py-2 rounded-xl transition-all"
-            title="Refresh Admit Card from Presidency University SIMS"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
-            <span>Re-check SIMS</span>
-          </button>
-        )}
       </div>
 
       {/* 1. GHOST SKELETON + REAL-TIME PROMPT WHILE FETCHING */}
@@ -230,16 +217,13 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
             <div className="font-semibold text-stone-800 dark:text-stone-200">Notice for Students:</div>
             <div>• Admit cards are generally published 7-10 days prior to term finals.</div>
             <div>• Ensure all semester fee installments are cleared in the Accounts Office.</div>
-            <div>• If your routine was recently published, click below to re-check SIMS.</div>
+            <div>• If your routine was recently published, use Smart Refresh in the top navigation to check for updates.</div>
           </div>
 
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-3">
-            <button
-              onClick={() => performFetch()}
-              className="flex items-center gap-2 font-bold bg-[#8c1515] hover:bg-[#a11a1a] text-white px-5 py-2.5 rounded-xl shadow-md transition-all active:scale-95 text-sm"
-            >
-              <RefreshCw className="w-4 h-4" /> Re-check Presidency SIMS
-            </button>
+          <div className="flex justify-center items-center">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 text-xs font-medium border border-stone-200 dark:border-stone-700">
+              Tip: Click <strong>Smart Refresh</strong> in the top navigation anytime to query Presidency SIMS
+            </span>
           </div>
         </Card>
       )}

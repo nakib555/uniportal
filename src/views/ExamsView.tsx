@@ -117,19 +117,6 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
               <Clock className="w-3.5 h-3.5" /> Awaiting Publication
             </span>
           )}
-
-          {/* Sync / Refresh Button */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => handleSync()}
-            disabled={isSyncing}
-            className="flex items-center gap-1.5 text-xs font-bold border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-[#8c1515] dark:text-[#ef4444]' : ''}`} />
-            <span>{isSyncing ? 'Syncing...' : 'Refresh Schedule'}</span>
-          </Button>
         </div>
       </div>
 
@@ -250,16 +237,10 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
                 The Controller of Examinations has not released the examination timetable for {currentSemester} on Presidency University SIMS yet, or your routine has not been posted.
               </p>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-              <Button
-                type="button"
-                onClick={() => handleSync()}
-                disabled={isSyncing}
-                className="bg-[#8c1515] hover:bg-[#701010] text-white font-bold text-xs px-4 py-2"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isSyncing ? 'animate-spin' : ''}`} />
-                Re-check SIMS Portal
-              </Button>
+            <div className="pt-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 text-xs font-medium border border-stone-200 dark:border-stone-700">
+                Tip: Click <strong>Smart Refresh</strong> in the top navigation to check for exam routine updates
+              </span>
             </div>
           </Card>
 
