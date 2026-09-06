@@ -13,6 +13,8 @@ import {
 } from '../components/ui/dialog';
 import { Button } from '../components/ui/button';
 
+import { ProxyImage } from '../components/ProxyImage';
+
 export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLogic> }) {
   const { student, profilePic, updateProfilePhoto } = portal;
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
@@ -103,10 +105,10 @@ export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLog
               className="relative w-[98px] h-[110px] rounded-[10px] border-4 border-white dark:border-stone-900 bg-stone-100 dark:bg-stone-800 shadow-md overflow-hidden cursor-pointer group"
               title="Click to change profile photo"
             >
-              <img 
+              <ProxyImage 
                 src={profilePic || `https://api.dicebear.com/7.x/notionists/svg?seed=${student.name || 'Student'}&backgroundColor=e2e8f0`} 
+                fallbackSrc={`https://api.dicebear.com/7.x/notionists/svg?seed=${student.name || 'Student'}&backgroundColor=e2e8f0`}
                 alt={student.name}
-                onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${student.name || 'Student'}&backgroundColor=e2e8f0` }}
                 className="w-full h-full object-contain"
               />
               <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">

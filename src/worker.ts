@@ -4,6 +4,38 @@ export default {
   async fetch(request: Request, env: any, ctx: any): Promise<Response> {
     const url = new URL(request.url);
 
+    if (url.pathname === '/api/proxy-image') {
+      const targetUrl = url.searchParams.get('url');
+      if (!targetUrl) {
+        return new Response('Missing url parameter', { status: 400 });
+      }
+      try {
+        const targetRes = await fetch(targetUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Referer': 'http://sims.pu.edu.bd/students/profile'
+          }
+        });
+        
+        // Prevent downloading "No Image Available" generic placeholders
+        if (/no[_\-]?photo|no[_\-]?image|not[_\-]?available|default|blank|avatar/i.test(targetRes.url)) {
+          return new Response('Placeholder image', { status: 404 });
+        }
+        
+        const contentType = targetRes.headers.get('content-type') || 'application/octet-stream';
+        return new Response(targetRes.body, {
+          status: targetRes.status,
+          headers: {
+            'Content-Type': contentType,
+            'Access-Control-Allow-Origin': '*',
+            'Cache-Control': 'public, max-age=86400'
+          }
+        });
+      } catch (err) {
+        return new Response('Failed to fetch image', { status: 500 });
+      }
+    }
+
     // Only handle POST requests on /api/pu-sync
     if (url.pathname === '/api/pu-sync') {
       // CORS preflight options request

@@ -93,6 +93,8 @@ const Badge: React.FC<{ children: React.ReactNode, variant?: "default" | "succes
 import { useAppStore } from '../../store';
 
 import { usePortalLogic } from '../../hooks/usePortalLogic';
+import { ProxyImage } from '../ProxyImage';
+
 export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
   const {
     store, is24HourFormat, setIs24HourFormat, profilePic,
@@ -261,7 +263,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
         {/* User profile brief */}
         <div className={`m-4 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/50 overflow-hidden transition-all shrink-0 ${isSidebarCollapsed ? 'p-2' : 'p-3'}`}>
           <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-3 mb-3'}`}>
-            <img src={profilePic || `https://api.dicebear.com/7.x/notionists/svg?seed=${student.name}`} onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${student.name}` }} alt="Profile" className={`rounded-full bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 object-cover ${isSidebarCollapsed ? 'w-10 h-10' : 'w-10 h-10'}`} />
+            <ProxyImage src={profilePic || `https://api.dicebear.com/7.x/notionists/svg?seed=${student.name}`} fallbackSrc={`https://api.dicebear.com/7.x/notionists/svg?seed=${student.name}`} alt="Profile" className={`rounded-full bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 object-cover ${isSidebarCollapsed ? 'w-10 h-10' : 'w-10 h-10'}`} />
             {!isSidebarCollapsed && (
               <div className="min-w-0">
                 <p className="text-[13px] font-bold text-stone-900 dark:text-stone-100 truncate">{isAdmin ? 'Dr. Sarah Connor' : student.name}</p>
@@ -613,7 +615,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
                   <Card className="overflow-hidden">
                     <div className="h-32 md:h-40 bg-stone-100 dark:bg-stone-800 flex items-center p-6 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] dark:bg-blend-overlay dark:opacity-80 relative border-b border-stone-200 dark:border-stone-800">
                       <div className="absolute -bottom-16 left-8 w-[98px] h-[110px] rounded-[10px] border-4 border-white dark:border-stone-900 bg-stone-100 dark:bg-stone-800 shadow-md overflow-hidden z-10">
-                        <img src={profilePic || `https://api.dicebear.com/7.x/notionists/svg?seed=${student.name}&backgroundColor=e2e8f0`} onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${student.name}&backgroundColor=e2e8f0` }} alt="Avatar" className="w-full h-full object-contain" />
+                        <ProxyImage src={profilePic || `https://api.dicebear.com/7.x/notionists/svg?seed=${student.name}&backgroundColor=e2e8f0`} fallbackSrc={`https://api.dicebear.com/7.x/notionists/svg?seed=${student.name}&backgroundColor=e2e8f0`} alt="Avatar" className="w-full h-full object-contain" />
                       </div>
                     </div>
                     

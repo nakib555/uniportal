@@ -3,6 +3,8 @@ import { useAppStore } from '../../store';
 import { LogOut, Sun, Moon, Book, FileText, Calendar, Users, DollarSign, BookMarked, Settings, Clock, User } from 'lucide-react';
 import { getStudentData } from '../../data';
 
+import { ProxyImage } from '../ProxyImage';
+
 const getGreeting = () => {
   const hour = new Date().getHours();
   if (hour < 12) return 'Good Morning';
@@ -63,11 +65,9 @@ export const Header: React.FC = () => {
             <div className="font-mono text-sm font-bold text-stone-900 dark:text-white leading-none">{student.id}</div>
           </div>
           <div className="relative">
-            <img 
+            <ProxyImage 
                src={profilePic || `https://api.dicebear.com/7.x/notionists/svg?seed=${student.name}`}
-               onError={(e) => {
-                  e.currentTarget.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${student.name}`;
-               }}
+               fallbackSrc={`https://api.dicebear.com/7.x/notionists/svg?seed=${student.name}`}
                alt={student.name} 
                className="w-10 h-10 md:w-11 md:h-11 rounded-full object-cover shadow-sm ring-2 ring-stone-100 dark:ring-stone-800"
             />

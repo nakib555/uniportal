@@ -1123,6 +1123,42 @@ export function puSyncPlugin() {
     });
   };
 
+  const proxyImageHandler = async (req: any, res: any) => {
+    try {
+      const urlString = new URL(req.url || '/', 'http://localhost').searchParams.get('url');
+      if (!urlString) {
+        res.statusCode = 400;
+        res.end('Missing url parameter');
+        return;
+      }
+      
+      const targetRes = await fetch(urlString, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Referer': 'http://sims.pu.edu.bd/students/profile'
+        }
+      });
+      
+      if (/no[_\-]?photo|no[_\-]?image|not[_\-]?available|default|blank|avatar/i.test(targetRes.url)) {
+        res.statusCode = 404;
+        res.end('Placeholder image');
+        return;
+      }
+      
+      const contentType = targetRes.headers.get('content-type') || 'application/octet-stream';
+      res.statusCode = targetRes.status;
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      
+      const arrayBuffer = await targetRes.arrayBuffer();
+      res.end(Buffer.from(arrayBuffer));
+    } catch (err) {
+      res.statusCode = 500;
+      res.end('Failed to fetch image');
+    }
+  };
+
   return {
     name: 'pu-sync-api',
     configureServer(server: any) {
@@ -1136,6 +1172,7 @@ export function puSyncPlugin() {
         };
       }
       server.middlewares.use('/api/pu-sync', handler);
+      server.middlewares.use('/api/proxy-image', proxyImageHandler);
     },
     configurePreviewServer(server: any) {
       if (!server.ws) {
@@ -1148,6 +1185,7 @@ export function puSyncPlugin() {
         };
       }
       server.middlewares.use('/api/pu-sync', handler);
+      server.middlewares.use('/api/proxy-image', proxyImageHandler);
     }
   };
 }
