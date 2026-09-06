@@ -21,3 +21,37 @@ export const Badge: React.FC<{ children: React.ReactNode, variant?: "default" | 
     </span>
   );
 };
+
+export const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+  size?: 'sm' | 'md' | 'lg';
+}> = ({
+  children,
+  variant = 'primary',
+  size = 'md',
+  className = '',
+  ...props
+}) => {
+  const base = 'inline-flex items-center justify-center font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed rounded-xl';
+  const sizes = {
+    sm: 'px-3 py-1.5 text-xs',
+    md: 'px-4 py-2 text-sm',
+    lg: 'px-5 py-2.5 text-base'
+  };
+  const variants = {
+    primary: 'bg-[#8c1515] hover:bg-[#701010] text-white shadow-sm',
+    secondary: 'bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200',
+    outline: 'border border-stone-300 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300',
+    ghost: 'hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-600 dark:text-stone-300',
+    danger: 'bg-red-600 hover:bg-red-700 text-white'
+  };
+
+  return (
+    <button
+      className={`${base} ${sizes[size]} ${variants[variant]} ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};

@@ -256,7 +256,7 @@ export async function executePresidencySync(
     let targetStructure = STRUCTURE;
     if (options.admitCardOnly) {
       targetStructure = STRUCTURE.filter(
-        item => item.tabName === 'Exam Admit Card' || item.tabName === 'Exam Schedule' || item.tabName === 'Profile'
+        item => item.tabName === 'Exam Admit Card' || item.tabName === 'Exam Schedule' || item.tabName === 'Profile' || item.tabName === 'Class Routine & Registered Courses'
       );
     } else if (options.skipAdmitCard) {
       targetStructure = STRUCTURE.filter(
@@ -658,95 +658,267 @@ export async function executePresidencySync(
       }
     });
 
-    // (e) Exam Schedule & Exam Admit Card Parsing
+    // (e) Adaptive Exam Schedule & Exam Admit Card Parsing
     const admitCardHtml = tabMap.get('Exam Admit Card') || '';
     const examSchedHtml = tabMap.get('Exam Schedule') || '';
     const securityCodeMap: Record<string, string> = {};
-    const exams: StudentDetails['exams'] = [];
-    const seenExams = new Set<string>();
+    const examsMap = new Map<string, StudentDetails['exams'][number]>();
 
+    const normalizeCode = (c: string) => (c || '').replace(/[\s\-_]/g, '').toUpperCase();
+
+    // 1. Parse Admit Card HTML (security code table and schedule table if present)
     if (admitCardHtml) {
       const $admit = cheerio.load(admitCardHtml);
+
+      // Extract security codes (e.g., 4 to 8-digit numeric code assigned to course)
       $admit('table tr').each((_, tr) => {
         const tds = $admit(tr).find('td');
         if (tds.length >= 2) {
-          const secCode = cleanText($admit(tds[0]).text());
-          const course = cleanText($admit(tds[1]).text());
-          if (secCode && course && /^\d+$/.test(secCode)) {
-            securityCodeMap[course] = secCode;
-          }
-        }
-
-        // Dual parsing: If Admit Card table contains complete schedule fields (10 columns including Security Code)
-        if (tds.length >= 9) {
-          const secCode = cleanText($admit(tds[0]).text());
-          const courseCode = cleanText($admit(tds[1]).text());
-          const section = cleanText($admit(tds[2]).text());
-          const day = cleanText($admit(tds[3]).text());
-          const date = cleanText($admit(tds[4]).text());
-          const start = cleanText($admit(tds[5]).text());
-          const end = cleanText($admit(tds[6]).text());
-          const room = cleanText($admit(tds[7]).text());
-          const faculty = cleanText($admit(tds[8]).text());
-          const semester = tds.length > 9 ? cleanText($admit(tds[9]).text()) : (profile.currentSemester || 'Current');
-
-          if (courseCode && courseCode.toUpperCase() !== 'COURSE' && /^\d+$/.test(secCode)) {
-            seenExams.add(courseCode);
-            exams.push({
-              securityCode: secCode,
-              courseCode,
-              title: courseCode,
-              section,
-              type: 'Final Examination',
-              day,
-              date,
-              time: `${start} - ${end}`,
-              room,
-              campus: 'Gulshan',
-              faculty,
-              semester
-            });
+          const c0 = cleanText($admit(tds[0]).text());
+          const c1 = cleanText($admit(tds[1]).text());
+          if (/^\d{3,8}$/.test(c0) && /[A-Za-z]{2,5}\s*\d{3}/.test(c1)) {
+            securityCodeMap[normalizeCode(c1)] = c0;
+          } else if (/^\d{3,8}$/.test(c1) && /[A-Za-z]{2,5}\s*\d{3}/.test(c0)) {
+            securityCodeMap[normalizeCode(c0)] = c1;
           }
         }
       });
+
+      // Parse Admit Card tables for complete exam routine
+      $admit('table').each((_, table) => {
+        const $tbl = $admit(table);
+        const colMap: Record<string, number> = {};
+        let headerRowFound = false;
+
+        $tbl.find('tr').each((_, tr) => {
+          const cells = $admit(tr).find('th, td');
+          if (cells.length < 3) return;
+
+          const cellTexts = cells.map((_, c) => cleanText($admit(c).text()).toLowerCase()).get();
+          const hasHeaderKeywords = cellTexts.some(t => 
+            t.includes('course') || t.includes('code') || t.includes('date') || t.includes('time') || t.includes('room')
+          );
+
+          if (!headerRowFound && (cells.is('th') || hasHeaderKeywords)) {
+            cellTexts.forEach((txt, idx) => {
+              if ((txt.includes('course') || txt.includes('code')) && !txt.includes('title') && !txt.includes('name')) colMap['code'] = idx;
+              else if (txt.includes('title') || txt.includes('name')) colMap['title'] = idx;
+              else if (txt.includes('sec')) colMap['section'] = idx;
+              else if (txt.includes('day')) colMap['day'] = idx;
+              else if (txt.includes('date')) colMap['date'] = idx;
+              else if (txt.includes('time') || txt.includes('slot') || txt.includes('schedule')) colMap['time'] = idx;
+              else if (txt.includes('start') || txt.includes('from')) colMap['start'] = idx;
+              else if (txt.includes('end') || txt.includes('to')) colMap['end'] = idx;
+              else if (txt.includes('room') || txt.includes('hall')) colMap['room'] = idx;
+              else if (txt.includes('campus')) colMap['campus'] = idx;
+              else if (txt.includes('faculty') || txt.includes('teacher') || txt.includes('instructor')) colMap['faculty'] = idx;
+              else if (txt.includes('security') || txt.includes('token') || txt.includes('slip')) colMap['securityCode'] = idx;
+              else if (txt.includes('semester')) colMap['semester'] = idx;
+            });
+            headerRowFound = true;
+            return;
+          }
+
+          const rawTexts = cells.map((_, c) => cleanText($admit(c).text())).get();
+          let courseCode = '';
+          let courseTitle = '';
+          let section = '1';
+          let day = '';
+          let date = '';
+          let time = '';
+          let room = '';
+          let campus = 'Gulshan';
+          let faculty = '';
+          let secCode = '';
+          let semester = profile.currentSemester || 'Current';
+
+          if (Object.keys(colMap).length >= 3) {
+            if (colMap['code'] !== undefined) courseCode = rawTexts[colMap['code']] || '';
+            if (colMap['title'] !== undefined) courseTitle = rawTexts[colMap['title']] || '';
+            if (colMap['section'] !== undefined) section = rawTexts[colMap['section']] || '1';
+            if (colMap['day'] !== undefined) day = rawTexts[colMap['day']] || '';
+            if (colMap['date'] !== undefined) date = rawTexts[colMap['date']] || '';
+            if (colMap['time'] !== undefined) time = rawTexts[colMap['time']] || '';
+            else if (colMap['start'] !== undefined && colMap['end'] !== undefined) {
+              time = `${rawTexts[colMap['start']] || ''} - ${rawTexts[colMap['end']] || ''}`.trim();
+            }
+            if (colMap['room'] !== undefined) room = rawTexts[colMap['room']] || '';
+            if (colMap['campus'] !== undefined) campus = rawTexts[colMap['campus']] || 'Gulshan';
+            if (colMap['faculty'] !== undefined) faculty = rawTexts[colMap['faculty']] || '';
+            if (colMap['securityCode'] !== undefined) secCode = rawTexts[colMap['securityCode']] || '';
+            if (colMap['semester'] !== undefined) semester = rawTexts[colMap['semester']] || semester;
+          } else if (cells.length >= 7) {
+            // Positional heuristic fallback
+            for (let i = 0; i < rawTexts.length; i++) {
+              const val = rawTexts[i];
+              if (!courseCode && /^[A-Za-z]{2,5}\s*[-]?\s*\d{3}[A-Za-z]?$/.test(val)) {
+                courseCode = val;
+              } else if (!secCode && /^\d{3,8}$/.test(val) && i <= 1) {
+                secCode = val;
+              } else if (!day && /^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)$/i.test(val)) {
+                day = val;
+              } else if (!date && /\b(\d{1,2}[-/.]\w+[-/.]\d{2,4}|\w+\s+\d{1,2},?\s+\d{4})\b/.test(val)) {
+                date = val;
+              } else if (!time && /\d{1,2}:\d{2}/.test(val)) {
+                time = val;
+                if (i + 1 < rawTexts.length && /\d{1,2}:\d{2}/.test(rawTexts[i + 1])) {
+                  time = `${val} - ${rawTexts[i + 1]}`;
+                  i++;
+                }
+              } else if (!room && /(?:Room|R|G|B)?[- ]?\d{3,4}/i.test(val) && val.length <= 12) {
+                room = val;
+              }
+            }
+          }
+
+          if (courseCode && courseCode.toUpperCase() !== 'COURSE' && (date || day || time || room)) {
+            const norm = normalizeCode(courseCode);
+            const matchedCourse = registeredCourses.find(c => normalizeCode(c.code) === norm);
+            const fullTitle = courseTitle || matchedCourse?.title || courseCode;
+            const finalSecCode = secCode || securityCodeMap[norm] || '';
+
+            examsMap.set(norm, {
+              securityCode: finalSecCode,
+              courseCode,
+              title: fullTitle,
+              section: section || matchedCourse?.section || '1',
+              type: 'Final Examination',
+              day: day || 'TBA',
+              date: date || 'TBA',
+              time: time || 'TBA',
+              room: room || 'TBA',
+              campus: campus || 'Gulshan',
+              faculty: faculty || matchedCourse?.faculty || '',
+              semester: semester || profile.currentSemester || 'Current'
+            });
+          }
+        });
+      });
     }
 
-    const $exam = cheerio.load(examSchedHtml);
-    $exam('table tr').each((_, tr) => {
-      const tds = $exam(tr).find('td');
-      if (tds.length >= 8) {
-        const courseCode = cleanText($exam(tds[0]).text());
-        const section = cleanText($exam(tds[1]).text());
-        const day = cleanText($exam(tds[2]).text());
-        const date = cleanText($exam(tds[3]).text());
-        const start = cleanText($exam(tds[4]).text());
-        const end = cleanText($exam(tds[5]).text());
-        const room = cleanText($exam(tds[6]).text());
-        const campus = cleanText($exam(tds[7]).text());
-        const faculty = tds.length > 8 ? cleanText($exam(tds[8]).text()) : '';
-        const semester = tds.length > 9 ? cleanText($exam(tds[9]).text()) : (profile.currentSemester || 'Current');
+    // 2. Parse Exam Schedule HTML
+    if (examSchedHtml) {
+      const $exam = cheerio.load(examSchedHtml);
+      $exam('table').each((_, table) => {
+        const $tbl = $exam(table);
+        const colMap: Record<string, number> = {};
+        let headerRowFound = false;
 
-        if (courseCode && courseCode.toUpperCase() !== 'COURSE' && day && !seenExams.has(courseCode)) {
-          const matchedCourse = registeredCourses.find(c => c.code.toLowerCase() === courseCode.toLowerCase());
-          const fullTitle = matchedCourse?.title || courseCode;
+        $tbl.find('tr').each((_, tr) => {
+          const cells = $exam(tr).find('th, td');
+          if (cells.length < 3) return;
 
-          exams.push({
-            securityCode: securityCodeMap[courseCode] || '',
-            courseCode,
-            title: fullTitle,
-            section,
-            type: 'Final Examination',
-            day,
-            date,
-            time: `${start} - ${end}`,
-            room,
-            campus: campus || 'Gulshan',
-            faculty,
-            semester
-          });
-        }
-      }
-    });
+          const cellTexts = cells.map((_, c) => cleanText($exam(c).text()).toLowerCase()).get();
+          const hasHeaderKeywords = cellTexts.some(t => 
+            t.includes('course') || t.includes('code') || t.includes('date') || t.includes('time') || t.includes('room')
+          );
+
+          if (!headerRowFound && (cells.is('th') || hasHeaderKeywords)) {
+            cellTexts.forEach((txt, idx) => {
+              if ((txt.includes('course') || txt.includes('code')) && !txt.includes('title') && !txt.includes('name')) colMap['code'] = idx;
+              else if (txt.includes('title') || txt.includes('name')) colMap['title'] = idx;
+              else if (txt.includes('sec')) colMap['section'] = idx;
+              else if (txt.includes('day')) colMap['day'] = idx;
+              else if (txt.includes('date')) colMap['date'] = idx;
+              else if (txt.includes('time') || txt.includes('slot') || txt.includes('schedule')) colMap['time'] = idx;
+              else if (txt.includes('start') || txt.includes('from')) colMap['start'] = idx;
+              else if (txt.includes('end') || txt.includes('to')) colMap['end'] = idx;
+              else if (txt.includes('room') || txt.includes('hall')) colMap['room'] = idx;
+              else if (txt.includes('campus')) colMap['campus'] = idx;
+              else if (txt.includes('faculty') || txt.includes('teacher') || txt.includes('instructor')) colMap['faculty'] = idx;
+              else if (txt.includes('semester')) colMap['semester'] = idx;
+            });
+            headerRowFound = true;
+            return;
+          }
+
+          const rawTexts = cells.map((_, c) => cleanText($exam(c).text())).get();
+          let courseCode = '';
+          let courseTitle = '';
+          let section = '1';
+          let day = '';
+          let date = '';
+          let time = '';
+          let room = '';
+          let campus = 'Gulshan';
+          let faculty = '';
+          let semester = profile.currentSemester || 'Current';
+
+          if (Object.keys(colMap).length >= 3) {
+            if (colMap['code'] !== undefined) courseCode = rawTexts[colMap['code']] || '';
+            if (colMap['title'] !== undefined) courseTitle = rawTexts[colMap['title']] || '';
+            if (colMap['section'] !== undefined) section = rawTexts[colMap['section']] || '1';
+            if (colMap['day'] !== undefined) day = rawTexts[colMap['day']] || '';
+            if (colMap['date'] !== undefined) date = rawTexts[colMap['date']] || '';
+            if (colMap['time'] !== undefined) time = rawTexts[colMap['time']] || '';
+            else if (colMap['start'] !== undefined && colMap['end'] !== undefined) {
+              time = `${rawTexts[colMap['start']] || ''} - ${rawTexts[colMap['end']] || ''}`.trim();
+            }
+            if (colMap['room'] !== undefined) room = rawTexts[colMap['room']] || '';
+            if (colMap['campus'] !== undefined) campus = rawTexts[colMap['campus']] || 'Gulshan';
+            if (colMap['faculty'] !== undefined) faculty = rawTexts[colMap['faculty']] || '';
+            if (colMap['semester'] !== undefined) semester = rawTexts[colMap['semester']] || semester;
+          } else if (cells.length >= 8) {
+            // Positional fallback matching SIMS standard 8-column layout
+            courseCode = rawTexts[0] || '';
+            section = rawTexts[1] || '1';
+            day = rawTexts[2] || '';
+            date = rawTexts[3] || '';
+            const start = rawTexts[4] || '';
+            const end = rawTexts[5] || '';
+            time = start && end ? `${start} - ${end}` : (start || end);
+            room = rawTexts[6] || '';
+            campus = rawTexts[7] || 'Gulshan';
+            faculty = rawTexts.length > 8 ? rawTexts[8] : '';
+            semester = rawTexts.length > 9 ? rawTexts[9] : semester;
+          } else {
+            // Heuristic extraction
+            for (let i = 0; i < rawTexts.length; i++) {
+              const val = rawTexts[i];
+              if (!courseCode && /^[A-Za-z]{2,5}\s*[-]?\s*\d{3}[A-Za-z]?$/.test(val)) {
+                courseCode = val;
+              } else if (!day && /^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)$/i.test(val)) {
+                day = val;
+              } else if (!date && /\b(\d{1,2}[-/.]\w+[-/.]\d{2,4}|\w+\s+\d{1,2},?\s+\d{4})\b/.test(val)) {
+                date = val;
+              } else if (!time && /\d{1,2}:\d{2}/.test(val)) {
+                time = val;
+                if (i + 1 < rawTexts.length && /\d{1,2}:\d{2}/.test(rawTexts[i + 1])) {
+                  time = `${val} - ${rawTexts[i + 1]}`;
+                  i++;
+                }
+              } else if (!room && /(?:Room|R|G|B)?[- ]?\d{3,4}/i.test(val) && val.length <= 12) {
+                room = val;
+              }
+            }
+          }
+
+          if (courseCode && courseCode.toUpperCase() !== 'COURSE' && (date || day || time || room)) {
+            const norm = normalizeCode(courseCode);
+            const matchedCourse = registeredCourses.find(c => normalizeCode(c.code) === norm);
+            const fullTitle = courseTitle || matchedCourse?.title || courseCode;
+            const existing = examsMap.get(norm);
+
+            examsMap.set(norm, {
+              securityCode: existing?.securityCode || securityCodeMap[norm] || '',
+              courseCode: courseCode || existing?.courseCode || '',
+              title: fullTitle || existing?.title || courseCode,
+              section: section || existing?.section || matchedCourse?.section || '1',
+              type: 'Final Examination',
+              day: day || existing?.day || 'TBA',
+              date: date || existing?.date || 'TBA',
+              time: time || existing?.time || 'TBA',
+              room: room || existing?.room || 'TBA',
+              campus: campus || existing?.campus || 'Gulshan',
+              faculty: faculty || existing?.faculty || matchedCourse?.faculty || '',
+              semester: semester || existing?.semester || profile.currentSemester || 'Current'
+            });
+          }
+        });
+      });
+    }
+
+    const exams: StudentDetails['exams'] = Array.from(examsMap.values());
 
     // (f) Transactions Parsing
     let transHtml = '';

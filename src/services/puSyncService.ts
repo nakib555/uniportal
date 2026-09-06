@@ -6,7 +6,32 @@ const syncedStudentRegistry: Record<string, StudentDetails> = {};
 const STORAGE_PREFIX = 'pu_synced_student_';
 const ACTIVE_STUDENT_KEY = 'pu_active_student_id';
 
+type SyncListener = (studentId: string, details: StudentDetails) => void;
+const syncListeners = new Set<SyncListener>();
+
 export class PuSyncService {
+  /**
+   * Subscribes to synced student data updates
+   */
+  public static subscribe(listener: SyncListener): () => void {
+    syncListeners.add(listener);
+    return () => {
+      syncListeners.delete(listener);
+    };
+  }
+
+  /**
+   * Notifies all active subscribers of updated student data
+   */
+  public static notify(studentId: string, details: StudentDetails): void {
+    syncListeners.forEach(listener => {
+      try {
+        listener(studentId, details);
+      } catch (err) {
+        console.error('Error in PuSyncService subscriber:', err);
+      }
+    });
+  }
   /**
    * Retrieves any cached synced student data from memory or localStorage, or null if none
    */
@@ -61,6 +86,8 @@ export class PuSyncService {
         console.error('Error saving synced student to storage:', e);
       }
     }
+
+    this.notify(cleanId, details);
   }
 
   /**
@@ -262,20 +289,42 @@ export class PuSyncService {
 
         // Update local registry with newly fetched exams and balance restriction if needed
         const existingStudent = this.getSyncedStudent(cleanId);
-        if (existingStudent) {
-          const updatedStudent: StudentDetails = {
-            ...existingStudent,
-            exams,
-            profile: {
-              ...existingStudent.profile,
-              // If SIMS reported restriction and balance wasn't negative, reflect restriction
-              accountBalance: hasRestriction && existingStudent.profile.accountBalance >= 0
-                ? -1
-                : existingStudent.profile.accountBalance
-            }
-          };
-          this.setSyncedStudent(cleanId, updatedStudent);
-        }
+        const baseStudent: StudentDetails = existingStudent || {
+          profile: {
+            id: cleanId,
+            name: 'Presidency University Student',
+            admissionSemester: '',
+            currentSemester: 'Current',
+            program: 'Academic Program',
+            creditsTaken: 0,
+            creditsCompleted: 0,
+            cgpa: 0,
+            accountBalance: 0,
+            email: `${cleanId}@presidency.edu.bd`,
+            status: 'Active'
+          },
+          registeredCourses: [],
+          completedCourses: [],
+          schedule: [],
+          transactions: [],
+          teachers: [],
+          exams: [],
+          statementSummary: null,
+          bankSlipFees: []
+        };
+
+        const updatedStudent: StudentDetails = {
+          ...baseStudent,
+          exams,
+          profile: {
+            ...baseStudent.profile,
+            // If SIMS reported restriction and balance wasn't negative, reflect restriction
+            accountBalance: hasRestriction && baseStudent.profile.accountBalance >= 0
+              ? -1
+              : baseStudent.profile.accountBalance
+          }
+        };
+        this.setSyncedStudent(cleanId, updatedStudent);
 
         return {
           success: true,

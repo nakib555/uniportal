@@ -147,6 +147,11 @@ export const LoginView: React.FC = () => {
         setIsAdmin(false);
         useAppStore.getState().setActiveTab('home');
         setIsLoggedIn(true);
+
+        // Non-blocking background prefetch for Exam Routine & Admit Card
+        PuSyncService.fetchAdmitCardOnly(cleanId, password).catch((err) => {
+          console.warn('[LoginView] Background exam prefetch error:', err?.message || err);
+        });
       } else {
         setError(syncResult.message || 'Unable to synchronize student portal records.');
       }

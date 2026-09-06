@@ -103,6 +103,58 @@ export const usePortalLogic = () => {
       setIsSyncing(false);
     }
   };
+
+  // Listen to external synced student updates (e.g. from background prefetch or Admit Card view)
+  useEffect(() => {
+    const unsubscribe = PuSyncService.subscribe((updatedId) => {
+      if (!store.currentStudentId || updatedId === store.currentStudentId) {
+        setLastSyncTime(Date.now());
+      }
+    });
+    return unsubscribe;
+  }, [store.currentStudentId]);
+
+  // Dedicated Exam Schedule & Admit Card sync helper
+  const [isExamSyncing, setIsExamSyncing] = useState(false);
+  const [examSyncError, setExamSyncError] = useState<string | null>(null);
+
+  const syncExamSchedule = async (customPassword?: string) => {
+    if (!store.currentStudentId) {
+      return { success: false, message: 'No active student ID to synchronize.', needsPassword: false };
+    }
+
+    let passwordToUse = (customPassword || '').trim();
+    if (!passwordToUse) {
+      const creds = tempAuthService.getTempCredentials(store.currentStudentId);
+      passwordToUse = creds?.password || '';
+    }
+
+    if (!passwordToUse) {
+      return { success: false, message: 'Session credentials expired. Password required to fetch exam routine.', needsPassword: true };
+    }
+
+    setIsExamSyncing(true);
+    setExamSyncError(null);
+
+    try {
+      const res = await PuSyncService.fetchAdmitCardOnly(store.currentStudentId, passwordToUse);
+      if (res.success) {
+        if (customPassword) {
+          tempAuthService.setTempCredentials(store.currentStudentId, customPassword);
+        }
+        setLastSyncTime(Date.now());
+      } else {
+        setExamSyncError(res.message);
+      }
+      return { ...res, needsPassword: false };
+    } catch (e: any) {
+      const errMsg = e.message || 'Error synchronizing exam routine from SIMS.';
+      setExamSyncError(errMsg);
+      return { success: false, message: errMsg, needsPassword: false };
+    } finally {
+      setIsExamSyncing(false);
+    }
+  };
   
   // Available course filtering & sorting
   const [courseSearchQuery, setCourseSearchQuery] = useState("");
@@ -454,6 +506,7 @@ export const usePortalLogic = () => {
     totalDebit, totalCredit, statementChartData,
     handleMenuToggle, handleNavClick, handleSubItemClick,
     hasCompletedPrerequisites, handleRegister, handleRegisterBundle, confirmCoreqsRegistration, handleDropCourse,
-    isSyncing, setIsSyncing, syncError, setSyncError, syncSuccess, setSyncSuccess, isSyncModalOpen, setIsSyncModalOpen, handleManualSync
+    isSyncing, setIsSyncing, syncError, setSyncError, syncSuccess, setSyncSuccess, isSyncModalOpen, setIsSyncModalOpen, handleManualSync,
+    isExamSyncing, examSyncError, syncExamSchedule, lastSyncTime
   };
 };

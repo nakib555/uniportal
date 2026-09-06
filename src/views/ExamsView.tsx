@@ -1,17 +1,87 @@
-import React, { useState } from 'react';
-import { Card, Badge } from '../components/ui';
-import { Calendar, MapPin, Clock, User, Building, Search, FileText, CheckCircle2, LayoutGrid, List, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Card, Badge, Button } from '../components/ui';
+import { 
+  Calendar, MapPin, Clock, User, Building, Search, FileText, 
+  CheckCircle2, LayoutGrid, List, AlertCircle, RefreshCw, Loader2, 
+  Lock, BookOpen, ExternalLink
+} from 'lucide-react';
 import { usePortalLogic } from '../hooks/usePortalLogic';
 
 export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogic> }) {
   const currentSemester = portal?.student?.currentSemester || 'Summer-26';
   const exams = portal?.studentData?.exams || [];
+  const registeredCourses = portal?.studentData?.registeredCourses || [];
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDay, setSelectedDay] = useState('ALL');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
-  const daysList = ['ALL', ...Array.from(new Set(exams.map(e => e.day)))];
+  // Sync state & password modal
+  const [isLocalSyncing, setIsLocalSyncing] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [simsPassword, setSimsPassword] = useState('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  const initialFetchAttempted = useRef(false);
+  const isSyncing = Boolean(portal?.isExamSyncing || isLocalSyncing);
+
+  // Auto-fetch exam schedule on first render if no exams are loaded
+  useEffect(() => {
+    if (initialFetchAttempted.current) return;
+    if (portal?.store?.currentStudentId && exams.length === 0) {
+      initialFetchAttempted.current = true;
+      handleSync();
+    }
+  }, [portal?.store?.currentStudentId, exams.length]);
+
+  const handleSync = async (customPass?: string) => {
+    if (!portal) return;
+    setIsLocalSyncing(true);
+    setSyncFeedback(null);
+
+    try {
+      const res = await portal.syncExamSchedule(customPass);
+      if (res.needsPassword) {
+        setIsPasswordModalOpen(true);
+        return;
+      }
+
+      if (res.success) {
+        setIsPasswordModalOpen(false);
+        setSimsPassword('');
+        setPasswordError(null);
+        setSyncFeedback({
+          type: 'success',
+          message: res.message || 'Exam schedule and admit card synced with Presidency SIMS.'
+        });
+      } else {
+        setSyncFeedback({
+          type: 'error',
+          message: res.message || 'Could not retrieve exam schedule from Presidency SIMS.'
+        });
+      }
+    } catch (err: any) {
+      setSyncFeedback({
+        type: 'error',
+        message: err?.message || 'Network error while contacting Presidency SIMS portal.'
+      });
+    } finally {
+      setIsLocalSyncing(false);
+    }
+  };
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!simsPassword.trim()) {
+      setPasswordError('Please enter your SIMS password.');
+      return;
+    }
+    setPasswordError(null);
+    handleSync(simsPassword.trim());
+  };
+
+  const daysList = ['ALL', ...Array.from(new Set(exams.map(e => e.day).filter(Boolean)))];
 
   const filteredExams = exams.filter(e => {
     const matchesSearch = 
@@ -29,25 +99,66 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">Exam Routine & Seat Plan</h2>
-          <p className="text-stone-500 dark:text-stone-400 mt-1">
-            Official examination timetable and room allocations for the running semester.
+          <p className="text-stone-500 dark:text-stone-400 mt-1 text-sm">
+            Official examination timetable, seat plan, and room allocations synchronized with Presidency University SIMS.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
           <Badge variant="outline" className="px-3 py-1.5 font-bold text-xs bg-stone-100 dark:bg-stone-800 border-stone-300 dark:border-stone-700">
             {currentSemester}
           </Badge>
+
           {exams.length > 0 ? (
             <span className="text-xs font-semibold px-2.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5" /> Published ({exams.length})
             </span>
           ) : (
-            <span className="text-xs font-semibold px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-600 dark:bg-stone-800/80 dark:text-stone-400 border border-stone-200 dark:border-stone-700 flex items-center gap-1">
+            <span className="text-xs font-semibold px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800 flex items-center gap-1">
               <Clock className="w-3.5 h-3.5" /> Awaiting Publication
             </span>
           )}
+
+          {/* Sync / Refresh Button */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => handleSync()}
+            disabled={isSyncing}
+            className="flex items-center gap-1.5 text-xs font-bold border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-[#8c1515] dark:text-[#ef4444]' : ''}`} />
+            <span>{isSyncing ? 'Syncing...' : 'Refresh Schedule'}</span>
+          </Button>
         </div>
       </div>
+
+      {/* Sync Notification Banner */}
+      {syncFeedback && (
+        <div 
+          className={`p-3.5 rounded-xl text-xs font-medium flex items-center justify-between border ${
+            syncFeedback.type === 'success' 
+              ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' 
+              : 'bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-800'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {syncFeedback.type === 'success' ? (
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            ) : (
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" />
+            )}
+            <span>{syncFeedback.message}</span>
+          </div>
+          <button 
+            type="button"
+            onClick={() => setSyncFeedback(null)}
+            className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 font-bold ml-3"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Filter / Search Bar & View Mode Switcher */}
       <Card className="p-4 bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -113,15 +224,80 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
         </div>
       </Card>
 
-      {/* Empty State */}
-      {exams.length === 0 ? (
-        <Card className="p-12 text-center text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-sm space-y-2">
-          <FileText className="w-12 h-12 mx-auto mb-2 opacity-30 text-stone-400" />
-          <p className="font-bold text-base text-stone-800 dark:text-stone-200">No Exam Routine Published Yet</p>
-          <p className="text-xs max-w-md mx-auto text-stone-500 dark:text-stone-400">
-            The exam timetable for {currentSemester} has not been published or synced from the Presidency University portal yet. Once published, your schedule and room allocations will appear here automatically.
-          </p>
+      {/* Loading Skeletons */}
+      {isSyncing && exams.length === 0 ? (
+        <Card className="p-8 border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-sm space-y-4">
+          <div className="flex items-center justify-center gap-3 py-4 text-stone-600 dark:text-stone-300">
+            <Loader2 className="w-5 h-5 animate-spin text-[#8c1515]" />
+            <span className="font-semibold text-sm">Querying Presidency University SIMS for Exam Routine & Seat Plan...</span>
+          </div>
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-12 bg-stone-100 dark:bg-stone-800 rounded-lg animate-pulse" />
+            ))}
+          </div>
         </Card>
+      ) : exams.length === 0 ? (
+        /* Empty State with Fallback Registered Courses */
+        <div className="space-y-6">
+          <Card className="p-8 text-center border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-sm space-y-4">
+            <div className="w-12 h-12 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 mx-auto flex items-center justify-center">
+              <Clock className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg text-stone-800 dark:text-stone-200">Exam Schedule Awaiting Publication</h3>
+              <p className="text-xs max-w-lg mx-auto text-stone-500 dark:text-stone-400 mt-1">
+                The Controller of Examinations has not released the examination timetable for {currentSemester} on Presidency University SIMS yet, or your routine has not been posted.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <Button
+                type="button"
+                onClick={() => handleSync()}
+                disabled={isSyncing}
+                className="bg-[#8c1515] hover:bg-[#701010] text-white font-bold text-xs px-4 py-2"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                Re-check SIMS Portal
+              </Button>
+            </div>
+          </Card>
+
+          {/* Registered Courses Awaiting Routine */}
+          {registeredCourses.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-stone-700 dark:text-stone-300">
+                <BookOpen className="w-4 h-4 text-[#8c1515]" />
+                <h4 className="font-extrabold text-sm uppercase tracking-wider">
+                  Your Enrolled Courses ({registeredCourses.length}) — Awaiting Exam Slots
+                </h4>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {registeredCourses.map((c, i) => (
+                  <Card key={c.code + i} className="p-4 bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <span className="font-mono font-black text-xs text-[#8c1515] dark:text-[#ef4444]">
+                        {c.code}
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400">
+                        Sec {c.section}
+                      </span>
+                    </div>
+                    <h5 className="font-bold text-sm text-stone-900 dark:text-white line-clamp-1 mb-2">
+                      {c.title}
+                    </h5>
+                    <div className="text-[11px] text-stone-500 dark:text-stone-400 flex items-center justify-between border-t border-stone-100 dark:border-stone-800/80 pt-2">
+                      <span>{c.credits} Credits</span>
+                      <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold">
+                        <Clock className="w-3 h-3" /> Slot TBA
+                      </span>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       ) : filteredExams.length === 0 ? (
         <Card className="p-12 text-center text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-sm space-y-2">
           <Search className="w-12 h-12 mx-auto mb-2 opacity-30 text-stone-400" />
@@ -155,7 +331,7 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
                   <th className="py-3.5 px-3">Room</th>
                   <th className="py-3.5 px-3">Campus</th>
                   <th className="py-3.5 px-4">Faculty</th>
-                  <th className="py-3.5 px-4">Semester</th>
+                  <th className="py-3.5 px-4">Security Code</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 dark:divide-stone-800/60 font-medium">
@@ -206,8 +382,14 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
                         '-'
                       )}
                     </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap font-mono text-xs text-stone-500 dark:text-stone-400">
-                      {e.semester || currentSemester}
+                    <td className="py-3.5 px-4 whitespace-nowrap font-mono text-xs">
+                      {e.securityCode ? (
+                        <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 font-bold border border-emerald-200 dark:border-emerald-800">
+                          {e.securityCode}
+                        </span>
+                      ) : (
+                        <span className="text-stone-400">-</span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -247,6 +429,12 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
                       <span>Faculty: {e.faculty}</span>
                     </div>
                   )}
+                  {e.securityCode && (
+                    <div className="flex items-center gap-2 font-mono text-[11px] pt-1">
+                      <span className="text-stone-400">Security Code:</span>
+                      <span className="font-bold text-emerald-700 dark:text-emerald-400">{e.securityCode}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -260,6 +448,72 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
               </div>
             </Card>
           ))}
+        </div>
+      )}
+
+      {/* Password Prompt Modal for SIMS Sync */}
+      {isPasswordModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+          <Card className="w-full max-w-md p-6 bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-950/50 flex items-center justify-center text-[#8c1515] dark:text-[#ef4444]">
+                <Lock className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base text-stone-900 dark:text-white">Presidency SIMS Password</h3>
+                <p className="text-xs text-stone-500 dark:text-stone-400">Required to fetch Exam Admit Card & Schedule</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed">
+              Presidency University SIMS requires session authentication to retrieve official seat allocations and security codes.
+            </p>
+
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">
+                  SIMS Portal Password
+                </label>
+                <input
+                  type="password"
+                  value={simsPassword}
+                  onChange={(e) => setSimsPassword(e.target.value)}
+                  placeholder="Enter your student portal password"
+                  autoFocus
+                  className="w-full px-3 py-2 text-sm bg-stone-50 dark:bg-stone-950 border border-stone-300 dark:border-stone-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8c1515]"
+                />
+                {passwordError && (
+                  <p className="text-rose-600 text-xs font-semibold mt-1">{passwordError}</p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsPasswordModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={isSyncing}
+                  className="bg-[#8c1515] hover:bg-[#701010] text-white font-bold"
+                >
+                  {isSyncing ? (
+                    <span className="flex items-center gap-1.5">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Syncing...
+                    </span>
+                  ) : (
+                    'Fetch Schedule'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Card>
         </div>
       )}
     </div>
