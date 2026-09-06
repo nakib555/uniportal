@@ -104,7 +104,7 @@ export function ProfileView({ portal }: { portal: ReturnType<typeof usePortalLog
               title="Click to change profile photo"
             >
               <img 
-                src={profilePic} 
+                src={profilePic || `https://api.dicebear.com/7.x/notionists/svg?seed=${student.name || 'Student'}&backgroundColor=e2e8f0`} 
                 alt={student.name}
                 onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${student.name || 'Student'}&backgroundColor=e2e8f0` }}
                 className="w-full h-full object-contain"

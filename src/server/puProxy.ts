@@ -371,6 +371,12 @@ export async function executePresidencySync(
           }
         }
         
+        // Prevent downloading "No Image Available" generic placeholders
+        if (/no[_\-]?photo|no[_\-]?image|not[_\-]?available|default|blank|avatar/i.test(curPhotoUrl)) {
+          finalBuffer = null;
+          break;
+        }
+
         if (photoRes.ok) {
           const contentType = photoRes.headers.get('content-type') || '';
           if (contentType.toLowerCase().includes('image') || contentType.toLowerCase().includes('octet-stream') || photoRes.headers.get('content-length')) {
@@ -393,33 +399,44 @@ export async function executePresidencySync(
         let imgSrc = $profPhoto('img.profile-user-img').attr('src') || $profPhoto('img.img-circle').attr('src') || $profPhoto('img[src*="student"]').attr('src');
         
         if (imgSrc) {
-           if (!imgSrc.startsWith('http')) {
+           if (/no[_\-]?photo|no[_\-]?image|not[_\-]?available|default|blank|avatar/i.test(imgSrc)) {
+             imgSrc = ''; // Ignore placeholder image
+           } else if (!imgSrc.startsWith('http')) {
              imgSrc = `${SIMS_BASE}${imgSrc.startsWith('/') ? '' : '/'}${imgSrc}`;
            }
-           curPhotoUrl = imgSrc;
-           for (let i = 0; i < 5; i++) {
-             const photoHeaders: Record<string, string> = { ...commonHeaders, 'Referer': `${SIMS_BASE}/students/profile` };
-             const cookieHeader = cookieJar.getCookieHeader();
-             if (cookieHeader) photoHeaders['Cookie'] = cookieHeader;
-             
-             photoRes = await fetch(curPhotoUrl, { headers: photoHeaders, redirect: 'manual' });
-             cookieJar.updateFromResponse(photoRes);
-             
-             if ([301, 302, 303, 307, 308].includes(photoRes.status)) {
-               const loc = photoRes.headers.get('location');
-               if (loc) { curPhotoUrl = new URL(loc, curPhotoUrl).toString(); continue; }
+           
+           if (imgSrc) {
+             curPhotoUrl = imgSrc;
+             for (let i = 0; i < 5; i++) {
+               const photoHeaders: Record<string, string> = { ...commonHeaders, 'Referer': `${SIMS_BASE}/students/profile` };
+               const cookieHeader = cookieJar.getCookieHeader();
+               if (cookieHeader) photoHeaders['Cookie'] = cookieHeader;
+               
+               photoRes = await fetch(curPhotoUrl, { headers: photoHeaders, redirect: 'manual' });
+               cookieJar.updateFromResponse(photoRes);
+               
+               if ([301, 302, 303, 307, 308].includes(photoRes.status)) {
+                 const loc = photoRes.headers.get('location');
+                 if (loc) { curPhotoUrl = new URL(loc, curPhotoUrl).toString(); continue; }
+               }
+               
+               // Prevent downloading "No Image Available" generic placeholders
+               if (/no[_\-]?photo|no[_\-]?image|not[_\-]?available|default|blank|avatar/i.test(curPhotoUrl)) {
+                 finalBuffer = null;
+                 break;
+               }
+  
+               if (photoRes.ok) {
+                 const contentType = photoRes.headers.get('content-type') || '';
+                 const arrayBuffer = await photoRes.arrayBuffer();
+                 finalBuffer = Buffer.from(arrayBuffer);
+                 if (contentType.toLowerCase().includes('image')) finalMime = contentType;
+               }
+               break;
              }
-             
-             if (photoRes.ok) {
-               const contentType = photoRes.headers.get('content-type') || '';
-               const arrayBuffer = await photoRes.arrayBuffer();
-               finalBuffer = Buffer.from(arrayBuffer);
-               if (contentType.toLowerCase().includes('image')) finalMime = contentType;
+             if (finalBuffer && finalBuffer.length > 100) {
+               photoDataBase64 = `data:${finalMime};base64,${finalBuffer.toString('base64')}`;
              }
-             break;
-           }
-           if (finalBuffer && finalBuffer.length > 100) {
-             photoDataBase64 = `data:${finalMime};base64,${finalBuffer.toString('base64')}`;
            }
         }
       }

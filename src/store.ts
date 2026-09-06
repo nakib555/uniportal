@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Course, REGISTERED_COURSES, COMPLETED_COURSES } from './data';
 import { tempAuthService } from './services/tempAuthService';
+import { PuSyncService } from './services/puSyncService';
 
 interface AppState {
   // Navigation
@@ -164,10 +165,12 @@ export const useAppStore = create<AppState>((set) => ({
           }
         }
         tempAuthService.clearTempCredentials();
+        PuSyncService.clearSyncedStudent(); // Clears all local storage cached students
       }
     }
     if (!v) {
       tempAuthService.clearTempCredentials();
+      PuSyncService.clearSyncedStudent(); // Double check clear
       
       let isAutoLogout = false;
       if (typeof window !== 'undefined' && window.localStorage) {
@@ -191,7 +194,16 @@ export const useAppStore = create<AppState>((set) => ({
         isMobileMenuOpen: false,
         isSidebarCollapsed: false,
         isSelectionLocked: false,
-        selectedSyllabusCourse: null
+        selectedSyllabusCourse: null,
+        // Wipe all fetched data in memory
+        registeredCourses: [],
+        completedCourses: [],
+        notices: [],
+        pendingApprovals: [],
+        topNotifications: [],
+        students: [],
+        coursesData: [],
+        profilePic: '',
       });
       return;
     }
@@ -273,7 +285,7 @@ export const useAppStore = create<AppState>((set) => ({
     localStorage.setItem('pu-theme', v ? 'dark' : 'light');
   },
 
-  profilePic: `https://wsrv.nl/?url=http://www.sims.pu.edu.bd/students/studentPhoto&output=webp`,
+  profilePic: '',
   setProfilePic: (v) => set({ profilePic: v }),
 
   isSelectionLocked: false,
