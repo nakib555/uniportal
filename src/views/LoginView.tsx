@@ -282,8 +282,8 @@ export const LoginView: React.FC = () => {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAzNHYtbDItMi0ydjJIMzZ6IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz48L2c+PC9zdmc+')] z-0"></div>
 
         <div className="absolute top-12 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
-          <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20">
-            <Sparkles className="w-8 h-8 text-white animate-pulse" />
+          <div className="w-16 h-16 bg-white/15 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/25 shadow-lg p-2.5 overflow-hidden">
+            <img src="/pu.png" alt="University Logo" className="w-full h-full object-contain drop-shadow" />
           </div>
         </div>
 
@@ -317,8 +317,8 @@ export const LoginView: React.FC = () => {
       {/* Right side: Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative pt-24 sm:pt-32">
          <div className="absolute top-8 left-1/2 -translate-x-1/2 z-20 lg:hidden">
-           <div className="w-12 h-12 bg-stone-100 dark:bg-stone-800 rounded-xl flex items-center justify-center border border-stone-200 dark:border-stone-700">
-             <Sparkles className="w-6 h-6 text-[#8c1515] dark:text-[#ef4444]" />
+           <div className="w-14 h-14 bg-white dark:bg-stone-800 rounded-2xl flex items-center justify-center border border-stone-200 dark:border-stone-700 shadow-md p-2 overflow-hidden">
+             <img src="/pu.png" alt="University Logo" className="w-full h-full object-contain" />
            </div>
          </div>
 

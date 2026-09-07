@@ -107,10 +107,12 @@ const getInitialTab = (): string => {
     if (hash && VALID_TABS.has(hash)) {
       return hash;
     }
-    const storedTab = window.localStorage?.getItem('pu_active_tab');
-    if (storedTab && VALID_TABS.has(storedTab)) {
-      return storedTab;
-    }
+    try {
+      const storedTab = window.sessionStorage?.getItem('pu_active_tab');
+      if (storedTab && VALID_TABS.has(storedTab)) {
+        return storedTab;
+      }
+    } catch (_) {}
   }
   return 'home';
 };
@@ -157,6 +159,7 @@ export const useAppStore = create<AppState>((set) => ({
         localStorage.removeItem('pu_active_student_id');
         localStorage.removeItem('pu_session_expires_at');
         localStorage.removeItem('pu_active_tab');
+        try { window.sessionStorage?.removeItem('pu_active_tab'); } catch (_) {}
         if (window.location.hash) {
           try {
             history.replaceState(null, '', window.location.pathname + window.location.search);
@@ -252,7 +255,7 @@ export const useAppStore = create<AppState>((set) => ({
   setActiveTab: (tab) => {
     if (typeof window !== 'undefined') {
       try {
-        localStorage.setItem('pu_active_tab', tab);
+        window.sessionStorage?.setItem('pu_active_tab', tab);
         if (window.location.hash.replace(/^#\/?/, '') !== tab) {
           window.location.hash = `#${tab}`;
         }
