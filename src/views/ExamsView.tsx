@@ -43,18 +43,18 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
         setPasswordError(null);
         setSyncFeedback({
           type: 'success',
-          message: res.message || 'Exam schedule and admit card synced with Presidency SIMS.'
+          message: res.message || 'Exam schedule and admit card synced with the University Portal.'
         });
       } else {
         setSyncFeedback({
           type: 'error',
-          message: res.message || 'Could not retrieve exam schedule from Presidency SIMS.'
+          message: res.message || 'Could not retrieve exam schedule from the University Portal.'
         });
       }
     } catch (err: any) {
       setSyncFeedback({
         type: 'error',
-        message: err?.message || 'Network error while contacting Presidency SIMS portal.'
+        message: err?.message || 'Network error while contacting the University Portal.'
       });
     } finally {
       setIsLocalSyncing(false);
@@ -64,7 +64,7 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!simsPassword.trim()) {
-      setPasswordError('Please enter your SIMS password.');
+      setPasswordError('Please enter your portal password.');
       return;
     }
     setPasswordError(null);
@@ -90,7 +90,7 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
         <div>
           <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white">Exam Routine & Seat Plan</h2>
           <p className="text-stone-500 dark:text-stone-400 mt-1 text-sm">
-            Official examination timetable, seat plan, and room allocations synchronized with Presidency University SIMS.
+            Official examination timetable, seat plan, and room allocations synchronized with the University Portal.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
@@ -206,7 +206,7 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
         <Card className="p-8 border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-sm space-y-4">
           <div className="flex items-center justify-center gap-3 py-4 text-stone-600 dark:text-stone-300">
             <Loader2 className="w-5 h-5 animate-spin text-[#8c1515]" />
-            <span className="font-semibold text-sm">Querying Presidency University SIMS for Exam Routine & Seat Plan...</span>
+            <span className="font-semibold text-sm">Querying University Portal for Exam Routine & Seat Plan...</span>
           </div>
           <div className="space-y-3">
             {[1, 2, 3, 4].map((i) => (
@@ -224,7 +224,7 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
             <div>
               <h3 className="font-bold text-lg text-stone-800 dark:text-stone-200">Exam Schedule Awaiting Publication</h3>
               <p className="text-xs max-w-lg mx-auto text-stone-500 dark:text-stone-400 mt-1">
-                The Controller of Examinations has not released the examination timetable for {currentSemester} on Presidency University SIMS yet, or your routine has not been posted.
+                The Controller of Examinations has not released the examination timetable for {currentSemester} on the University Portal yet, or your routine has not been posted.
               </p>
             </div>
             <div className="pt-2">
@@ -282,7 +282,7 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-[#8c1515] dark:text-[#ef4444]" />
               <h3 className="font-extrabold text-sm uppercase tracking-wider text-stone-700 dark:text-stone-300">
-                Presidency University - Final Exam Schedule ({filteredExams.length} Courses)
+                University - Final Exam Schedule ({filteredExams.length} Courses)
               </h3>
             </div>
             <span className="text-xs text-stone-500 dark:text-stone-400 font-mono">
@@ -406,7 +406,7 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
         </div>
       )}
 
-      {/* Password Prompt Modal for SIMS Sync */}
+      {/* Password Prompt Modal for Portal Sync */}
       {isPasswordModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
           <Card className="w-full max-w-md p-6 bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 shadow-2xl space-y-4">
@@ -415,19 +415,19 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
                 <Lock className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-extrabold text-base text-stone-900 dark:text-white">Presidency SIMS Password</h3>
+                <h3 className="font-extrabold text-base text-stone-900 dark:text-white">University Portal Password</h3>
                 <p className="text-xs text-stone-500 dark:text-stone-400">Required to fetch Exam Admit Card & Schedule</p>
               </div>
             </div>
 
             <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed">
-              Presidency University SIMS requires session authentication to retrieve official seat allocations and room details.
+              The University Portal requires session authentication to retrieve official seat allocations and room details.
             </p>
 
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">
-                  SIMS Portal Password
+                  Portal Password
                 </label>
                 <input
                   type="password"

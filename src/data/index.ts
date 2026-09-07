@@ -174,7 +174,7 @@ export const PREDEFINED_STUDENTS_LIST: { id: string; name: string; program: stri
 
 /**
  * Returns student portal data dynamically with zero pre-preserved records,
- * or synchronized records if fetched from Presidency SIMS.
+ * or synchronized records if fetched from the University Portal.
  */
 export function getStudentData(studentId?: string | null): StudentDetails {
   const currentId = studentId && studentId.trim() ? studentId.trim() : "";
@@ -199,7 +199,7 @@ export function getStudentData(studentId?: string | null): StudentDetails {
       creditsCompleted: 0,
       cgpa: 0.00,
       accountBalance: 0.00,
-      email: currentId ? `${currentId}@student.presidency.edu.bd` : "",
+      email: currentId ? `${currentId}@student.university.edu` : "",
       gpaHistory: []
     },
     registeredCourses: [...REGISTERED_COURSES],

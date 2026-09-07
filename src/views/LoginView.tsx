@@ -13,7 +13,7 @@ import {
   DialogClose,
 } from '../components/ui/dialog';
 import { Button } from '../components/ui/button';
-import { PuSyncService } from '../services/puSyncService';
+import { PortalSyncService, PuSyncService } from '../services/puSyncService';
 import { tempAuthService } from '../services/tempAuthService';
 
 export const LoginView: React.FC = () => {
@@ -41,8 +41,8 @@ export const LoginView: React.FC = () => {
     setError('');
 
     try {
-      setSyncStatus('Connecting to Presidency University SIMS...');
-      const syncResult = await PuSyncService.syncWithPresidency(cleanId, cleanPass);
+      setSyncStatus('Connecting to the University Portal...');
+      const syncResult = await PortalSyncService.syncWithUniversity(cleanId, cleanPass);
       setSyncStatus('Synchronizing courses & financial ledger...');
       
       if (syncResult.success && syncResult.studentData) {
@@ -57,7 +57,7 @@ export const LoginView: React.FC = () => {
         setError(syncResult.message || 'Unable to synchronize student portal records.');
       }
     } catch (err: any) {
-      setError(err?.message || 'Authentication error with Presidency SIMS');
+      setError(err?.message || 'Authentication error with the University Portal');
     } finally {
       setIsLoading(false);
       setSyncStatus('');
@@ -129,11 +129,11 @@ export const LoginView: React.FC = () => {
     }
 
     try {
-      setSyncStatus('Connecting to Presidency University SIMS...');
+      setSyncStatus('Connecting to the University Portal...');
       await new Promise(r => setTimeout(r, 400));
       
       setSyncStatus('Fetching academic records & schedules...');
-      const syncResult = await PuSyncService.syncWithPresidency(cleanId, password);
+      const syncResult = await PortalSyncService.syncWithUniversity(cleanId, password);
 
       setSyncStatus('Synchronizing courses & financial ledger...');
       await new Promise(r => setTimeout(r, 300));
@@ -156,7 +156,7 @@ export const LoginView: React.FC = () => {
         setError(syncResult.message || 'Unable to synchronize student portal records.');
       }
     } catch (err: any) {
-      setError(err?.message || 'Authentication error with Presidency SIMS');
+      setError(err?.message || 'Authentication error with the University Portal');
     } finally {
       setIsLoading(false);
       setSyncStatus('');
@@ -282,7 +282,9 @@ export const LoginView: React.FC = () => {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAzNHYtbDItMi0ydjJIMzZ6IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz48L2c+PC9zdmc+')] z-0"></div>
 
         <div className="absolute top-12 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
-            <img src="https://wsrv.nl/?url=http://www.sims.pu.edu.bd/img/layout/header_logo.png&output=webp" alt="PU" className="h-28 w-auto object-contain brightness-0 invert" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+          <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20">
+            <Sparkles className="w-8 h-8 text-white animate-pulse" />
+          </div>
         </div>
 
         <div className="relative z-10 max-w-md">
@@ -315,7 +317,9 @@ export const LoginView: React.FC = () => {
       {/* Right side: Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative pt-24 sm:pt-32">
          <div className="absolute top-8 left-1/2 -translate-x-1/2 z-20 lg:hidden">
-            <img src="https://wsrv.nl/?url=http://www.sims.pu.edu.bd/img/layout/header_logo.png&output=webp" alt="PU" className="h-16 w-auto object-contain dark:brightness-0 dark:invert" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+           <div className="w-12 h-12 bg-stone-100 dark:bg-stone-800 rounded-xl flex items-center justify-center border border-stone-200 dark:border-stone-700">
+             <Sparkles className="w-6 h-6 text-[#8c1515] dark:text-[#ef4444]" />
+           </div>
          </div>
 
          <div className="w-full max-w-md">

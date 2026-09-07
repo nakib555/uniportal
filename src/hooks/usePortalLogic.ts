@@ -3,7 +3,7 @@ import { useAppStore } from '../store';
 import { 
   AVAILABLE_COURSES, FEES_LIST, Course, getStudentData, ClassSchedule 
 } from '../data';
-import { PuSyncService } from '../services/puSyncService';
+import { PortalSyncService, PuSyncService } from '../services/puSyncService';
 import { tempAuthService } from '../services/tempAuthService';
 import { haptics } from '../utils/haptics';
 
@@ -128,8 +128,8 @@ export const usePortalLogic = () => {
 
     try {
       const res = targetModule === 'all'
-        ? await PuSyncService.syncWithPresidency(store.currentStudentId, passwordToUse, { skipAdmitCard: false })
-        : await PuSyncService.syncModule(store.currentStudentId, passwordToUse, targetModule);
+        ? await PortalSyncService.syncWithUniversity(store.currentStudentId, passwordToUse, { skipAdmitCard: false })
+        : await PortalSyncService.syncModule(store.currentStudentId, passwordToUse, targetModule);
 
       if (res.success && res.studentData) {
         if (targetModule === 'courses' || targetModule === 'all') {
@@ -219,7 +219,7 @@ export const usePortalLogic = () => {
       }
       return { ...res, needsPassword: false };
     } catch (e: any) {
-      const errMsg = e.message || 'Error synchronizing exam routine from SIMS.';
+      const errMsg = e.message || 'Error synchronizing exam routine from University Portal.';
       setExamSyncError(errMsg);
       return { success: false, message: errMsg, needsPassword: false };
     } finally {

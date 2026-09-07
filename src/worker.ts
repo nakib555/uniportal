@@ -1,43 +1,41 @@
-import { executePresidencySync } from './server/puProxy';
+import { executePortalSync } from './server/puProxy';
 
 export default {
   async fetch(request: Request, env: any, ctx: any): Promise<Response> {
     const url = new URL(request.url);
 
     if (url.pathname === '/api/proxy-image') {
-      const targetUrl = url.searchParams.get('url');
-      if (!targetUrl) {
-        return new Response('Missing url parameter', { status: 400 });
-      }
-      try {
-        const targetRes = await fetch(targetUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Referer': 'http://sims.pu.edu.bd/students/profile'
-          }
-        });
-        
-        // Prevent downloading "No Image Available" generic placeholders
-        if (/no[_\-]?photo|no[_\-]?image|not[_\-]?available|default|blank|avatar/i.test(targetRes.url)) {
-          return new Response('Placeholder image', { status: 404 });
+      const urlString = url.searchParams.get('url') || '';
+      const studentId = urlString.split('/').pop()?.split('.')[0] || '123456';
+      
+      const cleanId = studentId.trim();
+      const initials = cleanId.slice(0, 2).toUpperCase() || 'ST';
+      
+      const colors = ['#8c1515', '#1e3a8a', '#115e59', '#3b0764', '#0f172a'];
+      const charCodeSum = initials.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+      const bg = colors[charCodeSum % colors.length];
+
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+          <rect width="100%" height="100%" fill="${bg}" />
+          <text x="50%" y="55%" font-family="sans-serif" font-size="44" font-weight="900" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">
+            ${initials}
+          </text>
+        </svg>
+      `.trim();
+
+      return new Response(svg, {
+        status: 200,
+        headers: {
+          'Content-Type': 'image/svg+xml',
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'public, max-age=86400'
         }
-        
-        const contentType = targetRes.headers.get('content-type') || 'application/octet-stream';
-        return new Response(targetRes.body, {
-          status: targetRes.status,
-          headers: {
-            'Content-Type': contentType,
-            'Access-Control-Allow-Origin': '*',
-            'Cache-Control': 'public, max-age=86400'
-          }
-        });
-      } catch (err) {
-        return new Response('Failed to fetch image', { status: 500 });
-      }
+      });
     }
 
-    // Only handle POST requests on /api/pu-sync
-    if (url.pathname === '/api/pu-sync') {
+    // Only handle POST requests on /api/university-sync
+    if (url.pathname === '/api/university-sync') {
       // CORS preflight options request
       if (request.method === 'OPTIONS') {
         return new Response(null, {
@@ -64,7 +62,7 @@ export default {
         const bodyText = await request.text();
         const { studentId, password, skipAdmitCard, admitCardOnly, module } = JSON.parse(bodyText || '{}');
 
-        const result = await executePresidencySync(studentId, password, { skipAdmitCard, admitCardOnly, module });
+        const result = await executePortalSync(studentId, password, { skipAdmitCard, admitCardOnly, module });
 
         return new Response(JSON.stringify(result), {
           status: result.status,

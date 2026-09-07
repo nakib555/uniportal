@@ -164,7 +164,7 @@ export function MobileLayout(props: ReturnType<typeof usePortalLogic>) {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-3">
               <img src="/icon.svg" alt="UniPortal" className="h-10 w-10 object-contain rounded-xl shadow-xs shrink-0" />
               <div className="font-black text-xl tracking-tight text-stone-900 dark:text-white leading-none">
-                Sims<span className="text-[#8c1515] dark:text-[#ef4444]">.</span>
+                Portal<span className="text-[#8c1515] dark:text-[#ef4444]">.</span>
               </div>
             </motion.div>
           ) : (

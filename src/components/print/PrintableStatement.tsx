@@ -6,7 +6,7 @@ export function PrintableStatement({ student, totalDebit, totalCredit, currentDu
   return (
     <div className="hidden print:block font-serif text-black bg-white w-full print:p-0 [print-color-adjust:exact] [-webkit-print-color-adjust:exact]">
        <div className="text-center border-b-2 border-black pb-4 mb-6">
-           <h1 className="text-2xl font-bold uppercase tracking-wider print:text-black">PRESIDENCY UNIVERSITY</h1>
+           <h1 className="text-2xl font-bold uppercase tracking-wider print:text-black">UNIVERSITY PORTAL</h1>
            <h2 className="text-xl font-bold mb-1 print:text-black">Statement of Account</h2>
            <p className="text-sm print:text-gray-600 mt-1">Generated on: {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
        </div>

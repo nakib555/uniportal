@@ -63,7 +63,7 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
         setFetchError(result.message || 'Failed to fetch Admit Card.');
       }
     } catch (err: any) {
-      setFetchError(err?.message || 'Error communicating with Presidency SIMS.');
+      setFetchError(err?.message || 'Error communicating with the University Portal.');
       setHasAttemptedFetch(true);
     } finally {
       setIsFetching(false);
@@ -100,7 +100,7 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
                   Retrieving Examination Clearance & Routine...
                 </h4>
                 <p className="text-xs text-amber-700/90 dark:text-amber-300/80 mt-0.5">
-                  Connecting directly to the Presidency University SIMS exam database for Student ID <strong className="font-mono">{currentStudentId}</strong>.
+                  Connecting directly to the University Portal exam database for Student ID <strong className="font-mono">{currentStudentId}</strong>.
                 </p>
               </div>
             </div>
@@ -118,10 +118,10 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
             <FileQuestion className="w-7 h-7" />
           </div>
           <h3 className="text-lg font-bold text-stone-900 dark:text-white mb-2">
-            SIMS Authentication Required
+            Portal Authentication Required
           </h3>
           <p className="text-sm text-stone-600 dark:text-stone-400 mb-6 max-w-md mx-auto">
-            To query official exam routine and financial clearance from Presidency University SIMS, please provide your portal password for verification.
+            To query official exam routine and financial clearance from the University Portal, please provide your portal password for verification.
           </p>
 
           <form
@@ -133,14 +133,14 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
           >
             <div className="text-left">
               <label className="text-xs font-bold text-stone-600 dark:text-stone-300 mb-1 block">
-                SIMS Portal Password
+                Portal Password
               </label>
               <input
                 type="password"
                 required
                 value={manualPassword}
                 onChange={(e) => setManualPassword(e.target.value)}
-                placeholder="Enter your SIMS password"
+                placeholder="Enter your portal password"
                 className="w-full px-3.5 py-2.5 bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#8c1515]/20 focus:border-[#8c1515]"
               />
             </div>
@@ -155,7 +155,7 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
         </Card>
       )}
 
-      {/* 3. RESTRICTED FLOW - Match real Presidency SIMS screenshot exactly */}
+      {/* 3. RESTRICTED FLOW - Match real official screenshot exactly */}
       {!isFetching && !showPasswordPrompt && hasOutstandingBalance && (
         <div className="space-y-6">
           <Card className="p-8 border-2 border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center rounded-2xl max-w-2xl mx-auto shadow-sm">
@@ -174,18 +174,15 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
             </div>
           </Card>
 
-          {/* Controller of Examinations signature footer (Matching real screenshot exactly) */}
+          {/* Controller of Examinations signature footer (Matching real layout exactly) */}
           <div className="pt-10 max-w-2xl mx-auto flex justify-end">
             <div className="text-right space-y-1">
               <div className="inline-block border-b border-stone-300 dark:border-stone-700 pb-2">
-                <img 
-                  src="https://wsrv.nl/?url=http://sims.presidency.edu.bd/img/layout/Signature_of_Exam_Controller.png&output=webp" 
-                  alt="Signature" 
-                  className="h-10 w-auto object-contain mx-auto mix-blend-multiply dark:brightness-200 dark:contrast-100" 
-                  referrerPolicy="no-referrer"
-                />
+                <span className="font-serif italic text-base text-stone-700 dark:text-stone-300 block select-none px-4 py-1 leading-none tracking-wide font-medium">
+                  M. Z. Rahman
+                </span>
               </div>
-              <div className="text-sm font-bold text-stone-800 dark:text-stone-200">(Mohammad Zahedur Rahman)</div>
+              <div className="text-sm font-bold text-stone-800 dark:text-stone-200">(Office of the Controller)</div>
               <div className="text-xs font-bold text-stone-500 dark:text-stone-400">Controller of Examinations</div>
             </div>
           </div>
@@ -215,7 +212,7 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
 
           <div className="flex justify-center items-center">
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 text-xs font-medium border border-stone-200 dark:border-stone-700">
-              Tip: Click <strong>Smart Refresh</strong> in the top navigation anytime to query Presidency SIMS
+              Tip: Click <strong>Smart Refresh</strong> in the top navigation anytime to query the University Portal
             </span>
           </div>
         </Card>
@@ -228,14 +225,11 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
             {/* Slip Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 sm:pb-6 border-b border-stone-200 dark:border-stone-800">
               <div className="flex items-center gap-2.5 sm:gap-4">
-                <img 
-                  src="https://wsrv.nl/?url=http://sims.presidency.edu.bd/img/layout/header_logo.png&output=webp" 
-                  alt="Presidency University" 
-                  className="h-10 sm:h-12 w-auto object-contain dark:brightness-200 shrink-0" 
-                  referrerPolicy="no-referrer"
-                />
+                <div className="w-10 sm:w-12 h-10 sm:h-12 rounded bg-stone-900 flex items-center justify-center text-white font-black text-lg select-none">
+                  U
+                </div>
                 <div>
-                  <h1 className="text-sm sm:text-lg font-black tracking-tight text-stone-900 dark:text-white uppercase leading-tight">Presidency University</h1>
+                  <h1 className="text-sm sm:text-lg font-black tracking-tight text-stone-900 dark:text-white uppercase leading-tight">University Portal</h1>
                   <p className="text-[10px] sm:text-xs font-bold text-stone-500 uppercase tracking-widest leading-tight">Office of the Controller of Examinations</p>
                 </div>
               </div>
@@ -324,14 +318,11 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
               </div>
               <div className="text-right space-y-0.5 sm:space-y-1 shrink-0">
                 <div className="inline-block border-b border-stone-300 dark:border-stone-700 pb-1 sm:pb-2">
-                  <img 
-                    src="https://wsrv.nl/?url=http://sims.presidency.edu.bd/img/layout/Signature_of_Exam_Controller.png&output=webp" 
-                    alt="Signature" 
-                    className="h-8 sm:h-10 w-auto object-contain ml-auto mix-blend-multiply dark:brightness-200 dark:contrast-100" 
-                    referrerPolicy="no-referrer"
-                  />
+                  <span className="font-serif italic text-base text-stone-700 dark:text-stone-300 block select-none px-4 py-1 leading-none tracking-wide font-medium">
+                    M. Z. Rahman
+                  </span>
                 </div>
-                <div className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200">(Mohammad Zahedur Rahman)</div>
+                <div className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200">(Office of the Controller)</div>
                 <div className="text-[10px] sm:text-xs font-bold text-stone-500 dark:text-stone-400">Controller of Examinations</div>
               </div>
             </div>

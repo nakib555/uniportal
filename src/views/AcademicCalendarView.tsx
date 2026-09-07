@@ -287,7 +287,7 @@ const CALENDAR_DATA: CalendarEvent[] = [
   },
   { 
     activity: "Last date of grade submission and publication of results", 
-    details: "Submission in SIMS and to the Controller of Examinations office",
+    details: "Submission in Portal database and to the Controller of Examinations office",
     date: "24 Dec 2026", 
     day: "Thursday", 
     type: "academic", 
@@ -394,7 +394,7 @@ export function AcademicCalendarView() {
               Fall 2026
             </Badge>
           </div>
-          <p className="text-sm text-stone-500 mt-1">Presidency University Trimester Schedule, Regulatory Deadlines & Examination Matrix</p>
+          <p className="text-sm text-stone-500 mt-1">University Trimester Schedule, Regulatory Deadlines & Examination Matrix</p>
         </div>
       </div>
 

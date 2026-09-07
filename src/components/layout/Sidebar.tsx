@@ -35,7 +35,7 @@ export const Sidebar: React.FC = () => {
         <div className={clsx("flex items-center gap-3", isSidebarCollapsed && "md:hidden")}>
           <img src="/icon.svg" alt="UniPortal" className="w-10 h-10 rounded-xl shadow-md shrink-0" />
           <div className="font-black text-xl tracking-tight text-stone-900 dark:text-white leading-none">
-             Sims<span className="text-[#8c1515] dark:text-[#ef4444]">.</span>
+             Portal<span className="text-[#8c1515] dark:text-[#ef4444]">.</span>
           </div>
         </div>
         {/* Toggle Collapse Desktop */}

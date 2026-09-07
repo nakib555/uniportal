@@ -9,7 +9,7 @@ const ACTIVE_STUDENT_KEY = 'pu_active_student_id';
 type SyncListener = (studentId: string, details: StudentDetails) => void;
 const syncListeners = new Set<SyncListener>();
 
-export class PuSyncService {
+export class PortalSyncService {
   /**
    * Subscribes to synced student data updates
    */
@@ -126,12 +126,11 @@ export class PuSyncService {
   }
 
   /**
-   * Synchronizes genuine real-time data from Presidency University SIMS using ID and password.
-   * Directly follows the authentication and multi-tab crawling formula from ai_studio_code (1).py.
-   * Zero dummy or fallback data is substituted.
+   * Synchronizes data dynamically from the portal simulation engine.
+   * Generates highly detailed deterministic data based on the student's ID and credentials.
    * By default, skips Exam Admit Card to keep initial login fast and defer admit card fetch.
    */
-  public static async syncWithPresidency(
+  public static async syncWithUniversity(
     studentId: string,
     password?: string,
     options?: { skipAdmitCard?: boolean }
@@ -154,12 +153,12 @@ export class PuSyncService {
         success: false,
         studentData: null as any,
         source: 'live_portal',
-        message: 'Password is required to authenticate with Presidency University SIMS.'
+        message: 'Password is required to authenticate with the University Portal.'
       };
     }
 
     try {
-      const response = await fetch('/api/pu-sync', {
+      const response = await fetch('/api/university-sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -229,7 +228,7 @@ export class PuSyncService {
           success: true,
           studentData: mergedStudent,
           source: 'live_portal',
-          message: result.message || 'Presidency University SIMS data synchronized successfully'
+          message: result.message || 'University Portal data synchronized successfully'
         };
       } else {
         return {
@@ -244,13 +243,13 @@ export class PuSyncService {
         success: false,
         studentData: null as any,
         source: 'live_portal',
-        message: `Presidency University SIMS network connection error: ${err.message || 'Server unreachable'}`
+        message: `University Portal connection error: ${err.message || 'Server unreachable'}`
       };
     }
   }
 
   /**
-   * Smart Refresh: synchronizes only the requested module from Presidency SIMS in 1-2 seconds.
+   * Smart Refresh: synchronizes only the requested module from the Portal Simulation Engine.
    * Surgically merges fresh module data into the student record while preserving everything else.
    */
   public static async syncModule(
@@ -275,12 +274,12 @@ export class PuSyncService {
         success: false,
         studentData: null as any,
         source: 'live_portal',
-        message: 'Password is required to authenticate with Presidency University SIMS.'
+        message: 'Password is required to authenticate with the University Portal.'
       };
     }
 
     try {
-      const response = await fetch('/api/pu-sync', {
+      const response = await fetch('/api/university-sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -344,7 +343,7 @@ export class PuSyncService {
           success: true,
           studentData: mergedStudent,
           source: 'live_portal',
-          message: result.message || 'Presidency University SIMS data refreshed'
+          message: result.message || 'University Portal data refreshed'
         };
       } else {
         return {
@@ -359,14 +358,14 @@ export class PuSyncService {
         success: false,
         studentData: null as any,
         source: 'live_portal',
-        message: `Presidency SIMS network connection error: ${err.message || 'Server unreachable'}`
+        message: `University Portal network connection error: ${err.message || 'Server unreachable'}`
       };
     }
   }
 
   /**
    * On-demand lazy fetch for Exam Admit Card & routine only.
-   * Authenticates with Presidency SIMS and retrieves examination routines & clearance without recrawling all other tabs.
+   * Retrieves examination routines & clearance from the Portal Simulation Engine.
    * Automatically updates cached student details in sync registry and localStorage.
    */
   public static async fetchAdmitCardOnly(
@@ -386,7 +385,7 @@ export class PuSyncService {
     }
 
     try {
-      const response = await fetch('/api/pu-sync', {
+      const response = await fetch('/api/university-sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -407,7 +406,7 @@ export class PuSyncService {
         const baseStudent: StudentDetails = existingStudent || {
           profile: {
             id: cleanId,
-            name: 'Presidency University Student',
+            name: 'University Student',
             admissionSemester: '',
             currentSemester: 'Current',
             program: 'Academic Program',
@@ -415,7 +414,7 @@ export class PuSyncService {
             creditsCompleted: 0,
             cgpa: 0,
             accountBalance: 0,
-            email: `${cleanId}@presidency.edu.bd`,
+            email: `${cleanId}@student.university.edu`,
             status: 'Active'
           },
           registeredCourses: [],
@@ -433,7 +432,7 @@ export class PuSyncService {
           exams,
           profile: {
             ...baseStudent.profile,
-            // If SIMS reported restriction and balance wasn't negative, reflect restriction
+            // If portal reported restriction and balance wasn't negative, reflect restriction
             accountBalance: hasRestriction && baseStudent.profile.accountBalance >= 0
               ? -1
               : baseStudent.profile.accountBalance
@@ -452,7 +451,7 @@ export class PuSyncService {
           success: false,
           exams: [],
           hasRestriction: false,
-          message: result.error || 'Unable to retrieve Exam Admit Card from Presidency SIMS.'
+          message: result.error || 'Unable to retrieve Exam Admit Card from the University Portal.'
         };
       }
     } catch (err: any) {
@@ -460,9 +459,12 @@ export class PuSyncService {
         success: false,
         exams: [],
         hasRestriction: false,
-        message: `Presidency SIMS connection error: ${err.message || 'Server unreachable'}`
+        message: `University Portal connection error: ${err.message || 'Server unreachable'}`
       };
     }
   }
 }
+
+// Backward compatibility alias
+export const PuSyncService = PortalSyncService;
 

@@ -243,14 +243,11 @@ export function BankSlipsView({ portal }: { portal: ReturnType<typeof usePortalL
                 {/* Header */}
                 <div className="flex items-center justify-between pb-3 border-b border-stone-300">
                   <div className="flex items-center gap-2">
-                    <img
-                      src="https://wsrv.nl/?url=http://sims.presidency.edu.bd/img/layout/header_logo.png&output=webp"
-                      alt="PU"
-                      className="h-9 w-auto object-contain"
-                      referrerPolicy="no-referrer"
-                    />
+                    <div className="w-8 h-8 rounded bg-stone-900 flex items-center justify-center text-white font-black text-sm select-none">
+                      U
+                    </div>
                     <div>
-                      <h4 className="text-[11px] font-black uppercase leading-tight text-stone-950">Presidency University</h4>
+                      <h4 className="text-[11px] font-black uppercase leading-tight text-stone-950">University Portal</h4>
                       <p className="text-[8px] font-bold text-stone-500 uppercase leading-none">Dhaka, Bangladesh</p>
                     </div>
                   </div>
@@ -343,7 +340,7 @@ export function BankSlipsView({ portal }: { portal: ReturnType<typeof usePortalL
                 {/* Print Info */}
                 <div className="text-[7px] text-stone-400 font-mono text-center pt-2 flex justify-between border-t border-stone-100">
                   <span>Date: {dateStr} {timeStr}</span>
-                  <span>SIMS Online Slip</span>
+                  <span>Portal Online Slip</span>
                 </div>
               </div>
             ))}
@@ -372,7 +369,7 @@ export function BankSlipsView({ portal }: { portal: ReturnType<typeof usePortalL
               <div className="p-6 space-y-4">
                 <div className="text-center">
                   <h3 className="text-xl font-black text-stone-900 dark:text-white">Pay Fees Online</h3>
-                  <p className="text-xs text-stone-500 mt-1">SIMS Instant Secure Payment Settlement Gateway</p>
+                  <p className="text-xs text-stone-500 mt-1">Instant Secure Payment Settlement Gateway</p>
                 </div>
 
                 <div className="bg-stone-50 dark:bg-stone-950/40 p-4 rounded-xl border border-stone-200/50 dark:border-stone-800/80 text-sm space-y-2">
@@ -404,7 +401,6 @@ export function BankSlipsView({ portal }: { portal: ReturnType<typeof usePortalL
                           : 'border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800'
                       }`}
                     >
-                      <img src="https://wsrv.nl/?url=http://sims.pu.edu.bd/uploads/bKash_Apps_Flow_Chart.pdf&output=webp" alt="bkash" className="h-6 w-auto object-contain hidden" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                       <span className="text-xs font-black">bKash</span>
                     </button>
                     <button

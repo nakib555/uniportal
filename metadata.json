@@ -1,6 +1,6 @@
 {
   "name": "UniPortal",
-  "description": "University student portal with automated course enrollment and payment handling.",
+  "description": "Smart simulation and viewer for university student records, statements, schedules, and exams.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

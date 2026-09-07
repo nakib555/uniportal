@@ -39,7 +39,7 @@ export function exportStatementToPdf({
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
   doc.setTextColor(140, 21, 21); // #8c1515 University Crimson
-  doc.text('PRESIDENCY UNIVERSITY', pageWidth / 2, 16, { align: 'center' });
+  doc.text('UNIVERSITY PORTAL', pageWidth / 2, 16, { align: 'center' });
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
@@ -169,7 +169,7 @@ export function exportStatementToPdf({
       doc.setFont('helvetica', 'normal');
       const footerY = doc.internal.pageSize.getHeight() - 8;
       doc.text(
-        'This document is a computer-generated statement and does not require an official signature. Presidency University SIMS.',
+        'This document is a computer-generated statement and does not require an official signature. University Portal Ledger.',
         14,
         footerY
       );
@@ -184,5 +184,5 @@ export function exportStatementToPdf({
 
   const sanitizedId = (student.id || 'Student').replace(/[^a-zA-Z0-9]/g, '_');
   const dateStamp = new Date().toISOString().slice(0, 10);
-  doc.save(`Presidency_Statement_${sanitizedId}_${dateStamp}.pdf`);
+  doc.save(`University_Statement_${sanitizedId}_${dateStamp}.pdf`);
 }

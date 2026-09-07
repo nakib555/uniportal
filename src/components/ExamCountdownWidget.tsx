@@ -108,11 +108,6 @@ export function ExamCountdownWidget({ portalExams }: { portalExams?: Exam[] }) {
 
   const nextExamInfo = useActiveExam(portalExams);
 
-  // If no exams exist in portal data, do not render the widget
-  if (!portalExams || portalExams.length === 0) {
-    return null;
-  }
-
   // Live timer tick
   useEffect(() => {
     if (!nextExamInfo) return;
@@ -137,7 +132,8 @@ export function ExamCountdownWidget({ portalExams }: { portalExams?: Exam[] }) {
     return () => clearInterval(intervalId);
   }, [nextExamInfo]);
 
-  if (!nextExamInfo || !timeLeft) {
+  // If no exams exist in portal data, or if no future exam is found, or if timer hasn't ticked yet, do not render
+  if (!portalExams || portalExams.length === 0 || !nextExamInfo || !timeLeft) {
     return null;
   }
 
