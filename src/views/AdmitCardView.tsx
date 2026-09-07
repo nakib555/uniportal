@@ -70,13 +70,6 @@ export function AdmitCardView({ portal }: { portal?: ReturnType<typeof usePortal
     }
   }, [currentStudentId]);
 
-  // Trigger lazy fetch on initial mount if admit card hasn't been retrieved yet for this session
-  useEffect(() => {
-    if (currentStudentId && !hasOfficialAdmitCardData && !hasAttemptedFetch && !isFetching) {
-      performFetch();
-    }
-  }, [currentStudentId, hasOfficialAdmitCardData, hasAttemptedFetch, isFetching, performFetch]);
-
   // Real date format
   const today = new Date();
   const dateStr = today.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '-');

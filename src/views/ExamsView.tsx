@@ -23,17 +23,7 @@ export function ExamsView({ portal }: { portal?: ReturnType<typeof usePortalLogi
   const [simsPassword, setSimsPassword] = useState('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  const initialFetchAttempted = useRef(false);
   const isSyncing = Boolean(portal?.isExamSyncing || isLocalSyncing);
-
-  // Auto-fetch exam schedule on first render if no exams are loaded
-  useEffect(() => {
-    if (initialFetchAttempted.current) return;
-    if (portal?.store?.currentStudentId && exams.length === 0) {
-      initialFetchAttempted.current = true;
-      handleSync();
-    }
-  }, [portal?.store?.currentStudentId, exams.length]);
 
   const handleSync = async (customPass?: string) => {
     if (!portal) return;
