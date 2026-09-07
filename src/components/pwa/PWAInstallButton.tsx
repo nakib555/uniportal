@@ -41,7 +41,7 @@ export function PWAInstallButton({ className = '' }: { className?: string }) {
             </button>
 
             <div className="flex items-center gap-3 mb-4">
-              <img src="/pu.png" alt="UniPortal" className="w-11 h-11 object-contain rounded-xl shadow-xs" />
+              <img src="/icon.svg" alt="UniPortal" className="w-11 h-11 object-contain rounded-xl shadow-xs" />
               <div>
                 <h4 className="font-extrabold text-base text-stone-900 dark:text-white">Install UniPortal</h4>
                 <p className="text-xs text-stone-500 dark:text-stone-400">Add to your iPhone / iPad Home Screen</p>
